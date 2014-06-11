@@ -81,8 +81,8 @@ sat p = symbol >>= match
 sat! : (Tok → Bool) → P Tok
 sat! p = fst <$> sat p
 
-this : {{EqTok : Eq Tok}} → Tok → P ⊤
-this t = _ <$ sat (isYes ∘ _==_ t)
+token : {{EqTok : Eq Tok}} → Tok → P ⊤
+token t = _ <$ sat (isYes ∘ _==_ t)
 
 {-# NO_TERMINATION_CHECK #-}
 many many₁ : ∀ {A} → P A → P (List A)
