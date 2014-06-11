@@ -61,3 +61,14 @@ postulate
 
 {-# COMPILED readFile  readFile  #-}
 {-# COMPILED writeFile writeFile #-}
+
+--- Command line arguments ---
+
+{-# IMPORT System.Environment #-}
+
+postulate
+  getArgs : IO (List String)
+  getProgName : IO String
+
+{-# COMPILED getArgs System.Environment.getArgs #-}
+{-# COMPILED getProgName System.Environment.getProgName #-}

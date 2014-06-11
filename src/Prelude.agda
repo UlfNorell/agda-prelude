@@ -24,6 +24,7 @@ open import Prelude.Applicative public
 open import Prelude.Monad       public
 open import Prelude.Coinduction public
 open import Prelude.Show        public
+open import Prelude.Ord         public
 
 open import Prelude.IO          public
 
