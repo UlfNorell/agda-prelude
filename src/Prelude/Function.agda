@@ -16,9 +16,12 @@ _∘_ : ∀ {a b c} {A : Set a} {B : A → Set b} {C : ∀ x → B x → Set c}
         ∀ x → C x (g x)
 (f ∘ g) x = f (g x)
 
-infixr 0 _$_ case_of_
+infixr 0 _$_ _$′_ case_of_
 _$_ : ∀ {a b} {A : Set a} {B : A → Set b} → (∀ x → B x) → ∀ x → B x
 f $ x = f x
+
+_$′_ : ∀ {a b}{A : Set a} {B : Set b} → (A → B) → A → B
+f $′ x = f x
 
 case_of_ : ∀ {a b} {A : Set a} {B : Set b} → A → (A → B) → B
 case x of f = f x
