@@ -48,4 +48,5 @@ EqString = record { _==_ = decEqString }
 
 OrdString : Ord String
 OrdString = OrdBy unpackString-inj
-  where O = OrdList {A = Char}
+  where O : Ord (List Char)
+        O = OrdList
