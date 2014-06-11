@@ -30,9 +30,13 @@ isAscii    = primIsAscii
 isLatin1   = primIsLatin1
 isPrint    = primIsPrint
 isHexDigit = primIsHexDigit
+isAlpha    = primIsAlpha
 
 toUpper    = primToUpper
 toLower    = primToLower
+
+isAlphaNum : Char → Bool
+isAlphaNum c = isAlpha c || isDigit c
 
 charToNat  = primCharToNat
 natToChar  = primNatToChar
@@ -53,6 +57,10 @@ decEqChar x y with eqChar x y
 
 EqChar : Eq Char
 EqChar = record { _==_ = decEqChar }
+
+-- Missing primitive isUpper
+isUpper : Char → Bool
+isUpper c = isNo (toLower c == c)
 
 --- Ord ---
 
