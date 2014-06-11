@@ -32,10 +32,16 @@ record Show {a} (A : Set a) : Set a where
   show : A → String
   show x = showsPrec 0 x ""
 
+  shows : A → ShowS
+  shows = showsPrec 0
+
 open Show {{...}} public
 
 simpleShowInstance : ∀ {a} {A : Set a} → (A → String) → Show A
 simpleShowInstance s = record { showsPrec = λ _ x r → s x & r }
+
+ShowBy : ∀ {a b} {A : Set a} {B : Set b} {{ShowB : Show B}} → (A → B) → Show A
+ShowBy f = record { showsPrec = λ p → showsPrec p ∘ f }
 
 --- Instances ---
 
