@@ -36,9 +36,6 @@ not : Bool → Bool
 not true  = false
 not false = true
 
-data True : Bool → Set where
-  true : True true
-
 IsTrue : Bool → Set
 IsTrue true  = ⊤
 IsTrue false = ⊥
@@ -58,6 +55,9 @@ EqBool = record { _==_ = eqBool }
 isYes : ∀ {a} {A : Set a} → Dec A → Bool
 isYes (yes _) = true
 isYes (no _)  = false
+
+isNo : ∀ {a} {A : Set a} → Dec A → Bool
+isNo = not ∘ isYes
 
 if′_then_else : ∀ {a} {A : Set a} (b : Bool) → ({{_ : IsTrue b}} → A) → ({{_ : IsFalse b}} → A) → A
 if′ true  then x else _ = x

@@ -4,11 +4,14 @@ module Prelude.Sum where
 open import Agda.Primitive
 open import Prelude.Empty
 open import Prelude.Unit
+open import Prelude.List
 open import Prelude.Functor
 open import Prelude.Applicative
 open import Prelude.Monad
 open import Prelude.Equality
 open import Prelude.Decidable
+open import Prelude.Product
+open import Prelude.Function
 
 data Either {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
   left  : A → Either A B
@@ -21,6 +24,19 @@ either : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
            (A → C) → (B → C) → Either A B → C
 either f g (left  x) = f x
 either f g (right x) = g x
+
+lefts : ∀ {a b} {A : Set a} {B : Set b} → List (Either A B) → List A
+lefts = concatMap λ { (left x) → [ x ]; (right _) → [] }
+
+rights : ∀ {a b} {A : Set a} {B : Set b} → List (Either A B) → List B
+rights = concatMap λ { (left _) → []; (right x) → [ x ] }
+
+partitionMap : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+                 (A → Either B C) → List A → List B × List C
+partitionMap f [] = [] , []
+partitionMap f (x ∷ xs) = either (first ∘ _∷_)
+                                 (λ y → second (_∷_ y))  -- second ∘ _∷_ doesn't work for some reason
+                                 (f x) (partitionMap f xs)
 
 --- Equality ---
 

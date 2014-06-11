@@ -5,17 +5,18 @@ open import Agda.Primitive
 open import Prelude.Function
 
 infixr 1 _,_
-record Σ {a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
- constructor _,_
- field
-   fst : A
-   snd : B fst
+data Σ {a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
+ _,_ : (x : A) (y : B x) → Σ A B
 
-open Σ public
+fst : ∀ {a b} {A : Set a} {B : A → Set b} → Σ A B → A
+fst (x , y) = x
+
+snd : ∀ {a b} {A : Set a} {B : A → Set b} (p : Σ A B) → B (fst p)
+snd (x , y) = y
 
 infixr 3 _×_
 _×_ : ∀ {a b} → Set a → Set b → Set (a ⊔ b)
-A × B = Σ A (const B)
+A × B = Σ A (λ _ → B)
 
 uncurry : ∀ {a b c} {A : Set a} {B : A → Set b} {C : ∀ x → B x → Set c} →
             (∀ x (y : B x) → C x y) → (p : Σ A B) → C (fst p) (snd p)

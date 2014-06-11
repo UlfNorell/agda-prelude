@@ -42,7 +42,7 @@ simpleShowInstance s = record { showsPrec = λ _ x r → s x & r }
 -- Bool --
 
 ShowBool : Show Bool
-ShowBool = simpleShowInstance λ { false → "false"; true → "true" }
+ShowBool = simpleShowInstance λ b → if b then "true" else "false"
 
 -- Nat --
 
