@@ -78,11 +78,11 @@ sat p = symbol >>= match
     match : Tok → P (Σ Tok (IsTrue ∘ p))
     match t = if′ p t then return (t , ⋯) else fail
 
-sat! : (Tok → Bool) →  P Tok
+sat! : (Tok → Bool) → P Tok
 sat! p = fst <$> sat p
 
-this : {{EqTok : Eq Tok}} → Tok → P Tok
-this t = sat! (isYes ∘ _==_ t)
+this : {{EqTok : Eq Tok}} → Tok → P ⊤
+this t = _ <$ sat (isYes ∘ _==_ t)
 
 {-# NO_TERMINATION_CHECK #-}
 many many₁ : ∀ {A} → P A → P (List A)
