@@ -36,9 +36,6 @@ not : Bool → Bool
 not true  = false
 not false = true
 
-data True : Bool → Set where
-  true : True true
-
 IsTrue : Bool → Set
 IsTrue true  = ⊤
 IsTrue false = ⊥
