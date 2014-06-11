@@ -82,6 +82,9 @@ sat p = symbol >>= match
 sat! : (Tok → Bool) →  P Tok
 sat! p = fst <$> sat p
 
+this : {{EqTok : Eq Tok}} → Tok → P Tok
+this t = sat! (isYes ∘ _==_ t)
+
 {-# NO_TERMINATION_CHECK #-}
 many many₁ : ∀ {a} {A : Set a} → P A → P (List A)
 many  p = return [] +++ many₁ p
