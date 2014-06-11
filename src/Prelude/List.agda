@@ -24,6 +24,11 @@ data List {a} (A : Set a) : Set a where
 {-# IMPORT Agda.FFI #-}
 {-# COMPILED_DATA List Agda.FFI.AgdaList [] (:) #-}
 
+pattern [_] x = x ∷ []
+
+singleton : ∀ {a} {A : Set a} → A → List A
+singleton x = x ∷ []
+
 map : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → List A → List B
 map f []       = []
 map f (x ∷ xs) = f x ∷ map f xs
