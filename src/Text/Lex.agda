@@ -81,7 +81,9 @@ module _ {a t s : Level} {A : Set a} {Tok : Set t} where
                    λ { []      → []
                      ; (t ∷ _) →
                        flip uncurry (partitionMap (feed x) (map init (idle₀ ++ idle₁)))
-                       (λ idle₂ active₂ → t List.∷ tokenize-loop idle₂ active₂ xs)
+                       λ { _ [] → t ∷ []
+                         ; idle₂ active₂ → t List.∷ tokenize-loop idle₂ active₂ xs
+                         }
                      }
            ; _  → tokenize-loop (idle₀ ++ idle₁) active₁ xs
            }
