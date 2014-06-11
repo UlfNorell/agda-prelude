@@ -1,0 +1,15 @@
+Name:               agda-ffi
+Version:            0.1
+Category:           FFI
+Author:             Ulf Norell
+Maintainer:         ulf.norell@gmail.com
+Build-Type:         Simple
+Cabal-Version:      >= 1.6
+Synopsis:           Wrapper code for Agda programs.
+Description:        This package contains a small interoperability layer
+                    for calling Haskell code from Agda.
+
+Library
+  Build-Depends:    base >= 3 && < 5
+  Exposed-Modules:  Agda.FFI
+
