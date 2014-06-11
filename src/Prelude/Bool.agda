@@ -56,6 +56,9 @@ isYes : ∀ {a} {A : Set a} → Dec A → Bool
 isYes (yes _) = true
 isYes (no _)  = false
 
+isNo : ∀ {a} {A : Set a} → Dec A → Bool
+isNo = not ∘ isYes
+
 if′_then_else : ∀ {a} {A : Set a} (b : Bool) → ({{_ : IsTrue b}} → A) → ({{_ : IsFalse b}} → A) → A
 if′ true  then x else _ = x
 if′ false then _ else y = y
