@@ -5,3 +5,5 @@ record ⊤ : Set where
   constructor tt
 
 {-# COMPILED_DATA ⊤ () () #-}
+
+Unit = ⊤

@@ -39,16 +39,16 @@ ApplicativeIO = defaultMonadApplicative
 
 postulate
   getChar  : IO Char
-  putChar  : Char → IO ⊤
-  putStr   : String → IO ⊤
-  putStrLn : String → IO ⊤
+  putChar  : Char → IO Unit
+  putStr   : String → IO Unit
+  putStrLn : String → IO Unit
 
 {-# COMPILED getChar getChar   #-}
 {-# COMPILED putChar putChar   #-}
 {-# COMPILED putStr  putStr    #-}
 {-# COMPILED putStrLn putStrLn #-}
 
-print : ∀ {a} {A : Set a} {{ShowA : Show A}} → A → IO ⊤
+print : ∀ {a} {A : Set a} {{ShowA : Show A}} → A → IO Unit
 print = putStrLn ∘ show
 
 --- File IO ---
@@ -57,7 +57,7 @@ FilePath = String
 
 postulate
   readFile  : FilePath → IO String
-  writeFile : FilePath → String → IO ⊤
+  writeFile : FilePath → String → IO Unit
 
 {-# COMPILED readFile  readFile  #-}
 {-# COMPILED writeFile writeFile #-}
