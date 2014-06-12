@@ -138,3 +138,6 @@ private
 
 ShowSigma : ∀ {a b} {A : Set a} {B : A → Set b} {{ShowA : Show A}} {{ShowB : ∀ {x} → Show (B x)}} → Show (Σ A B)
 ShowSigma = record { showsPrec = showPair }
+
+ShowPair : ∀ {a b} {A : Set a} {B : Set b} {{ShowA : Show A}} {{ShowB : Show B}} → Show (A × B)
+ShowPair {{ShowB = ShowB}} = ShowSigma {{ShowB = ShowB}}
