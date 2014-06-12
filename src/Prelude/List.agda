@@ -3,6 +3,8 @@ module Prelude.List where
 
 open import Prelude.Nat
 open import Prelude.Bool
+open import Prelude.Maybe
+open import Prelude.Product
 open import Prelude.Empty
 open import Prelude.Function
 open import Prelude.Functor
@@ -66,6 +68,10 @@ filter p (x ∷ xs) = if p x then x ∷ filter p xs
 null : ∀ {a} {A : Set a} → List A → Bool
 null []      = true
 null (_ ∷ _) = false
+
+lookup : {A B : Set} {{EqA : Eq A}} → List (A × B) → A → Maybe B
+lookup [] _ = nothing
+lookup ((x₁ , v) ∷ xs) x = ifYes (x == x₁) then just v else lookup xs x
 
 --- Equality ---
 
