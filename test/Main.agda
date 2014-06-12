@@ -8,4 +8,4 @@ open import Text.Parse
 open import Text.Lex
 
 main : IO ⊤
-main = _ <$ mapM putStrLn ("Hello" ∷ "World!" ∷ [])
+main = _ <$ mapM putStr ("Hello" ∷ " World" ∷ "\n" ∷ [])
