@@ -69,9 +69,13 @@ null : ∀ {a} {A : Set a} → List A → Bool
 null []      = true
 null (_ ∷ _) = false
 
-lookup : {A B : Set} {{EqA : Eq A}} → List (A × B) → A → Maybe B
+lookup : ∀ {a b} {A : Set a} {B : Set b} {{EqA : Eq A}} → List (A × B) → A → Maybe B
 lookup [] _ = nothing
 lookup ((x₁ , v) ∷ xs) x = ifYes (x == x₁) then just v else lookup xs x
+
+replicate : ∀ {a} {A : Set a} → Nat → A → List A
+replicate zero x = []
+replicate (suc n) x = x ∷ replicate n x
 
 --- Equality ---
 
