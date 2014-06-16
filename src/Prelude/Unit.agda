@@ -7,4 +7,4 @@ record ⊤ : Set where
 -- To keep changes from maint-2.4.0 to a minimum.
 Unit = ⊤
 
-{-# COMPILED_DATA Unit () () #-}
+{-# COMPILED_DATA ⊤ () () #-}
