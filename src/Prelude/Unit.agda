@@ -4,8 +4,7 @@ module Prelude.Unit where
 record ⊤ : Set where
   constructor tt
 
--- Agda-2.4.0 does not allow COMPILED_DATA for records #-}
-data Unit : Set where
-  tt : Unit
+-- To keep changes from maint-2.4.0 to a minimum.
+Unit = ⊤
 
 {-# COMPILED_DATA Unit () () #-}
