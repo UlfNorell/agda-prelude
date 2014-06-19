@@ -16,3 +16,16 @@ record Eq {a} (A : Set a) : Set a where
     _==_ : (x y : A) → Dec (x ≡ y)
 
 open Eq {{...}} public
+
+decEq₁ : ∀ {a b} {A : Set a} {B : Set b} {f : A → B} → (∀ {x y} → f x ≡ f y → x ≡ y) →
+           ∀ {x y} → Dec (x ≡ y) → Dec (f x ≡ f y)
+decEq₁ f-inj (yes refl) = yes refl
+decEq₁ f-inj (no  neq)  = no λ eq → neq (f-inj eq)
+
+decEq₂ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} {f : A → B → C} →
+           (∀ {x y z w} → f x y ≡ f z w → x ≡ z) →
+           (∀ {x y z w} → f x y ≡ f z w → y ≡ w) →
+           ∀ {x y z w} → Dec (x ≡ y) → Dec (z ≡ w) → Dec (f x z ≡ f y w)
+decEq₂ f-inj₁ f-inj₂ (no neq)    _         = no λ eq → neq (f-inj₁ eq)
+decEq₂ f-inj₁ f-inj₂  _         (no neq)   = no λ eq → neq (f-inj₂ eq)
+decEq₂ f-inj₁ f-inj₂ (yes refl) (yes refl) = yes refl
