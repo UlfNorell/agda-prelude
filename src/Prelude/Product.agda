@@ -33,10 +33,14 @@ curry : ∀ {a b c} {A : Set a} {B : A → Set b} {C : Σ A B → Set c} →
           (∀ p → C p) → ∀ x (y : B x) → C (x , y)
 curry f x y = f (x , y)
 
-infixr 3 _***_ _&&&_
+infixr 3 _***_ _***′_ _&&&_
 _***_ : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
           (f : A₁ → A₂) → (∀ {x} → B₁ x → B₂ (f x)) → Σ A₁ B₁ → Σ A₂ B₂
 (f *** g) (x , y) = f x , g y
+
+_***′_ : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : Set b₁} {B₂ : Set b₂} →
+          (A₁ → A₂) → (B₁ → B₂) → A₁ × B₁ → A₂ × B₂
+(f ***′ g) (x , y) = f x , g y
 
 _&&&_ : ∀ {c a b} {C : Set c} {A : Set a} {B : A → Set b}
           (f : C → A) → (∀ x → B (f x)) → C → Σ A B
