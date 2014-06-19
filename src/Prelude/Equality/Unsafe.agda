@@ -8,9 +8,13 @@ private primitive primTrustMe : ∀ {a} {A : Set a} {x y : A} → x ≡ y
 
 -- unsafeEqual {x = x} {y = y} evaluates to refl if x and y are
 -- definitionally equal.
-
 unsafeEqual : ∀ {a} {A : Set a} {x y : A} → x ≡ y
 unsafeEqual = primTrustMe
+
+-- "Safe" version of unsafeEqual. Throws away the actual proof
+-- and replaces it by unsafeEqual.
+safeEqual : ∀ {a} {A : Set a} {x y : A} → x ≡ y → x ≡ y
+safeEqual _ = unsafeEqual
 
 postulate
   unsafeNotEqual : ∀ {a} {A : Set a} {x y : A} → ¬ (x ≡ y)
