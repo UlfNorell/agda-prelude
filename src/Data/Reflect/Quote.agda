@@ -73,3 +73,15 @@ QuotableEither = record { ` = quoteEither }
     quoteEither : Either _ _ → Term
     quoteEither (left x)  = `left  (` x)
     quoteEither (right x) = `right (` x)
+
+-- Sigma --
+
+pattern _`,_ x y = con (quote _,_) (vArg x ∷ vArg y ∷ [])
+
+QuotableSigma : ∀ {a b} {A : Set a} {B : A → Set b}
+                  {{QuotableA : Quotable A}} {{QuotableB : ∀ {x} → Quotable (B x)}} →
+                  Quotable (Σ A B)
+QuotableSigma = record { ` = quoteSigma }
+  where
+    quoteSigma : Σ _ _ → Term
+    quoteSigma (x , y) = ` x `, ` y
