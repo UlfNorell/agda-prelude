@@ -55,10 +55,17 @@ eqNat  _       _      = false
 
 {-# BUILTIN NATEQUALS eqNat #-}
 
-decEqNat : (n m : Nat) → Dec (n ≡ m)
-decEqNat n m with eqNat n m
-... | true  = yes unsafeEqual
-... | false = no  unsafeNotEqual
+private
+  eqNatSound : ∀ n m → IsTrue (eqNat n m) → n ≡ m
+  eqNatSound zero zero _ = refl
+  eqNatSound zero (suc m) ()
+  eqNatSound (suc n) zero ()
+  eqNatSound (suc n) (suc m) p rewrite eqNatSound n m p = refl
+
+  decEqNat : (n m : Nat) → Dec (n ≡ m)
+  decEqNat n m with eqNat n m | eqNatSound n m
+  ... | true  | eq = yes (safeEqual (eq _))
+  ... | false | _  = no  unsafeNotEqual
 
 EqNat : Eq Nat
 EqNat = record { _==_ = decEqNat }
