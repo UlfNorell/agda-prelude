@@ -72,26 +72,24 @@ EqNat = record { _==_ = decEqNat }
 
 --- Division and modulo ---
 
-private
-  divAux : Nat → Nat → Nat → Nat → Nat
-  divAux k m  zero    j      = k
-  divAux k m (suc n)  zero   = divAux (suc k) m n m
-  divAux k m (suc n) (suc j) = divAux k m n j
+divAux : Nat → Nat → Nat → Nat → Nat
+divAux k m  zero    j      = k
+divAux k m (suc n)  zero   = divAux (suc k) m n m
+divAux k m (suc n) (suc j) = divAux k m n j
 
-  {-# BUILTIN NATDIVSUCAUX divAux #-}
+{-# BUILTIN NATDIVSUCAUX divAux #-}
 
 syntax natDiv m n = n div m
 natDiv : (m : Nat) {nz : NonZero m} → Nat → Nat
 natDiv zero {} n
 natDiv (suc m) n = divAux 0 m n m
 
-private
-  modAux : Nat → Nat → Nat → Nat → Nat
-  modAux k m  zero    j      = k
-  modAux k m (suc n)  zero   = modAux 0 m n m
-  modAux k m (suc n) (suc j) = modAux (suc k) m n j
+modAux : Nat → Nat → Nat → Nat → Nat
+modAux k m  zero    j      = k
+modAux k m (suc n)  zero   = modAux 0 m n m
+modAux k m (suc n) (suc j) = modAux (suc k) m n j
 
-  {-# BUILTIN NATMODSUCAUX modAux #-}
+{-# BUILTIN NATMODSUCAUX modAux #-}
 
 syntax natMod m n = n mod m
 natMod : (m : Nat) {nz : NonZero m} → Nat → Nat
