@@ -14,25 +14,25 @@ open import Prelude.Show
 {-# IMPORT Agda.FFI #-}
 
 postulate
-  IO : ∀ {a} → Set a → Set a
+  IO : Set → Set
 
 {-# BUILTIN IO IO #-}
-{-# COMPILED_TYPE IO Agda.FFI.AgdaIO #-}
+{-# COMPILED_TYPE IO IO #-}
 
 postulate
-  ioReturn : ∀ {a} {A : Set a} → A → IO A
-  ioBind   : ∀ {a b} {A : Set a} {B : Set b} → IO A → (A → IO B) → IO B
+  ioReturn : ∀ {A : Set} → A → IO A
+  ioBind   : ∀ {A B : Set} → IO A → (A → IO B) → IO B
 
-{-# COMPILED ioReturn (\ _ _ -> return)    #-}
-{-# COMPILED ioBind   (\ _ _ _ _ -> (>>=)) #-}
+{-# COMPILED ioReturn (\ _ -> return)    #-}
+{-# COMPILED ioBind   (\ _ _ -> (>>=)) #-}
 
-MonadIO : ∀ {a} → Monad {a} IO
+MonadIO : Monad IO
 MonadIO = record { return = ioReturn ; _>>=_ = ioBind }
 
-FunctorIO : ∀ {a} → Functor {a} IO
+FunctorIO : Functor IO
 FunctorIO = defaultMonadFunctor
 
-ApplicativeIO : ∀ {a} → Applicative {a} IO
+ApplicativeIO : Applicative IO
 ApplicativeIO = defaultMonadApplicative
 
 --- Terminal IO ---

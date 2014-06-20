@@ -4,14 +4,14 @@ module Text.Lex where
 open import Prelude
 open import Data.List
 
-record TokenDFA {a t s} (A : Set a) (Tok : Set t) : Set (t ⊔ a ⊔ lsuc s) where
+record TokenDFA {s} (A : Set) (Tok : Set) : Set (lsuc s) where
   field
     State   : Set s
     initial : State
     accept  : State → Maybe Tok
     consume : A → State → Maybe State
 
-FunctorTokenDFA : ∀ {a t s} {A : Set a} → Functor (TokenDFA {t = t} {s = s} A)
+FunctorTokenDFA : ∀ {s} {A : Set} → Functor (TokenDFA {s = s} A)
 FunctorTokenDFA =
   record { fmap = λ f dfa →
     record { State   = TokenDFA.State dfa
@@ -21,7 +21,7 @@ FunctorTokenDFA =
            }
   }
 
-keywordToken : ∀ {a} {A : Set a} {{EqA : Eq A}} → List A → TokenDFA A ⊤
+keywordToken : {A : Set} {{EqA : Eq A}} → List A → TokenDFA A ⊤
 keywordToken {A = A} kw =
   record { State   = List A
          ; initial = kw
@@ -32,7 +32,7 @@ keywordToken {A = A} kw =
     consume y []       = nothing
     consume y (x ∷ xs) = ifYes (x == y) then just xs else nothing
 
-matchToken : ∀ {a} {A : Set a} (p : A → Bool) → TokenDFA A (List (Σ A (IsTrue ∘ p)))
+matchToken : ∀ {A : Set} (p : A → Bool) → TokenDFA A (List (Σ A (IsTrue ∘ p)))
 matchToken {A = A} p =
   record { State   = List (Σ A (IsTrue ∘ p))
          ; initial = []
@@ -44,7 +44,7 @@ natToken : TokenDFA Char Nat
 natToken = parseNat <$> matchToken isDigit
   where parseNat = foldl (λ { n (d , _) → 10 * n + (charToNat d - charToNat '0') }) 0
 
-identToken : ∀ {a} {A : Set a} → (A → Bool) → (A → Bool) → TokenDFA A (List A)
+identToken : ∀ {A : Set} → (A → Bool) → (A → Bool) → TokenDFA A (List A)
 identToken {A = A} first then =
   record { State   = Maybe (List A)
          ; initial = nothing
@@ -52,7 +52,7 @@ identToken {A = A} first then =
          ; consume = λ { x nothing   → if first x then just (just [ x ])    else nothing
                        ; x (just xs) → if then  x then just (just (x ∷ xs)) else nothing } }
 
-module _ {a t s : Level} {A : Set a} {Tok : Set t} where
+module _ {s : Level} {A Tok : Set} where
   private
     DFA = TokenDFA {s = s} A Tok
     open TokenDFA
