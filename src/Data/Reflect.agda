@@ -58,6 +58,10 @@ data ArgInfo : Set where
 data Arg (A : Set) : Set where
   arg : (i : ArgInfo) (x : A) → Arg A
 
+pattern vArg x = arg (arg-info visible relevant) x
+pattern hArg x = arg (arg-info hidden relevant) x
+pattern iArg x = arg (arg-info instance relevant) x
+
 {-# BUILTIN ARGINFO    ArgInfo #-}
 {-# BUILTIN ARGARGINFO arg-info #-}
 {-# BUILTIN ARG        Arg      #-}
@@ -79,7 +83,7 @@ mutual
     -- Different kinds of λ-abstraction.
     lam     : (v : Visibility) (t : Term) → Term
     -- Pi-type.
-    pi      : (t₁ : Arg Type) (t₂ : Type) → Term
+    pi      : (a : Arg Type) (b : Type) → Term
     -- A sort.
     sort    : Sort → Term
     -- Anything else.
