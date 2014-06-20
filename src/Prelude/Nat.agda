@@ -122,13 +122,6 @@ private
 OrdNat : Ord Nat
 OrdNat = record { LessThan = LessNat ; compare = compareNat }
 
-pred-monotone : ∀ n m → IsTrue (suc n < suc m) → IsTrue (n < m)
-pred-monotone n m p with lessNat n m
-pred-monotone n m _  | true  = _
-pred-monotone n m p  | false with lessNat m n
-pred-monotone n m () | false | true
-pred-monotone n m () | false | false
-
 min : Nat → Nat → Nat
 min n m = if n < m then n else m
 
