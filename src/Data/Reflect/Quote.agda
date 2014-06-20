@@ -8,7 +8,7 @@ record Quotable {a} (A : Set a) : Set a where
   field
     ` : A → Term
 
-open Quotable {{...}}
+open Quotable {{...}} public
 
 --- Instances ---
 
