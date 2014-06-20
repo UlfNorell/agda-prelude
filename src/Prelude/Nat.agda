@@ -105,19 +105,31 @@ lessNat (suc n) (suc m) = lessNat n m
 
 {-# BUILTIN NATLESS lessNat #-}
 
-data LessNat : Nat → Nat → Set where
-  diff : ∀ {n} k → LessNat n (n + suc k)
+data LessNat n m : Set where
+  diffP : ∀ k → m ≡ n + suc k → LessNat n m
+
+pattern diff k = diffP k refl
 
 private
-  -- Using unsafeCoerce here let's us compute the difference
-  -- with only builtin functions (lessNat and _-_), which run
-  -- fast on big naturals.
+  lemLessNatMinus : ∀ n m → IsTrue (lessNat n m) → m ≡ n + suc (m - suc n)
+  lemLessNatMinus  _       zero  ()
+  lemLessNatMinus  zero   (suc m) _   = refl
+  lemLessNatMinus (suc n) (suc m) n<m = cong suc (lemLessNatMinus n m n<m)
+
+  lemNoLessEqual : ∀ n m → ¬ IsTrue (lessNat n m) → ¬ IsTrue (lessNat m n) → n ≡ m
+  lemNoLessEqual zero zero _ _ = refl
+  lemNoLessEqual zero (suc m) h₁ h₂ = ⊥-elim (h₁ _)
+  lemNoLessEqual (suc n) zero h₁ h₂ = ⊥-elim (h₂ _)
+  lemNoLessEqual (suc n) (suc m) h₁ h₂ = cong suc (lemNoLessEqual n m h₁ h₂)
+
+  -- Using safeEqual here let's us not worry about the performance of the
+  -- proofs.
   compareNat : ∀ n m → Comparison LessNat n m
-  compareNat n m with lessNat n m
-  ... | true  = less $ unsafeCoerce $ diff {n} (m - suc n)
-  ... | false with lessNat m n
-  ...            | true  = greater $ unsafeCoerce $ diff {m} (n - suc m)
-  ...            | false = equal unsafeEqual
+  compareNat n m with decBool (lessNat n m)
+  ... | yes p = less (diffP (m - suc n) (safeEqual (lemLessNatMinus n m p)))
+  ... | no np₁ with decBool (lessNat m n)
+  ...             | yes p  = greater (diffP (n - suc m) (safeEqual (lemLessNatMinus m n p)))
+  ...             | no np₂ = equal (safeEqual (lemNoLessEqual n m np₁ np₂))
 
 OrdNat : Ord Nat
 OrdNat = record { LessThan = LessNat ; compare = compareNat }
