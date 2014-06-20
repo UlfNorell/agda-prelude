@@ -21,7 +21,7 @@ MonadM = MonadStateT
 ApplicativeM : Applicative M
 ApplicativeM = ApplicativeStateT
 
-putStrI : String → StateT Nat IO ⊤
+putStrI : String → StateT Nat IO Unit
 putStrI s = get >>= λ n →
             put (suc n) >>
             lift (putStr (printf "%d%s" n s))
