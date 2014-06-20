@@ -43,14 +43,18 @@ IsTrue false = ⊥
 IsFalse : Bool → Set
 IsFalse = IsTrue ∘ not
 
-eqBool : (x y : Bool) → Dec (x ≡ y)
-eqBool false false = yes refl
-eqBool false true  = no (λ ())
-eqBool true  false = no (λ ())
-eqBool true  true  = yes refl
-
 EqBool : Eq Bool
 EqBool = record { _==_ = eqBool }
+  where
+    eqBool : (x y : Bool) → Dec (x ≡ y)
+    eqBool false false = yes refl
+    eqBool false true  = no (λ ())
+    eqBool true  false = no (λ ())
+    eqBool true  true  = yes refl
+
+decBool : ∀ b → Dec (IsTrue b)
+decBool false = no id
+decBool true  = yes _
 
 isYes : ∀ {a} {A : Set a} → Dec A → Bool
 isYes (yes _) = true

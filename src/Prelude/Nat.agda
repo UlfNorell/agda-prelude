@@ -72,26 +72,24 @@ EqNat = record { _==_ = decEqNat }
 
 --- Division and modulo ---
 
-private
-  divAux : Nat → Nat → Nat → Nat → Nat
-  divAux k m  zero    j      = k
-  divAux k m (suc n)  zero   = divAux (suc k) m n m
-  divAux k m (suc n) (suc j) = divAux k m n j
+divAux : Nat → Nat → Nat → Nat → Nat
+divAux k m  zero    j      = k
+divAux k m (suc n)  zero   = divAux (suc k) m n m
+divAux k m (suc n) (suc j) = divAux k m n j
 
-  {-# BUILTIN NATDIVSUCAUX divAux #-}
+{-# BUILTIN NATDIVSUCAUX divAux #-}
 
 syntax natDiv m n = n div m
 natDiv : (m : Nat) {nz : NonZero m} → Nat → Nat
 natDiv zero {} n
 natDiv (suc m) n = divAux 0 m n m
 
-private
-  modAux : Nat → Nat → Nat → Nat → Nat
-  modAux k m  zero    j      = k
-  modAux k m (suc n)  zero   = modAux 0 m n m
-  modAux k m (suc n) (suc j) = modAux (suc k) m n j
+modAux : Nat → Nat → Nat → Nat → Nat
+modAux k m  zero    j      = k
+modAux k m (suc n)  zero   = modAux 0 m n m
+modAux k m (suc n) (suc j) = modAux (suc k) m n j
 
-  {-# BUILTIN NATMODSUCAUX modAux #-}
+{-# BUILTIN NATMODSUCAUX modAux #-}
 
 syntax natMod m n = n mod m
 natMod : (m : Nat) {nz : NonZero m} → Nat → Nat
@@ -107,29 +105,34 @@ lessNat (suc n) (suc m) = lessNat n m
 
 {-# BUILTIN NATLESS lessNat #-}
 
-data LessNat : Nat → Nat → Set where
-  diff : ∀ {n} k → LessNat n (n + suc k)
+data LessNat n m : Set where
+  diffP : ∀ k → m ≡ n + suc k → LessNat n m
+
+pattern diff k = diffP k refl
 
 private
-  -- Using unsafeCoerce here let's us compute the difference
-  -- with only builtin functions (lessNat and _-_), which run
-  -- fast on big naturals.
+  lemLessNatMinus : ∀ n m → IsTrue (lessNat n m) → m ≡ n + suc (m - suc n)
+  lemLessNatMinus  _       zero  ()
+  lemLessNatMinus  zero   (suc m) _   = refl
+  lemLessNatMinus (suc n) (suc m) n<m = cong suc (lemLessNatMinus n m n<m)
+
+  lemNoLessEqual : ∀ n m → ¬ IsTrue (lessNat n m) → ¬ IsTrue (lessNat m n) → n ≡ m
+  lemNoLessEqual zero zero _ _ = refl
+  lemNoLessEqual zero (suc m) h₁ h₂ = ⊥-elim (h₁ _)
+  lemNoLessEqual (suc n) zero h₁ h₂ = ⊥-elim (h₂ _)
+  lemNoLessEqual (suc n) (suc m) h₁ h₂ = cong suc (lemNoLessEqual n m h₁ h₂)
+
+  -- Using safeEqual here let's us not worry about the performance of the
+  -- proofs.
   compareNat : ∀ n m → Comparison LessNat n m
-  compareNat n m with lessNat n m
-  ... | true  = less $ unsafeCoerce $ diff {n} (m - suc n)
-  ... | false with lessNat m n
-  ...            | true  = greater $ unsafeCoerce $ diff {m} (n - suc m)
-  ...            | false = equal unsafeEqual
+  compareNat n m with decBool (lessNat n m)
+  ... | yes p = less (diffP (m - suc n) (safeEqual (lemLessNatMinus n m p)))
+  ... | no np₁ with decBool (lessNat m n)
+  ...             | yes p  = greater (diffP (n - suc m) (safeEqual (lemLessNatMinus m n p)))
+  ...             | no np₂ = equal (safeEqual (lemNoLessEqual n m np₁ np₂))
 
 OrdNat : Ord Nat
 OrdNat = record { LessThan = LessNat ; compare = compareNat }
-
-pred-monotone : ∀ n m → IsTrue (suc n < suc m) → IsTrue (n < m)
-pred-monotone n m p with lessNat n m
-pred-monotone n m _  | true  = _
-pred-monotone n m p  | false with lessNat m n
-pred-monotone n m () | false | true
-pred-monotone n m () | false | false
 
 min : Nat → Nat → Nat
 min n m = if n < m then n else m
