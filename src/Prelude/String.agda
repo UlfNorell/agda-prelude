@@ -3,11 +3,15 @@ module Prelude.String where
 
 open import Prelude.Char
 open import Prelude.Bool
+open import Prelude.Nat
 open import Prelude.List
+open import Prelude.Maybe
 open import Prelude.Equality
 open import Prelude.Equality.Unsafe
 open import Prelude.Decidable
 open import Prelude.Ord
+open import Prelude.Function
+open import Prelude.Monad
 
 postulate
   String : Set
@@ -32,6 +36,24 @@ unpackString-inj refl | ._ = unsafeEqual
 
 infixr 5 _&_
 _&_ = primStringAppend
+
+parseNat : String → Maybe Nat
+parseNat = parseNat′ ∘ unpackString
+  where
+    pDigit : Char → Maybe Nat
+    pDigit c =
+      if isDigit c then just (charToNat c - charToNat '0')
+                   else nothing
+
+    pNat : Nat → List Char → Maybe Nat
+    pNat n [] = just n
+    pNat n (c ∷ s) = pDigit c >>= λ d → pNat (n * 10 + d) s
+
+    parseNat′ : List Char → Maybe Nat
+    parseNat′ [] = nothing
+    parseNat′ (c ∷ s) = pDigit c >>= λ d → pNat d s
+
+-- Eq --
 
 private
   eqString = primStringEquality
