@@ -1,7 +1,7 @@
 
 module Text.Printf where
 
-open import Prelude
+open import Prelude hiding (parseNat)
 
 private
   data Padding : Set where

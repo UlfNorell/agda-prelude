@@ -41,8 +41,8 @@ matchToken {A = A} p =
          }
 
 natToken : TokenDFA Char Nat
-natToken = parseNat <$> matchToken isDigit
-  where parseNat = foldl (λ { n (d , _) → 10 * n + (charToNat d - charToNat '0') }) 0
+natToken = pNat <$> matchToken isDigit
+  where pNat = foldl (λ { n (d , _) → 10 * n + (charToNat d - charToNat '0') }) 0
 
 identToken : ∀ {A : Set} → (A → Bool) → (A → Bool) → TokenDFA A (List A)
 identToken {A = A} first then =
