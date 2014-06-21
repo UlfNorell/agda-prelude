@@ -20,6 +20,7 @@ private
   data Format : Set where
     natArg    : Flags → Format
     strArg    : Flags → Format
+    ustrArg   : Flags → Format
     charArg   : Format
     hexArg    : Bool → Flags → Format
     litString : String → Format
@@ -70,6 +71,7 @@ private
   parseFormatWithFlags f ('X' ∷ s) = hexArg true  f ∷ parseFormat s
   parseFormatWithFlags f ('c' ∷ s) = charArg ∷ parseFormat s
   parseFormatWithFlags f ('s' ∷ s) = strArg f ∷ parseFormat s
+  parseFormatWithFlags f ('S' ∷ s) = ustrArg f ∷ parseFormat s
   parseFormatWithFlags f ('%' ∷ s) = consLit "%" $ parseFormat s
   parseFormatWithFlags f ( c  ∷ s) = badFormat (packString ('%' ∷ c ∷ [])) ∷ parseFormat s
     
@@ -125,6 +127,7 @@ private
   Printf′ (natArg _    ∷ fmt) = Nat → Printf′ fmt
   Printf′ (hexArg _ _  ∷ fmt) = Nat → Printf′ fmt
   Printf′ (strArg _    ∷ fmt) = String → Printf′ fmt
+  Printf′ (ustrArg _   ∷ fmt) = List Char → Printf′ fmt
   Printf′ (charArg     ∷ fmt) = Char → Printf′ fmt
   Printf′ (litString _ ∷ fmt) = Printf′ fmt
   Printf′ (badFormat e ∷ fmt) = BadFormat′ e → Printf′ fmt
@@ -134,6 +137,7 @@ private
   printf′ (natArg p    ∷ fmt) acc n = printf′ fmt (acc ∘ withPad p (show n))
   printf′ (hexArg u p  ∷ fmt) acc n = printf′ fmt (acc ∘ withPad p (showHex p u n))
   printf′ (strArg p    ∷ fmt) acc s = printf′ fmt (acc ∘ withPad p s)
+  printf′ (ustrArg p   ∷ fmt) acc s = printf′ fmt (acc ∘ withPad p (packString s))
   printf′ (charArg     ∷ fmt) acc c = printf′ fmt (acc ∘ showString (packString [ c ]))
   printf′ (litString s ∷ fmt) acc   = printf′ fmt (acc ∘ showString s)
   printf′ (badFormat _ ∷ fmt) acc _ = printf′ fmt acc
