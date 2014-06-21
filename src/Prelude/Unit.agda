@@ -6,7 +6,7 @@ record ⊤ : Set where
 
 -- Agda-2.4.0 does not allow COMPILED_DATA for records #-}
 data Unit : Set where
-  tt : Unit
+  unit : Unit
 
 record ⊤′ {a} : Set a where
   constructor tt
