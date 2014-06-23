@@ -106,15 +106,23 @@ lessNat (suc n) (suc m) = lessNat n m
 {-# BUILTIN NATLESS lessNat #-}
 
 data LessNat n m : Set where
-  diffP : ∀ k → m ≡ n + suc k → LessNat n m
+  diffP : ∀ k → m ≡ suc k + n → LessNat n m
 
 pattern diff k = diffP k refl
 
 private
-  lemLessNatMinus : ∀ n m → IsTrue (lessNat n m) → m ≡ n + suc (m - suc n)
+  add-zero : ∀ n → n ≡ n + 0
+  add-zero zero = refl
+  add-zero (suc n) = cong suc (add-zero n)
+
+  add-suc : ∀ n m → n + suc m ≡ suc n + m
+  add-suc zero m = refl
+  add-suc (suc n) m = cong suc (add-suc n m)
+
+  lemLessNatMinus : ∀ n m → IsTrue (lessNat n m) → m ≡ suc (m - suc n) + n
   lemLessNatMinus  _       zero  ()
-  lemLessNatMinus  zero   (suc m) _   = refl
-  lemLessNatMinus (suc n) (suc m) n<m = cong suc (lemLessNatMinus n m n<m)
+  lemLessNatMinus  zero   (suc m) _   = cong suc $ add-zero m
+  lemLessNatMinus (suc n) (suc m) n<m rewrite add-suc (m - suc n) n = cong suc (lemLessNatMinus n m n<m)
 
   lemNoLessEqual : ∀ n m → ¬ IsTrue (lessNat n m) → ¬ IsTrue (lessNat m n) → n ≡ m
   lemNoLessEqual zero zero _ _ = refl
