@@ -77,6 +77,12 @@ replicate : ∀ {a} {A : Set a} → Nat → A → List A
 replicate zero x = []
 replicate (suc n) x = x ∷ replicate n x
 
+sum : List Nat → Nat
+sum = foldr _+_ 0
+
+product : List Nat → Nat
+product = foldr _*_ 1
+
 --- Equality ---
 
 cons-inj-tail : ∀ {a} {A : Set a} {x : A} {xs : List A} {y : A}
