@@ -3,6 +3,7 @@ module Data.Reflect where
 
 open import Prelude
 open import Prelude.Equality.Unsafe
+open import Data.Traversable
 
 ------------------------------------------------------------------------
 -- Names
@@ -69,6 +70,12 @@ pattern iArg x = arg (arg-info instance relevant) x
 
 unArg : ∀ {A} → Arg A → A
 unArg (arg _ x) = x
+
+FunctorArg : Functor Arg
+FunctorArg = record { fmap = λ { f (arg i x) → arg i (f x) } }
+
+TraversableArg : Traversable Arg
+TraversableArg = record { traverse = λ { f (arg i x) → pure (arg i) <*> f x } }
 
 -- Terms.
 
