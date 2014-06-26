@@ -2,9 +2,8 @@
 module Control.WellFounded where
 
 open import Prelude
-open import Prelude.Equality.Unsafe using (safeEqual)
 
-data Acc {A : Set} (_<_ : A → A → Set) (x : A) : Set where
+data Acc {a} {A : Set a} (_<_ : A → A → Set a) (x : A) : Set a where
   acc : (∀ y → y < x → Acc _<_ y) → Acc _<_ x
 
 -- LessNat is well-founded --
@@ -14,7 +13,7 @@ private
 
   wfNoCheat′ : (n j y : Nat) → n ≡ suc (j + y) → Acc LessThan y
   wfNoCheat′ (suc n)  zero  .n refl = wfNoCheat n
-  wfNoCheat′ (suc n) (suc j) y eq   = wfNoCheat′ n j y (safeEqual (suc-inj eq))
+  wfNoCheat′ (suc n) (suc j) y eq   = wfNoCheat′ n j y (suc-inj eq)
   wfNoCheat′ zero     zero   y ()
   wfNoCheat′ zero    (suc j) y ()
 

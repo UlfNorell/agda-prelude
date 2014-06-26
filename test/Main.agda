@@ -9,6 +9,7 @@ open import Text.Parse
 open import Text.Lex
 open import Text.Printf
 open import Control.Monad.State
+open import Control.WellFounded
 
 Hello = printf "%c%s" 'H' "ello"
 World = printf "%6s" "World"
