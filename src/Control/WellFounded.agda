@@ -4,7 +4,7 @@ module Control.WellFounded where
 open import Prelude
 open import Prelude.Equality.Unsafe using (safeEqual)
 
-data Acc {A : Set} (_<_ : A → A → Set) (x : A) : Set where
+data Acc {a} {A : Set a} (_<_ : A → A → Set a) (x : A) : Set a where
   acc : (∀ y → y < x → Acc _<_ y) → Acc _<_ x
 
 -- LessNat is well-founded --
