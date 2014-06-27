@@ -10,6 +10,8 @@ open import Text.Lex
 open import Text.Printf
 open import Control.Monad.State
 open import Control.WellFounded
+open import Builtin.Size
+open import Builtin.Coinduction
 
 Hello = printf "%c%s" 'H' "ello"
 World = printf "%6s" "World"
