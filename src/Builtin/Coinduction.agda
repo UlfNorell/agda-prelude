@@ -1,5 +1,5 @@
 
-module Prelude.Coinduction where
+module Builtin.Coinduction where
 
 infix 1000 ♯_
 
