@@ -3,6 +3,7 @@ module Data.Reflect where
 
 open import Prelude
 open import Prelude.Equality.Unsafe
+open import Builtin.Float
 open import Data.Traversable
 
 ------------------------------------------------------------------------
@@ -77,23 +78,33 @@ FunctorArg = record { fmap = λ { f (arg i x) → arg i (f x) } }
 TraversableArg : Traversable Arg
 TraversableArg = record { traverse = λ { f (arg i x) → pure (arg i) <*> f x } }
 
+-- Literals.
+
+data Literal : Set where
+  nat    : Nat    → Literal
+  float  : Float  → Literal
+  char   : Char   → Literal
+  string : String → Literal
+  name   : Name   → Literal
+
+{-# BUILTIN AGDALITERAL   Literal #-}
+{-# BUILTIN AGDALITNAT    nat #-}
+{-# BUILTIN AGDALITFLOAT  float #-}
+{-# BUILTIN AGDALITCHAR   char #-}
+{-# BUILTIN AGDALITSTRING string #-}
+{-# BUILTIN AGDALITQNAME  name #-}
+
 -- Terms.
 
 mutual
   data Term : Set where
-    -- Variable applied to arguments.
     var     : (x : Nat) (args : List (Arg Term)) → Term
-    -- Constructor applied to arguments.
     con     : (c : Name) (args : List (Arg Term)) → Term
-    -- Identifier applied to arguments.
     def     : (f : Name) (args : List (Arg Term)) → Term
-    -- Different kinds of λ-abstraction.
     lam     : (v : Visibility) (t : Term) → Term
-    -- Pi-type.
     pi      : (a : Arg Type) (b : Type) → Term
-    -- A sort.
-    sort    : Sort → Term
-    -- Anything else.
+    sort    : (s : Sort) → Term
+    lit     : (l : Literal) → Term
     unknown : Term
 
   data Type : Set where
@@ -116,6 +127,7 @@ mutual
 {-# BUILTIN AGDATERMLAM         lam     #-}
 {-# BUILTIN AGDATERMPI          pi      #-}
 {-# BUILTIN AGDATERMSORT        sort    #-}
+{-# BUILTIN AGDATERMLIT         lit     #-}
 {-# BUILTIN AGDATERMUNSUPPORTED unknown #-}
 {-# BUILTIN AGDATYPEEL          el      #-}
 {-# BUILTIN AGDASORTSET         set     #-}
@@ -226,17 +238,35 @@ pi-inj₂ refl = refl
 sort-inj : ∀ {x y} → sort x ≡ sort y → x ≡ y
 sort-inj refl = refl
 
+lit-inj : ∀ {x y} → Term.lit x ≡ lit y → x ≡ y
+lit-inj refl = refl
+
 set-inj : ∀ {x y} → set x ≡ set y → x ≡ y
 set-inj refl = refl
 
-lit-inj : ∀ {x y} → lit x ≡ lit y → x ≡ y
-lit-inj refl = refl
+slit-inj : ∀ {x y} → Sort.lit x ≡ lit y → x ≡ y
+slit-inj refl = refl
 
 el-inj₁ : ∀ {s s′ t t′} → el s t ≡ el s′ t′ → s ≡ s′
 el-inj₁ refl = refl
 
 el-inj₂ : ∀ {s s′ t t′} → el s t ≡ el s′ t′ → t ≡ t′
 el-inj₂ refl = refl
+
+nat-inj : ∀ {x y} → nat x ≡ nat y → x ≡ y
+nat-inj refl = refl
+
+float-inj : ∀ {x y} → float x ≡ float y → x ≡ y
+float-inj refl = refl
+
+char-inj : ∀ {x y} → char x ≡ char y → x ≡ y
+char-inj refl = refl
+
+string-inj : ∀ {x y} → string x ≡ string y → x ≡ y
+string-inj refl = refl
+
+name-inj : ∀ {x y} → name x ≡ name y → x ≡ y
+name-inj refl = refl
 
 EqVisibility : Eq Visibility
 EqVisibility = record { _==_ = eqVis }
@@ -274,6 +304,37 @@ EqArg = record { _==_ = eqArg }
     eqArg : ∀ x y → Dec (x ≡ y)
     eqArg (arg i x) (arg i₁ x₁) = decEq₂ arg-inj₁ arg-inj₂ (i == i₁) (x == x₁)
 
+EqLiteral : Eq Literal
+EqLiteral = record { _==_ = eqLit }
+  where
+    eqLit : ∀ x y → Dec (x ≡ y)
+    eqLit (nat    x) (nat    y) = decEq₁ nat-inj    (x == y)
+    eqLit (float  x) (float  y) = decEq₁ float-inj  (x == y)
+    eqLit (char   x) (char   y) = decEq₁ char-inj   (x == y)
+    eqLit (string x) (string y) = decEq₁ string-inj (x == y)
+    eqLit (name   x) (name   y) = decEq₁ name-inj   (x == y)
+
+    eqLit (nat    x) (float  y) = no λ()
+    eqLit (nat    x) (char   y) = no λ()
+    eqLit (nat    x) (string y) = no λ()
+    eqLit (nat    x) (name   y) = no λ()
+    eqLit (float  x) (nat    y) = no λ()
+    eqLit (float  x) (char   y) = no λ()
+    eqLit (float  x) (string y) = no λ()
+    eqLit (float  x) (name   y) = no λ()
+    eqLit (char   x) (nat    y) = no λ()
+    eqLit (char   x) (float  y) = no λ()
+    eqLit (char   x) (string y) = no λ()
+    eqLit (char   x) (name   y) = no λ()
+    eqLit (string x) (nat    y) = no λ()
+    eqLit (string x) (float  y) = no λ()
+    eqLit (string x) (char   y) = no λ()
+    eqLit (string x) (name   y) = no λ()
+    eqLit (name   x) (nat    y) = no λ()
+    eqLit (name   x) (float  y) = no λ()
+    eqLit (name   x) (char   y) = no λ()
+    eqLit (name   x) (string y) = no λ()
+
 private
   eqSort : (x y : Sort) → Dec (x ≡ y)
   eqTerm : (x y : Term) → Dec (x ≡ y)
@@ -297,6 +358,7 @@ private
   eqTerm (lam v x) (lam v₁ y) = decEq₂ lam-inj₁ lam-inj₂ (v == v₁) (eqTerm x y)
   eqTerm (pi t₁ t₂) (pi t₃ t₄) = decEq₂ pi-inj₁ pi-inj₂ (eqArgType t₁ t₃) (eqType t₂ t₄)
   eqTerm (sort x) (sort x₁) = decEq₁ sort-inj (eqSort x x₁)
+  eqTerm (lit l) (lit l₁)   = decEq₁ lit-inj (l == l₁)
   eqTerm unknown unknown = yes refl
 
   eqTerm (var x args) (con c args₁) = no λ ()
@@ -304,46 +366,60 @@ private
   eqTerm (var x args) (lam v y) = no λ ()
   eqTerm (var x args) (pi t₁ t₂) = no λ ()
   eqTerm (var x args) (sort x₁) = no λ ()
+  eqTerm (var x args) (lit x₁) = no λ ()
   eqTerm (var x args) unknown = no λ ()
   eqTerm (con c args) (var x args₁) = no λ ()
   eqTerm (con c args) (def f args₁) = no λ ()
   eqTerm (con c args) (lam v y) = no λ ()
   eqTerm (con c args) (pi t₁ t₂) = no λ ()
   eqTerm (con c args) (sort x) = no λ ()
+  eqTerm (con c args) (lit x) = no λ ()
   eqTerm (con c args) unknown = no λ ()
   eqTerm (def f args) (var x args₁) = no λ ()
   eqTerm (def f args) (con c args₁) = no λ ()
   eqTerm (def f args) (lam v y) = no λ ()
   eqTerm (def f args) (pi t₁ t₂) = no λ ()
   eqTerm (def f args) (sort x) = no λ ()
+  eqTerm (def f args) (lit x) = no λ ()
   eqTerm (def f args) unknown = no λ ()
   eqTerm (lam v x) (var x₁ args) = no λ ()
   eqTerm (lam v x) (con c args) = no λ ()
   eqTerm (lam v x) (def f args) = no λ ()
   eqTerm (lam v x) (pi t₁ t₂) = no λ ()
   eqTerm (lam v x) (sort x₁) = no λ ()
+  eqTerm (lam v x) (lit x₁) = no λ ()
   eqTerm (lam v x) unknown = no λ ()
   eqTerm (pi t₁ t₂) (var x args) = no λ ()
   eqTerm (pi t₁ t₂) (con c args) = no λ ()
   eqTerm (pi t₁ t₂) (def f args) = no λ ()
   eqTerm (pi t₁ t₂) (lam v y) = no λ ()
   eqTerm (pi t₁ t₂) (sort x) = no λ ()
+  eqTerm (pi t₁ t₂) (lit x) = no λ ()
   eqTerm (pi t₁ t₂) unknown = no λ ()
   eqTerm (sort x) (var x₁ args) = no λ ()
   eqTerm (sort x) (con c args) = no λ ()
   eqTerm (sort x) (def f args) = no λ ()
   eqTerm (sort x) (lam v y) = no λ ()
   eqTerm (sort x) (pi t₁ t₂) = no λ ()
+  eqTerm (sort x) (lit x₁) = no λ ()
   eqTerm (sort x) unknown = no λ ()
+  eqTerm (lit x) (var x₁ args) = no λ ()
+  eqTerm (lit x) (con c args) = no λ ()
+  eqTerm (lit x) (def f args) = no λ ()
+  eqTerm (lit x) (lam v y) = no λ ()
+  eqTerm (lit x) (pi t₁ t₂) = no λ ()
+  eqTerm (lit x) (sort x₁) = no λ ()
+  eqTerm (lit x) unknown = no λ ()
   eqTerm unknown (var x args) = no λ ()
   eqTerm unknown (con c args) = no λ ()
   eqTerm unknown (def f args) = no λ ()
   eqTerm unknown (lam v y) = no λ ()
   eqTerm unknown (pi t₁ t₂) = no λ ()
   eqTerm unknown (sort x) = no λ ()
+  eqTerm unknown (lit x) = no λ ()
 
   eqSort (set t) (set t₁) = decEq₁ set-inj (eqTerm t t₁)
-  eqSort (lit n) (lit n₁) = decEq₁ lit-inj (n == n₁)
+  eqSort (lit n) (lit n₁) = decEq₁ slit-inj (n == n₁)
   eqSort unknown unknown = yes refl
   eqSort (set t) (lit n) = no λ ()
   eqSort (set t) unknown = no λ ()
