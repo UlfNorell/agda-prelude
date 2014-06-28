@@ -1,5 +1,5 @@
 
-module Data.Reflect where
+module Builtin.Reflection where
 
 open import Prelude
 open import Prelude.Equality.Unsafe

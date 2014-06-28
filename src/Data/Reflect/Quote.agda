@@ -2,7 +2,7 @@
 module Data.Reflect.Quote where
 
 open import Prelude
-open import Data.Reflect
+open import Builtin.Reflection
 
 record Quotable {a} (A : Set a) : Set a where
   field
