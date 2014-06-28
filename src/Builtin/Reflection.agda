@@ -111,11 +111,8 @@ mutual
     el : (s : Sort) (t : Term) → Type
 
   data Sort : Set where
-    -- A Set of a given (possibly neutral) level.
     set     : (t : Term) → Sort
-    -- A Set of a given concrete level.
     lit     : (n : Nat) → Sort
-    -- Anything else.
     unknown : Sort
 
 {-# BUILTIN AGDASORT            Sort    #-}
@@ -137,15 +134,37 @@ mutual
 ------------------------------------------------------------------------
 -- Definitions
 
-postulate
-  -- Function definition.
-  Function  : Set
-  -- Data type definition.
-  DataType : Set
-  -- Record type definition.
-  Record    : Set
 
-{-# BUILTIN AGDAFUNDEF    Function  #-}
+data Pattern : Set where
+  con : Name → List (Arg Pattern) → Pattern
+  dot : Pattern
+  var : Pattern
+  lit : Literal → Pattern
+  proj : Name → Pattern
+
+{-# BUILTIN AGDAPATTERN Pattern #-}
+{-# BUILTIN AGDAPATCON con #-}
+{-# BUILTIN AGDAPATDOT dot #-}
+{-# BUILTIN AGDAPATVAR var #-}
+{-# BUILTIN AGDAPATLIT lit #-}
+{-# BUILTIN AGDAPATPROJ proj #-}
+
+data Clause : Set where
+  clause : List Pattern → Term → Clause
+
+{-# BUILTIN AGDACLAUSE Clause #-}
+{-# BUILTIN AGDACLAUSECON clause #-}
+
+data Function : Set where
+  fun-def : Type → List Clause → Function
+
+{-# BUILTIN AGDAFUNDEF    Function #-}
+{-# BUILTIN AGDAFUNDEFCON fun-def #-}
+
+postulate
+  DataType : Set
+  Record   : Set
+
 {-# BUILTIN AGDADATADEF   DataType #-}
 {-# BUILTIN AGDARECORDDEF Record    #-}
 
@@ -205,16 +224,16 @@ arg-info-inj₁ refl = refl
 arg-info-inj₂ : ∀ {v v′ r r′} → arg-info v r ≡ arg-info v′ r′ → r ≡ r′
 arg-info-inj₂ refl = refl
 
-var-inj₁ : ∀ {x x′ args args′} → var x args ≡ var x′ args′ → x ≡ x′
+var-inj₁ : ∀ {x x′ args args′} → Term.var x args ≡ var x′ args′ → x ≡ x′
 var-inj₁ refl = refl
 
-var-inj₂ : ∀ {x x′ args args′} → var x args ≡ var x′ args′ → args ≡ args′
+var-inj₂ : ∀ {x x′ args args′} → Term.var x args ≡ var x′ args′ → args ≡ args′
 var-inj₂ refl = refl
 
-con-inj₁ : ∀ {c c′ args args′} → con c args ≡ con c′ args′ → c ≡ c′
+con-inj₁ : ∀ {c c′ args args′} → Term.con c args ≡ con c′ args′ → c ≡ c′
 con-inj₁ refl = refl
 
-con-inj₂ : ∀ {c c′ args args′} → con c args ≡ con c′ args′ → args ≡ args′
+con-inj₂ : ∀ {c c′ args args′} → Term.con c args ≡ con c′ args′ → args ≡ args′
 con-inj₂ refl = refl
 
 def-inj₁ : ∀ {f f′ args args′} → def f args ≡ def f′ args′ → f ≡ f′
