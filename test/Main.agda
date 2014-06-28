@@ -4,7 +4,6 @@ open import Data.Traversable
 open import Data.Monoid
 open import Data.Foldable
 open import Data.List
-open import Data.Reflect
 open import Text.Parse
 open import Text.Lex
 open import Text.Printf
@@ -13,6 +12,7 @@ open import Control.WellFounded
 open import Builtin.Size
 open import Builtin.Coinduction
 open import Builtin.Float
+open import Builtin.Reflection
 
 Hello = printf "%c%s" 'H' "ello"
 World = printf "%6s" "World"
