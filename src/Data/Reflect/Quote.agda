@@ -18,11 +18,7 @@ pattern `zero  = con (quote Nat.zero) []
 pattern `suc n = con (quote Nat.suc) (vArg n ∷ [])
 
 QuotableNat : Quotable Nat
-QuotableNat = record { ` = quoteNat }
-  where
-    quoteNat : Nat → Term
-    quoteNat zero    = `zero
-    quoteNat (suc n) = `suc (quoteNat n)
+QuotableNat = record { ` = λ n → lit (nat n) }
 
 -- Bool --
 
