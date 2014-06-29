@@ -134,26 +134,29 @@ mutual
 ------------------------------------------------------------------------
 -- Definitions
 
-
 data Pattern : Set where
-  con : Name → List (Arg Pattern) → Pattern
-  dot : Pattern
-  var : Pattern
-  lit : Literal → Pattern
-  proj : Name → Pattern
+  con    : Name → List (Arg Pattern) → Pattern
+  dot    : Pattern
+  var    : Pattern
+  lit    : Literal → Pattern
+  proj   : Name → Pattern
+  absurd : Pattern
 
-{-# BUILTIN AGDAPATTERN Pattern #-}
-{-# BUILTIN AGDAPATCON con #-}
-{-# BUILTIN AGDAPATDOT dot #-}
-{-# BUILTIN AGDAPATVAR var #-}
-{-# BUILTIN AGDAPATLIT lit #-}
-{-# BUILTIN AGDAPATPROJ proj #-}
+{-# BUILTIN AGDAPATTERN   Pattern #-}
+{-# BUILTIN AGDAPATCON    con     #-}
+{-# BUILTIN AGDAPATDOT    dot     #-}
+{-# BUILTIN AGDAPATVAR    var     #-}
+{-# BUILTIN AGDAPATLIT    lit     #-}
+{-# BUILTIN AGDAPATPROJ   proj    #-}
+{-# BUILTIN AGDAPATABSURD absurd  #-}
 
 data Clause : Set where
-  clause : List Pattern → Term → Clause
+  clause : List (Arg Pattern) → Term → Clause
+  absurd-clause : List (Arg Pattern) → Clause
 
-{-# BUILTIN AGDACLAUSE Clause #-}
-{-# BUILTIN AGDACLAUSECON clause #-}
+{-# BUILTIN AGDACLAUSE       Clause        #-}
+{-# BUILTIN AGDACLAUSECLAUSE clause        #-}
+{-# BUILTIN AGDACLAUSEABSURD absurd-clause #-}
 
 data Function : Set where
   fun-def : Type → List Clause → Function
