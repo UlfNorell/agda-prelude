@@ -102,6 +102,7 @@ mutual
     con     : (c : Name) (args : List (Arg Term)) → Term
     def     : (f : Name) (args : List (Arg Term)) → Term
     lam     : (v : Visibility) (t : Term) → Term
+    pat-lam : (cs : List Clause) (args : List (Arg Term)) → Term
     pi      : (a : Arg Type) (b : Type) → Term
     sort    : (s : Sort) → Term
     lit     : (l : Literal) → Term
@@ -115,13 +116,32 @@ mutual
     lit     : (n : Nat) → Sort
     unknown : Sort
 
+  data Pattern : Set where
+    con    : Name → List (Arg Pattern) → Pattern
+    dot    : Pattern
+    var    : Pattern
+    lit    : Literal → Pattern
+    proj   : Name → Pattern
+    absurd : Pattern
+
+  data Clause : Set where
+    clause : List (Arg Pattern) → Term → Clause
+    absurd-clause : List (Arg Pattern) → Clause
+
+unEl : Type → Term
+unEl (el _ v) = v
+
 {-# BUILTIN AGDASORT            Sort    #-}
 {-# BUILTIN AGDATYPE            Type    #-}
 {-# BUILTIN AGDATERM            Term    #-}
+{-# BUILTIN AGDAPATTERN   Pattern #-}
+{-# BUILTIN AGDACLAUSE       Clause        #-}
+
 {-# BUILTIN AGDATERMVAR         var     #-}
 {-# BUILTIN AGDATERMCON         con     #-}
 {-# BUILTIN AGDATERMDEF         def     #-}
 {-# BUILTIN AGDATERMLAM         lam     #-}
+{-# BUILTIN AGDATERMEXTLAM      pat-lam #-}
 {-# BUILTIN AGDATERMPI          pi      #-}
 {-# BUILTIN AGDATERMSORT        sort    #-}
 {-# BUILTIN AGDATERMLIT         lit     #-}
@@ -131,18 +151,6 @@ mutual
 {-# BUILTIN AGDASORTLIT         lit     #-}
 {-# BUILTIN AGDASORTUNSUPPORTED unknown #-}
 
-------------------------------------------------------------------------
--- Definitions
-
-data Pattern : Set where
-  con    : Name → List (Arg Pattern) → Pattern
-  dot    : Pattern
-  var    : Pattern
-  lit    : Literal → Pattern
-  proj   : Name → Pattern
-  absurd : Pattern
-
-{-# BUILTIN AGDAPATTERN   Pattern #-}
 {-# BUILTIN AGDAPATCON    con     #-}
 {-# BUILTIN AGDAPATDOT    dot     #-}
 {-# BUILTIN AGDAPATVAR    var     #-}
@@ -150,13 +158,11 @@ data Pattern : Set where
 {-# BUILTIN AGDAPATPROJ   proj    #-}
 {-# BUILTIN AGDAPATABSURD absurd  #-}
 
-data Clause : Set where
-  clause : List (Arg Pattern) → Term → Clause
-  absurd-clause : List (Arg Pattern) → Clause
-
-{-# BUILTIN AGDACLAUSE       Clause        #-}
 {-# BUILTIN AGDACLAUSECLAUSE clause        #-}
 {-# BUILTIN AGDACLAUSEABSURD absurd-clause #-}
+
+------------------------------------------------------------------------
+-- Definitions
 
 data Function : Set where
   fun-def : Type → List Clause → Function
