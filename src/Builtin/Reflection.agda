@@ -179,15 +179,16 @@ postulate
 
 -- Definitions.
 
-data Definition : Set where
-  function     : Function  → Definition
-  data-type    : DataType → Definition
-  record′      : Record    → Definition
-  constructor′ : Definition
-  axiom        : Definition
-  primitive′   : Definition
+private
+  data Def : Set where
+    function     : Function  → Def
+    data-type    : DataType → Def
+    record′      : Record    → Def
+    constructor′ : Def
+    axiom        : Def
+    primitive′   : Def
 
-{-# BUILTIN AGDADEFINITION                Definition   #-}
+{-# BUILTIN AGDADEFINITION                Def   #-}
 {-# BUILTIN AGDADEFINITIONFUNDEF          function     #-}
 {-# BUILTIN AGDADEFINITIONDATADEF         data-type    #-}
 {-# BUILTIN AGDADEFINITIONRECORDDEF       record′      #-}
@@ -195,11 +196,42 @@ data Definition : Set where
 {-# BUILTIN AGDADEFINITIONPOSTULATE       axiom        #-}
 {-# BUILTIN AGDADEFINITIONPRIMITIVE       primitive′   #-}
 
+data Definition : Set where
+  function    : Function  → Definition
+  data-type   : (cs : List Name) → Definition
+  record-type : Record → Definition
+  data-cons   : (d : Name) → Definition
+  axiom       : Definition
+  prim-fun    : Definition
+
 private
   primitive
     primQNameType        : Name → Type
-    primQNameDefinition  : Name → Definition
+    primQNameDefinition  : Name → Def
     primDataConstructors : DataType → List Name
+
+private
+  data BadConstructorType : Set where
+
+  bad = quote BadConstructorType
+
+  conData : Name → Name
+  conData = getTData ∘ primQNameType
+    where
+      getTData : Type → Name
+      getData : Term → Name
+      getData (def d _) = d
+      getData (pi a b)  = getTData b
+      getData _         = bad
+      getTData (el _ b) = getData b
+
+  makeDef : Name → Def → Definition
+  makeDef _ (function x)  = function x
+  makeDef _ (data-type x) = data-type (primDataConstructors x)
+  makeDef _ axiom         = axiom
+  makeDef _ (record′ x)   = record-type x
+  makeDef c constructor′  = data-cons (conData c)
+  makeDef _ primitive′    = prim-fun
 
 -- The type of the thing with the given name.
 
@@ -209,15 +241,7 @@ typeOf = primQNameType
 -- The definition of the thing with the given name.
 
 definitionOf : Name → Definition
-definitionOf = primQNameDefinition
-
--- The constructors of the given data type.
-
-constructorsOf : DataType → List Name
-constructorsOf = primDataConstructors
-
-------------------------------------------------------------------------
--- Term equality is decidable
+definitionOf x = makeDef x (primQNameDefinition x)
 
 -- Injectivity of constructors
 
