@@ -27,7 +27,7 @@ private
   wfNatSlow′ zero     zero   y ()
   wfNatSlow′ zero    (suc j) y ()
 
-  wfNatSlow n = acc λ { y (diffP j eq) → wfNatSlow′ n j y eq }
+  wfNatSlow n = acc λ { y (diff j eq) → wfNatSlow′ n j y eq }
 
 wfNat : (n : Nat) → Acc LessThan n
 wfNat n = fastAcc wfNatSlow n

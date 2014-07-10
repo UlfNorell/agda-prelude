@@ -106,9 +106,9 @@ lessNat (suc n) (suc m) = lessNat n m
 {-# BUILTIN NATLESS lessNat #-}
 
 data LessNat n m : Set where
-  diffP : ∀ k → m ≡ suc k + n → LessNat n m
+  diff : ∀ k → m ≡ suc k + n → LessNat n m
 
-pattern diff k = diffP k refl
+pattern diff! k = diff k refl
 
 private
   add-zero : ∀ n → n ≡ n + 0
@@ -134,9 +134,9 @@ private
   -- proofs.
   compareNat : ∀ n m → Comparison LessNat n m
   compareNat n m with decBool (lessNat n m)
-  ... | yes p = less (diffP (m - suc n) (safeEqual (lemLessNatMinus n m p)))
+  ... | yes p = less (diff (m - suc n) (safeEqual (lemLessNatMinus n m p)))
   ... | no np₁ with decBool (lessNat m n)
-  ...             | yes p  = greater (diffP (n - suc m) (safeEqual (lemLessNatMinus m n p)))
+  ...             | yes p  = greater (diff (n - suc m) (safeEqual (lemLessNatMinus m n p)))
   ...             | no np₂ = equal (safeEqual (lemNoLessEqual n m np₁ np₂))
 
 OrdNat : Ord Nat
