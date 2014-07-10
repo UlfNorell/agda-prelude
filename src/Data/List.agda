@@ -12,6 +12,8 @@ data Any {a b} {A : Set a} (P : A → Set b) : List A → Set (a ⊔ b) where
   zero : ∀ {x xs} (p : P x) → Any P (x ∷ xs)
   suc  : ∀ {x xs} (i : Any P xs) → Any P (x ∷ xs)
 
+pattern zero! = zero refl
+
 _∈_ : ∀ {a} {A : Set a} → A → List A → Set a
 x ∈ xs = Any (_≡_ x) xs
 
