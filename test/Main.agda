@@ -14,6 +14,12 @@ open import Builtin.Coinduction
 open import Builtin.Float
 open import Builtin.Reflection
 
+open import Tactic.Reflection.DeBruijn
+open import Tactic.Reflection.Equality
+open import Tactic.Reflection.Free
+open import Tactic.Reflection.Quote
+open import Tactic.Reflection.Telescope
+
 Hello = printf "%c%s" 'H' "ello"
 World = printf "%6s" "World"
 
