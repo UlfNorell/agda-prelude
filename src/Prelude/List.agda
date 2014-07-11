@@ -69,6 +69,9 @@ null : ∀ {a} {A : Set a} → List A → Bool
 null []      = true
 null (_ ∷ _) = false
 
+elem : ∀ {a} {A : Set a} {{EqA : Eq A}} → A → List A → Bool
+elem x xs = not (null (filter (isYes ∘ _==_ x) xs))
+
 lookup : ∀ {a b} {A : Set a} {B : Set b} {{EqA : Eq A}} → List (A × B) → A → Maybe B
 lookup [] _ = nothing
 lookup ((x₁ , v) ∷ xs) x = ifYes (x == x₁) then just v else lookup xs x
