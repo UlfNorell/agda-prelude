@@ -36,10 +36,9 @@ listToVec (x ∷ xs) = x ∷ listToVec xs
 
 --- Lookup ---
 
-infixl 8 _!_
-_!_ : ∀ {a} {A : Set a} {n} → Vec A n → Fin n → A
-(x ∷ xs) ! zero  = x
-(x ∷ xs) ! suc i = xs ! i
+indexVec : ∀ {a} {A : Set a} {n} → Vec A n → Fin n → A
+indexVec (x ∷ xs) zero    = x
+indexVec (x ∷ xs) (suc i) = indexVec xs i
 
 tabulate : ∀ {a} {A : Set a} {n} → (Fin n → A) → Vec A n
 tabulate {n = zero } f = []
