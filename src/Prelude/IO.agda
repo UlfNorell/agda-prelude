@@ -26,14 +26,15 @@ postulate
 {-# COMPILED ioReturn (\ _ -> return)    #-}
 {-# COMPILED ioBind   (\ _ _ -> (>>=)) #-}
 
-MonadIO : Monad IO
-MonadIO = record { return = ioReturn ; _>>=_ = ioBind }
+instance
+  MonadIO : Monad IO
+  MonadIO = record { return = ioReturn ; _>>=_ = ioBind }
 
-FunctorIO : Functor IO
-FunctorIO = defaultMonadFunctor
+  FunctorIO : Functor IO
+  FunctorIO = defaultMonadFunctor
 
-ApplicativeIO : Applicative IO
-ApplicativeIO = defaultMonadApplicative
+  ApplicativeIO : Applicative IO
+  ApplicativeIO = defaultMonadApplicative
 
 --- Terminal IO ---
 

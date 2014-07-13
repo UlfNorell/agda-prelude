@@ -17,10 +17,11 @@ primitive
 -- type checker will accept refl : NaN ≡ NaN. Right now we don't export
 -- any operations on floats so it's no problem, but there's some thinking
 -- to be done if we want to.
-EqFloat : Eq Float
-EqFloat = record { _==_ = eqFloat }
-  where
-    eqFloat : ∀ x y → Dec (x ≡ y)
-    eqFloat x y with primFloatEquality x y
-    ... | true  = yes unsafeEqual
-    ... | false = no  unsafeNotEqual
+instance
+  EqFloat : Eq Float
+  EqFloat = record { _==_ = eqFloat }
+    where
+      eqFloat : ∀ x y → Dec (x ≡ y)
+      eqFloat x y with primFloatEquality x y
+      ... | true  = yes unsafeEqual
+      ... | false = no  unsafeNotEqual

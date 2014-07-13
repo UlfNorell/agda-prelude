@@ -135,16 +135,18 @@ private
   compareList (x ∷ xs) (.x ∷ .xs) | equal refl | equal refl     = equal refl
   compareList (x ∷ xs) (.x ∷ ys)  | equal refl | greater xs>ys  = greater (tail< xs>ys)
 
-OrdList : ∀ {a} {A : Set a} {{OrdA : Ord A}} → Ord (List A)
-OrdList = record { LessThan = LessList ; compare = compareList }
+instance
+  OrdList : ∀ {a} {A : Set a} {{OrdA : Ord A}} → Ord (List A)
+  OrdList = record { LessThan = LessList ; compare = compareList }
 
 --- Functor ---
 
-FunctorList : ∀ {a} → Functor (List {a})
-FunctorList = record { fmap = map }
+instance
+  FunctorList : ∀ {a} → Functor (List {a})
+  FunctorList = record { fmap = map }
 
-MonadList : ∀ {a} → Monad (List {a})
-MonadList = record { return = λ x → x ∷ [] ; _>>=_ = flip concatMap }
+  MonadList : ∀ {a} → Monad (List {a})
+  MonadList = record { return = λ x → x ∷ [] ; _>>=_ = flip concatMap }
 
-ApplicativeList : ∀ {a} → Applicative (List {a})
-ApplicativeList = defaultMonadApplicative
+  ApplicativeList : ∀ {a} → Applicative (List {a})
+  ApplicativeList = defaultMonadApplicative

@@ -67,18 +67,20 @@ eqEither (right x) (right y) with x == y
 eqEither (right x) (right .x)   | yes refl = yes refl
 eqEither (right x) (right y)    | no neq   = no λ eq → neq (right-inj eq)
 
-EqEither : ∀ {a b} {A : Set a} {B : Set b} {{EqA : Eq A}} {{EqB : Eq B}} →
-              Eq (Either A B)
-EqEither = record { _==_ = eqEither }
+instance
+  EqEither : ∀ {a b} {A : Set a} {B : Set b} {{EqA : Eq A}} {{EqB : Eq B}} →
+               Eq (Either A B)
+  EqEither = record { _==_ = eqEither }
 
 --- Monad instance ---
 
-MonadEither : ∀ {a b} {A : Set a} → Monad (Either {b = b} A)
-MonadEither = record { return = right
-                     ; _>>=_  = λ m f → either left f m }
+instance
+  MonadEither : ∀ {a b} {A : Set a} → Monad (Either {b = b} A)
+  MonadEither = record { return = right
+                       ; _>>=_  = λ m f → either left f m }
 
-FunctorEither : ∀ {a b} {A : Set a} → Functor (Either {b = b} A)
-FunctorEither = defaultMonadFunctor
+  FunctorEither : ∀ {a b} {A : Set a} → Functor (Either {b = b} A)
+  FunctorEither = defaultMonadFunctor
 
-ApplicativeEither : ∀ {a b} {A : Set a} → Applicative (Either {b = b} A)
-ApplicativeEither = defaultMonadApplicative
+  ApplicativeEither : ∀ {a b} {A : Set a} → Applicative (Either {b = b} A)
+  ApplicativeEither = defaultMonadApplicative

@@ -26,8 +26,9 @@ private
   ... | true  = yes unsafeEqual
   ... | false = no  unsafeNotEqual
 
-EqName : Eq Name
-EqName = record { _==_ = eqName }
+instance
+  EqName : Eq Name
+  EqName = record { _==_ = eqName }
 
 ------------------------------------------------------------------------
 -- Terms
@@ -36,12 +37,12 @@ EqName = record { _==_ = eqName }
 -- instance argument?
 
 data Visibility : Set where
-  visible hidden instance : Visibility
+  visible hidden instance′ : Visibility
 
 {-# BUILTIN HIDING   Visibility #-}
 {-# BUILTIN VISIBLE  visible    #-}
 {-# BUILTIN HIDDEN   hidden     #-}
-{-# BUILTIN INSTANCE instance   #-}
+{-# BUILTIN INSTANCE instance′   #-}
 
 -- Arguments can be relevant or irrelevant.
 
@@ -62,7 +63,7 @@ data Arg (A : Set) : Set where
 
 pattern vArg x = arg (arg-info visible relevant) x
 pattern hArg x = arg (arg-info hidden relevant) x
-pattern iArg x = arg (arg-info instance relevant) x
+pattern iArg x = arg (arg-info instance′ relevant) x
 
 {-# BUILTIN ARGINFO    ArgInfo #-}
 {-# BUILTIN ARGARGINFO arg-info #-}
@@ -72,11 +73,12 @@ pattern iArg x = arg (arg-info instance relevant) x
 unArg : ∀ {A} → Arg A → A
 unArg (arg _ x) = x
 
-FunctorArg : Functor Arg
-FunctorArg = record { fmap = λ { f (arg i x) → arg i (f x) } }
+instance
+  FunctorArg : Functor Arg
+  FunctorArg = record { fmap = λ { f (arg i x) → arg i (f x) } }
 
-TraversableArg : Traversable Arg
-TraversableArg = record { traverse = λ { f (arg i x) → pure (arg i) <*> f x } }
+  TraversableArg : Traversable Arg
+  TraversableArg = record { traverse = λ { f (arg i x) → pure (arg i) <*> f x } }
 
 -- Literals.
 

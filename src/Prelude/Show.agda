@@ -47,8 +47,9 @@ ShowBy f = record { showsPrec = λ p → showsPrec p ∘ f }
 
 -- Bool --
 
-ShowBool : Show Bool
-ShowBool = simpleShowInstance λ b → if b then "true" else "false"
+instance
+  ShowBool : Show Bool
+  ShowBool = simpleShowInstance λ b → if b then "true" else "false"
 
 -- Nat --
 
@@ -65,24 +66,27 @@ private
   showNat zero = "0"
   showNat n = packString $ showNat′ n []
 
-ShowNat : Show Nat
-ShowNat = simpleShowInstance showNat
+instance
+  ShowNat : Show Nat
+  ShowNat = simpleShowInstance showNat
 
 -- Char --
 
 primitive
   primShowChar : Char → String
 
-ShowChar : Show Char
-ShowChar = simpleShowInstance primShowChar
+instance
+  ShowChar : Show Char
+  ShowChar = simpleShowInstance primShowChar
 
 -- String --
 
 primitive
   primShowString : String → String
 
-ShowString : Show String
-ShowString = simpleShowInstance primShowString
+instance
+  ShowString : Show String
+  ShowString = simpleShowInstance primShowString
 
 -- List --
 
@@ -93,20 +97,21 @@ private
                       ∘ foldl (λ r x → r ∘ showString ", " ∘ showsPrec 2 x) (showsPrec 2 x) xs
                       ∘ showString "]"
 
-ShowList : ∀ {a} {A : Set a} {{ShowA : Show A}} → Show (List A)
-ShowList = record { showsPrec = showList }
+instance
+  ShowList : ∀ {a} {A : Set a} {{ShowA : Show A}} → Show (List A)
+  ShowList = record { showsPrec = showList }
 
 -- Fin --
 
-ShowFin : ∀ {n} → Show (Fin n)
-ShowFin = simpleShowInstance (show ∘ finToNat)
+instance
+  ShowFin : ∀ {n} → Show (Fin n)
+  ShowFin = simpleShowInstance (show ∘ finToNat)
 
 -- Vec --
 
-ShowVec : ∀ {a} {A : Set a} {n} {{ShowA : Show A}} → Show (Vec A n)
-ShowVec {A = A} = record { showsPrec = λ p → showsPrec p ∘ vecToList }
-  where ShowListA : Show (List A)
-        ShowListA = ShowList
+instance
+  ShowVec : ∀ {a} {A : Set a} {n} {{ShowA : Show A}} → Show (Vec A n)
+  ShowVec {A = A} = record { showsPrec = λ p → showsPrec p ∘ vecToList }
 
 -- Maybe --
 
@@ -115,8 +120,9 @@ private
   showMaybe p nothing  = showString "nothing"
   showMaybe p (just x) = showParen (p > 9) (showString "just " ∘ showsPrec 10 x)
 
-ShowMaybe : ∀ {a} {A : Set a} {{ShowA : Show A}} → Show (Maybe A)
-ShowMaybe = record { showsPrec = showMaybe }
+instance
+  ShowMaybe : ∀ {a} {A : Set a} {{ShowA : Show A}} → Show (Maybe A)
+  ShowMaybe = record { showsPrec = showMaybe }
 
 -- Either --
 
@@ -126,8 +132,9 @@ private
   showEither p (left  x) = showParen (p > 9) $ showString "left " ∘ showsPrec 10 x
   showEither p (right x) = showParen (p > 9) $ showString "right " ∘ showsPrec 10 x
 
-ShowEither : ∀ {a b} {A : Set a} {B : Set b} {{ShowA : Show A}} {{ShowB : Show B}} → Show (Either A B)
-ShowEither = record { showsPrec = showEither }
+instance
+  ShowEither : ∀ {a b} {A : Set a} {B : Set b} {{ShowA : Show A}} {{ShowB : Show B}} → Show (Either A B)
+  ShowEither = record { showsPrec = showEither }
 
 -- Sigma --
 
@@ -136,8 +143,9 @@ private
                Nat → Σ A B → ShowS
   showPair p (x , y) = showParen (p > 1) $ showsPrec 2 x ∘ showString ", " ∘ showsPrec 1 y
 
-ShowSigma : ∀ {a b} {A : Set a} {B : A → Set b} {{ShowA : Show A}} {{ShowB : ∀ {x} → Show (B x)}} → Show (Σ A B)
-ShowSigma = record { showsPrec = showPair }
+instance
+  ShowSigma : ∀ {a b} {A : Set a} {B : A → Set b} {{ShowA : Show A}} {{ShowB : ∀ {x} → Show (B x)}} → Show (Σ A B)
+  ShowSigma {{ShowB = ShowB}} = record { showsPrec = showPair {{ShowB = ShowB}} }
 
-ShowPair : ∀ {a b} {A : Set a} {B : Set b} {{ShowA : Show A}} {{ShowB : Show B}} → Show (A × B)
-ShowPair {{ShowB = ShowB}} = ShowSigma {{ShowB = ShowB}}
+  ShowPair : ∀ {a b} {A : Set a} {B : Set b} {{ShowA : Show A}} {{ShowB : Show B}} → Show (A × B)
+  ShowPair {{ShowB = ShowB}} = ShowSigma {{ShowB = ShowB}}

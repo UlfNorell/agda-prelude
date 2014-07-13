@@ -64,8 +64,9 @@ private
   eqVec (x ∷ xs) (.x ∷ ys)   | yes refl    | no neq = no λ eq → neq (vcons-inj-tail eq)
   eqVec (x ∷ xs) (.x ∷ .xs)  | yes refl    | yes refl = yes refl
 
-EqVec : ∀ {a} {A : Set a} {{EqA : Eq A}} {n} → Eq (Vec A n)
-EqVec = record { _==_ = eqVec }
+instance
+  EqVec : ∀ {a} {A : Set a} {{EqA : Eq A}} {n} → Eq (Vec A n)
+  EqVec = record { _==_ = eqVec }
 
 --- Ord ---
 
@@ -84,13 +85,15 @@ private
   compareVec (x ∷ xs) (.x ∷  ys) | equal   refl | greater ys<xs = greater (tail< ys<xs)
   compareVec (x ∷ xs) (.x ∷ .xs) | equal   refl | equal   refl  = equal refl
 
-OrdVec : ∀ {a} {A : Set a} {{OrdA : Ord A}} {n} → Ord (Vec A n)
-OrdVec = record { LessThan = LessVec ; compare = compareVec }
+instance
+  OrdVec : ∀ {a} {A : Set a} {{OrdA : Ord A}} {n} → Ord (Vec A n)
+  OrdVec = record { LessThan = LessVec ; compare = compareVec }
 
 --- Functor instances ---
 
-ApplicativeVec : ∀ {a n} → Applicative {a} (flip Vec n)
-ApplicativeVec = record { pure = vec ; _<*>_ = vapp }
+instance
+  ApplicativeVec : ∀ {a n} → Applicative {a} (flip Vec n)
+  ApplicativeVec = record { pure = vec ; _<*>_ = vapp }
 
-FunctorVec : ∀ {a n} → Functor {a} (flip Vec n)
-FunctorVec = defaultApplicativeFunctor
+  FunctorVec : ∀ {a n} → Functor {a} (flip Vec n)
+  FunctorVec = defaultApplicativeFunctor

@@ -41,16 +41,18 @@ eqMaybe (just x) (just y) with x == y
 eqMaybe (just x) (just .x) | yes refl = yes refl
 eqMaybe (just x) (just y)  | no  neq  = no (λ eq → neq (just-inj eq))
 
-EqMaybe : ∀ {a} {A : Set a} {{EqA : Eq A}} → Eq (Maybe A)
-EqMaybe = record { _==_ = eqMaybe }
+instance
+  EqMaybe : ∀ {a} {A : Set a} {{EqA : Eq A}} → Eq (Maybe A)
+  EqMaybe = record { _==_ = eqMaybe }
 
 --- Monad ---
 
-MonadMaybe : ∀ {a} → Monad (Maybe {a})
-MonadMaybe = record { return = just ; _>>=_ = flip (maybe nothing) }
+instance
+  MonadMaybe : ∀ {a} → Monad (Maybe {a})
+  MonadMaybe = record { return = just ; _>>=_ = flip (maybe nothing) }
 
-FunctorMaybe : ∀ {a} → Functor (Maybe {a})
-FunctorMaybe = defaultMonadFunctor
+  FunctorMaybe : ∀ {a} → Functor (Maybe {a})
+  FunctorMaybe = defaultMonadFunctor
 
-ApplicativeMaybe : ∀ {a} → Applicative (Maybe {a})
-ApplicativeMaybe = defaultMonadApplicative
+  ApplicativeMaybe : ∀ {a} → Applicative (Maybe {a})
+  ApplicativeMaybe = defaultMonadApplicative

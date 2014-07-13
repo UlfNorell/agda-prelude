@@ -55,8 +55,9 @@ decEqChar x y with eqChar x y
 ... | false = no  unsafeNotEqual
 ... | true  = yes unsafeEqual
 
-EqChar : Eq Char
-EqChar = record { _==_ = decEqChar }
+instance
+  EqChar : Eq Char
+  EqChar = record { _==_ = decEqChar }
 
 -- Missing primitive isUpper
 isUpper : Char → Bool
@@ -64,5 +65,6 @@ isUpper c = isNo (toLower c == c)
 
 --- Ord ---
 
-OrdChar : Ord Char
-OrdChar = OrdBy charToNat-inj
+instance
+  OrdChar : Ord Char
+  OrdChar = OrdBy charToNat-inj

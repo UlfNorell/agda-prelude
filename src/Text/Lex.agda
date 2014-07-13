@@ -11,15 +11,16 @@ record TokenDFA {s} (A : Set) (Tok : Set) : Set (lsuc s) where
     accept  : State → Maybe Tok
     consume : A → State → Maybe State
 
-FunctorTokenDFA : ∀ {s} {A : Set} → Functor (TokenDFA {s = s} A)
-FunctorTokenDFA =
-  record { fmap = λ f dfa →
-    record { State   = TokenDFA.State dfa
-           ; initial = TokenDFA.initial dfa
-           ; accept  = λ s → f <$> TokenDFA.accept dfa s
-           ; consume = TokenDFA.consume dfa
-           }
-  }
+instance
+  FunctorTokenDFA : ∀ {s} {A : Set} → Functor (TokenDFA {s = s} A)
+  FunctorTokenDFA =
+    record { fmap = λ f dfa →
+      record { State   = TokenDFA.State dfa
+             ; initial = TokenDFA.initial dfa
+             ; accept  = λ s → f <$> TokenDFA.accept dfa s
+             ; consume = TokenDFA.consume dfa
+             }
+    }
 
 keywordToken : {A : Set} {{EqA : Eq A}} → List A → TokenDFA A ⊤
 keywordToken {A = A} kw =

@@ -63,12 +63,12 @@ private
   ... | true  = yes unsafeEqual
   ... | false = no  unsafeNotEqual
 
-EqString : Eq String
-EqString = record { _==_ = decEqString }
+instance
+  EqString : Eq String
+  EqString = record { _==_ = decEqString }
 
 -- Ord --
 
-OrdString : Ord String
-OrdString = OrdBy unpackString-inj
-  where O : Ord (List Char)
-        O = OrdList
+instance
+  OrdString : Ord String
+  OrdString = OrdBy unpackString-inj

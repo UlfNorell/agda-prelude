@@ -25,12 +25,6 @@ World = printf "%6s" "World"
 
 M = StateT Nat IO
 
-MonadM : Monad M
-MonadM = MonadStateT
-
-ApplicativeM : Applicative M
-ApplicativeM = ApplicativeStateT
-
 putStrI : String → StateT Nat IO Unit
 putStrI s = get >>= λ n →
             put (suc n) >>

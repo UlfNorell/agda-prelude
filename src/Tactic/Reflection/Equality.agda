@@ -5,72 +5,73 @@ open import Prelude
 open import Builtin.Reflection
 open import Builtin.Float
 
-EqVisibility : Eq Visibility
-EqVisibility = record { _==_ = eqVis }
-  where
-    eqVis : ∀ x y → Dec (x ≡ y)
-    eqVis visible  visible  = yes refl
-    eqVis visible  hidden   = no (λ ())
-    eqVis visible  instance = no (λ ())
-    eqVis hidden   visible  = no (λ ())
-    eqVis hidden   hidden   = yes refl
-    eqVis hidden   instance = no (λ ())
-    eqVis instance visible  = no (λ ())
-    eqVis instance hidden   = no (λ ())
-    eqVis instance instance = yes refl
+instance
+  EqVisibility : Eq Visibility
+  EqVisibility = record { _==_ = eqVis }
+    where
+      eqVis : ∀ x y → Dec (x ≡ y)
+      eqVis visible  visible  = yes refl
+      eqVis visible  hidden   = no (λ ())
+      eqVis visible  instance′ = no (λ ())
+      eqVis hidden   visible  = no (λ ())
+      eqVis hidden   hidden   = yes refl
+      eqVis hidden   instance′ = no (λ ())
+      eqVis instance′ visible  = no (λ ())
+      eqVis instance′ hidden   = no (λ ())
+      eqVis instance′ instance′ = yes refl
 
-EqRelevance : Eq Relevance
-EqRelevance = record { _==_ = eqRel }
-  where
-    eqRel : ∀ x y → Dec (x ≡ y)
-    eqRel relevant   relevant   = yes refl
-    eqRel relevant   irrelevant = no (λ ())
-    eqRel irrelevant relevant   = no (λ ())
-    eqRel irrelevant irrelevant = yes refl
+  EqRelevance : Eq Relevance
+  EqRelevance = record { _==_ = eqRel }
+    where
+      eqRel : ∀ x y → Dec (x ≡ y)
+      eqRel relevant   relevant   = yes refl
+      eqRel relevant   irrelevant = no (λ ())
+      eqRel irrelevant relevant   = no (λ ())
+      eqRel irrelevant irrelevant = yes refl
 
-EqArgInfo : Eq ArgInfo
-EqArgInfo = record { _==_ = eqArgInfo }
-  where
-    eqArgInfo : ∀ x y → Dec (x ≡ y)
-    eqArgInfo (arg-info v r) (arg-info v₁ r₁) =
-      decEq₂ arg-info-inj₁ arg-info-inj₂ (v == v₁) (r == r₁)
+  EqArgInfo : Eq ArgInfo
+  EqArgInfo = record { _==_ = eqArgInfo }
+    where
+      eqArgInfo : ∀ x y → Dec (x ≡ y)
+      eqArgInfo (arg-info v r) (arg-info v₁ r₁) =
+        decEq₂ arg-info-inj₁ arg-info-inj₂ (v == v₁) (r == r₁)
 
-EqArg : ∀ {A} {{EqA : Eq A}} → Eq (Arg A)
-EqArg = record { _==_ = eqArg }
-  where
-    eqArg : ∀ x y → Dec (x ≡ y)
-    eqArg (arg i x) (arg i₁ x₁) = decEq₂ arg-inj₁ arg-inj₂ (i == i₁) (x == x₁)
+  EqArg : ∀ {A} {{EqA : Eq A}} → Eq (Arg A)
+  EqArg = record { _==_ = eqArg }
+    where
+      eqArg : ∀ x y → Dec (x ≡ y)
+      eqArg (arg i x) (arg i₁ x₁) = decEq₂ arg-inj₁ arg-inj₂ (i == i₁) (x == x₁)
 
-EqLiteral : Eq Literal
-EqLiteral = record { _==_ = eqLit }
-  where
-    eqLit : ∀ x y → Dec (x ≡ y)
-    eqLit (nat    x) (nat    y) = decEq₁ nat-inj    (x == y)
-    eqLit (float  x) (float  y) = decEq₁ float-inj  (x == y)
-    eqLit (char   x) (char   y) = decEq₁ char-inj   (x == y)
-    eqLit (string x) (string y) = decEq₁ string-inj (x == y)
-    eqLit (name   x) (name   y) = decEq₁ name-inj   (x == y)
+  EqLiteral : Eq Literal
+  EqLiteral = record { _==_ = eqLit }
+    where
+      eqLit : ∀ x y → Dec (x ≡ y)
+      eqLit (nat    x) (nat    y) = decEq₁ nat-inj    (x == y)
+      eqLit (float  x) (float  y) = decEq₁ float-inj  (x == y)
+      eqLit (char   x) (char   y) = decEq₁ char-inj   (x == y)
+      eqLit (string x) (string y) = decEq₁ string-inj (x == y)
+      eqLit (name   x) (name   y) = decEq₁ name-inj   (x == y)
 
-    eqLit (nat    x) (float  y) = no λ()
-    eqLit (nat    x) (char   y) = no λ()
-    eqLit (nat    x) (string y) = no λ()
-    eqLit (nat    x) (name   y) = no λ()
-    eqLit (float  x) (nat    y) = no λ()
-    eqLit (float  x) (char   y) = no λ()
-    eqLit (float  x) (string y) = no λ()
-    eqLit (float  x) (name   y) = no λ()
-    eqLit (char   x) (nat    y) = no λ()
-    eqLit (char   x) (float  y) = no λ()
-    eqLit (char   x) (string y) = no λ()
-    eqLit (char   x) (name   y) = no λ()
-    eqLit (string x) (nat    y) = no λ()
-    eqLit (string x) (float  y) = no λ()
-    eqLit (string x) (char   y) = no λ()
-    eqLit (string x) (name   y) = no λ()
-    eqLit (name   x) (nat    y) = no λ()
-    eqLit (name   x) (float  y) = no λ()
-    eqLit (name   x) (char   y) = no λ()
-    eqLit (name   x) (string y) = no λ()
+      eqLit (nat    x) (float  y) = no λ()
+      eqLit (nat    x) (char   y) = no λ()
+      eqLit (nat    x) (string y) = no λ()
+      eqLit (nat    x) (name   y) = no λ()
+      eqLit (float  x) (nat    y) = no λ()
+      eqLit (float  x) (char   y) = no λ()
+      eqLit (float  x) (string y) = no λ()
+      eqLit (float  x) (name   y) = no λ()
+      eqLit (char   x) (nat    y) = no λ()
+      eqLit (char   x) (float  y) = no λ()
+      eqLit (char   x) (string y) = no λ()
+      eqLit (char   x) (name   y) = no λ()
+      eqLit (string x) (nat    y) = no λ()
+      eqLit (string x) (float  y) = no λ()
+      eqLit (string x) (char   y) = no λ()
+      eqLit (string x) (name   y) = no λ()
+      eqLit (name   x) (nat    y) = no λ()
+      eqLit (name   x) (float  y) = no λ()
+      eqLit (name   x) (char   y) = no λ()
+      eqLit (name   x) (string y) = no λ()
 
 private
   eqSort : (x y : Sort) → Dec (x ≡ y)
@@ -170,14 +171,9 @@ private
 
   eqType (el s t) (el s₁ t₁) = decEq₂ el-inj₁ el-inj₂ (eqSort s s₁) (eqTerm t t₁)
 
-EqArgs : Eq (List (Arg Term))
-EqArgs = EqList {{EqA = EqArg {{EqA = record { _==_ = eqTerm }}}}}
+instance
+  EqType : Eq Type
+  EqType = record { _==_ = eqType }
 
-EqArgType : Eq (Arg Type)
-EqArgType = EqArg {{EqA = record { _==_ = eqType }}}
-
-EqType : Eq Type
-EqType = record { _==_ = eqType }
-
-EqTerm : Eq Term
-EqTerm = record { _==_ = eqTerm }
+  EqTerm : Eq Term
+  EqTerm = record { _==_ = eqTerm }

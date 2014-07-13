@@ -57,17 +57,18 @@ parse! p s with filter (null ∘ snd) (parse p s)
 
 --- Instances ---
 
-MonadP : Monad P
-MonadP = record { return = ret ; _>>=_ = bind }
+instance
+  MonadP : Monad P
+  MonadP = record { return = ret ; _>>=_ = bind }
 
-ApplicativeP : Applicative P
-ApplicativeP = defaultMonadApplicative
+  ApplicativeP : Applicative P
+  ApplicativeP = defaultMonadApplicative
 
-FunctorP : Functor P
-FunctorP = defaultMonadFunctor
+  FunctorP : Functor P
+  FunctorP = defaultMonadFunctor
 
-MonoidP : ∀ {A} → Monoid (P A)
-MonoidP = record { mempty = fail ; _<>_ = _+++_ }
+  MonoidP : ∀ {A} → Monoid (P A)
+  MonoidP = record { mempty = fail ; _<>_ = _+++_ }
 
 --- Derived combinators ---
 

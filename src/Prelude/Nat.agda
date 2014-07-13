@@ -67,8 +67,9 @@ private
   ... | true  | eq = yes (safeEqual (eq _))
   ... | false | _  = no  unsafeNotEqual
 
-EqNat : Eq Nat
-EqNat = record { _==_ = decEqNat }
+instance
+  EqNat : Eq Nat
+  EqNat = record { _==_ = decEqNat }
 
 --- Division and modulo ---
 
@@ -139,8 +140,9 @@ private
   ...             | yes p  = greater (diff (n - suc m) (safeEqual (lemLessNatMinus m n p)))
   ...             | no np₂ = equal (safeEqual (lemNoLessEqual n m np₁ np₂))
 
-OrdNat : Ord Nat
-OrdNat = record { LessThan = LessNat ; compare = compareNat }
+instance
+  OrdNat : Ord Nat
+  OrdNat = record { LessThan = LessNat ; compare = compareNat }
 
 min : Nat → Nat → Nat
 min n m = if n < m then n else m
