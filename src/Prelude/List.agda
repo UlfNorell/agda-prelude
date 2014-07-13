@@ -111,8 +111,9 @@ private
   eqList (_ ∷ _) [] = no (λ ())
   eqList (x ∷ xs) (y ∷ ys) = dec-∷ (x == y) (eqList xs ys)
 
-EqList : ∀ {a} {A : Set a} {{EqA : Eq A}} → Eq (List A)
-EqList = record { _==_ = eqList }
+instance
+  EqList : ∀ {a} {A : Set a} {{EqA : Eq A}} → Eq (List A)
+  EqList = record { _==_ = eqList }
 
 --- Ord ---
 

@@ -118,14 +118,15 @@ private
 
 -- Instances --
 
-DeBruijnTerm : DeBruijn Term
-DeBruijnTerm = record { strFrom = strTerm ; weakenFrom = wk }
+instance
+  DeBruijnTerm : DeBruijn Term
+  DeBruijnTerm = record { strFrom = strTerm ; weakenFrom = wk }
 
-DeBruijnType : DeBruijn Type
-DeBruijnType = record { strFrom = strType ; weakenFrom = wkType }
+  DeBruijnType : DeBruijn Type
+  DeBruijnType = record { strFrom = strType ; weakenFrom = wkType }
 
-DeBruijnArgs : DeBruijn (List (Arg Term))
-DeBruijnArgs = record { strFrom = strArgs ; weakenFrom = wkArgs }
+  DeBruijnArgs : DeBruijn (List (Arg Term))
+  DeBruijnArgs = record { strFrom = strArgs ; weakenFrom = wkArgs }
 
-DeBruijnArgType : DeBruijn (Arg Type)
-DeBruijnArgType = record { strFrom = strArgType ; weakenFrom = wkArgType }
+  DeBruijnArgType : DeBruijn (Arg Type)
+  DeBruijnArgType = record { strFrom = strArgType ; weakenFrom = wkArgType }

@@ -74,8 +74,9 @@ private
   eqPair (x , y) (x₁ , y₁) | _        | no neq  = no λ eq → neq (pair-inj-snd eq)
   eqPair (x , y) (x₁ , y₁) | no neq   | _       = no λ eq → neq (pair-inj-fst eq)
 
-EqPair : ∀ {a b} {A : Set a} {B : Set b} {{EqA : Eq A}} {{EqB : Eq B}} → Eq (A × B)
-EqPair = record { _==_ = eqPair }
+instance
+  EqPair : ∀ {a b} {A : Set a} {B : Set b} {{EqA : Eq A}} {{EqB : Eq B}} → Eq (A × B)
+  EqPair = record { _==_ = eqPair }
 
 -- Ord instance --
 
@@ -95,5 +96,6 @@ private
   cmpPair (x₁ , y) (.x₁ , y₁) | equal refl | greater y₁<y = greater (snd< y₁<y)
   cmpPair (x₁ , y) (.x₁ , .y) | equal refl | equal refl   = equal refl
 
-OrdPair : ∀ {a b} {A : Set a} {B : Set b} {{OrdA : Ord A}} {{OrdB : Ord B}} → Ord (A × B)
-OrdPair = record { LessThan = LessPair ; compare = cmpPair }
+instance
+  OrdPair : ∀ {a b} {A : Set a} {B : Set b} {{OrdA : Ord A}} {{OrdB : Ord B}} → Ord (A × B)
+  OrdPair = record { LessThan = LessPair ; compare = cmpPair }
