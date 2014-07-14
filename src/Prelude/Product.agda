@@ -56,46 +56,42 @@ second f = id *** f
 
 -- Eq instance --
 
-pair-inj-fst : ∀ {a b} {A : Set a} {B : Set b} {x : A} {y : B}
-                 {x₁ : A} {y₁ : B} →
+pair-inj-fst : ∀ {a b} {A : Set a} {B : A → Set b} {x : A} {y : B x}
+                 {x₁ : A} {y₁ : B x₁} →
                (x , y) ≡ (x₁ , y₁) → x ≡ x₁
 pair-inj-fst refl = refl
 
-pair-inj-snd : ∀ {a b} {A : Set a} {B : Set b} {x : A} {y : B}
-                 {x₁ : A} {y₁ : B} →
-               (x , y) ≡ (x₁ , y₁) → y ≡ y₁
+pair-inj-snd : ∀ {a b} {A : Set a} {B : A → Set b} {x : A} {y y₁ : B x} →
+               _≡_ {A = Σ A B} (x , y) (x , y₁) → y ≡ y₁
 pair-inj-snd refl = refl
 
-private
-  eqPair : ∀ {a b} {A : Set a} {B : Set b} {{EqA : Eq A}} {{EqB : Eq B}}
-             (x y : A × B) → Dec (x ≡ y)
-  eqPair (x , y) (x₁ , y₁) with x == x₁ | y == y₁
-  eqPair (x , y) (.x , .y) | yes refl | yes refl = yes refl
-  eqPair (x , y) (x₁ , y₁) | _        | no neq  = no λ eq → neq (pair-inj-snd eq)
-  eqPair (x , y) (x₁ , y₁) | no neq   | _       = no λ eq → neq (pair-inj-fst eq)
-
 instance
-  EqPair : ∀ {a b} {A : Set a} {B : Set b} {{EqA : Eq A}} {{EqB : Eq B}} → Eq (A × B)
-  EqPair = record { _==_ = eqPair }
+  EqPair : ∀ {a b} {A : Set a} {B : A → Set b} {{EqA : Eq A}} {{EqB : ∀ {x} → Eq (B x)}} → Eq (Σ A B)
+  EqPair {A = A} {B} = record { _==_ = eqPair }
+    where
+      eqPair : (x y : Σ A B) → Dec (x ≡ y)
+      eqPair (x , y) (x₁ , y₁) with x == x₁
+      eqPair (x , y) (x₁ , y₁) | no  neq  = no λ eq → neq (pair-inj-fst eq)
+      eqPair (x , y) (.x , y₁) | yes refl with y == y₁
+      eqPair (x , y) (.x , y₁) | yes refl | no neq = no λ eq → neq (pair-inj-snd eq)
+      eqPair (x , y) (.x , .y) | yes refl | yes refl = yes refl
 
 -- Ord instance --
 
-data LessPair {a b} {A : Set a} {B : Set b} {{OrdA : Ord A}} {{OrdB : Ord B}} :
-              A × B → A × B → Set (a ⊔ b) where
-  fst< : ∀ {x₁ x₂ y₁ y₂} → LessThan x₁ x₂ → LessPair (x₁ , y₁) (x₂ , y₂)
-  snd< : ∀ {x y₁ y₂} → LessThan y₁ y₂ → LessPair (x , y₁) (x , y₂)
-
-private
-  cmpPair : ∀ {a b} {A : Set a} {B : Set b} {{OrdA : Ord A}} {{OrdB : Ord B}} →
-            (x y : A × B) → Comparison LessPair x y
-  cmpPair (x , y) (x₁ , y₁) with compare x x₁
-  cmpPair (x , y) (x₁ , y₁) | less x<x₁    = less    (fst< x<x₁)
-  cmpPair (x , y) (x₁ , y₁) | greater x₁<x = greater (fst< x₁<x)
-  cmpPair (x , y) (.x , y₁) | equal refl   with compare y y₁
-  cmpPair (x₁ , y) (.x₁ , y₁) | equal refl | less y<y₁    = less    (snd< y<y₁)
-  cmpPair (x₁ , y) (.x₁ , y₁) | equal refl | greater y₁<y = greater (snd< y₁<y)
-  cmpPair (x₁ , y) (.x₁ , .y) | equal refl | equal refl   = equal refl
+data LessPair {a b} {A : Set a} {B : A → Set b} {{OrdA : Ord A}} {{OrdB : ∀ {x} → Ord (B x)}} :
+              Σ A B → Σ A B → Set (a ⊔ b) where
+  fst< : ∀ {x₁ x₂} {y₁ : B x₁} {y₂ : B x₂} → LessThan x₁ x₂ → LessPair (x₁ , y₁) (x₂ , y₂)
+  snd< : ∀ {x} {y₁ y₂ : B x} → LessThan y₁ y₂ → LessPair (x , y₁) (x , y₂)
 
 instance
-  OrdPair : ∀ {a b} {A : Set a} {B : Set b} {{OrdA : Ord A}} {{OrdB : Ord B}} → Ord (A × B)
-  OrdPair = record { LessThan = LessPair ; compare = cmpPair }
+  OrdPair : ∀ {a b} {A : Set a} {B : A → Set b} {{OrdA : Ord A}} {{OrdB : ∀ {x} → Ord (B x)}} → Ord (Σ A B)
+  OrdPair {A = A} {B} = record { LessThan = LessPair ; compare = cmpPair }
+    where
+      cmpPair : (x y : Σ A B) → Comparison LessPair x y
+      cmpPair (x , y) (x₁ , y₁) with compare x x₁
+      cmpPair (x , y) (x₁ , y₁) | less x<x₁    = less    (fst< x<x₁)
+      cmpPair (x , y) (x₁ , y₁) | greater x₁<x = greater (fst< x₁<x)
+      cmpPair (x , y) (.x , y₁) | equal refl   with compare y y₁
+      cmpPair (x₁ , y) (.x₁ , y₁) | equal refl | less y<y₁    = less    (snd< y<y₁)
+      cmpPair (x₁ , y) (.x₁ , y₁) | equal refl | greater y₁<y = greater (snd< y₁<y)
+      cmpPair (x₁ , y) (.x₁ , .y) | equal refl | equal refl   = equal refl
