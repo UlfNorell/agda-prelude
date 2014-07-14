@@ -14,6 +14,14 @@ data Any {a b} {A : Set a} (P : A → Set b) : List A → Set (a ⊔ b) where
 
 pattern zero! = zero refl
 
+-- Allows indices to be computed by instance search.
+instance
+  inst-Any-zero : ∀ {a b} {A : Set a} {P : A → Set b} {xs : List A} {x} {{p : P x}} → Any P (x ∷ xs)
+  inst-Any-zero {{p}} = zero p
+
+  inst-Any-suc : ∀ {a b} {A : Set a} {P : A → Set b} {xs : List A} {x} {{i : Any P xs}} → Any P (x ∷ xs)
+  inst-Any-suc {{i}} = suc i
+
 _∈_ : ∀ {a} {A : Set a} → A → List A → Set a
 x ∈ xs = Any (_≡_ x) xs
 
