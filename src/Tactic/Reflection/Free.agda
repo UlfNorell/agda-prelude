@@ -66,20 +66,21 @@ private
   freeClause n (clause ps b)     = freeTerm (patternBindings ps + n) b
   freeClause n (absurd-clause _) = ∅
 
-FreeTerm : FreeVars Term
-FreeTerm = record { freeVars = freeTerm 0 }
+instance
+  FreeTerm : FreeVars Term
+  FreeTerm = record { freeVars = freeTerm 0 }
 
-FreeType : FreeVars Type
-FreeType = record { freeVars = freeType 0 }
+  FreeType : FreeVars Type
+  FreeType = record { freeVars = freeType 0 }
 
-FreeSort : FreeVars Sort
-FreeSort = record { freeVars = freeSort 0 }
+  FreeSort : FreeVars Sort
+  FreeSort = record { freeVars = freeSort 0 }
 
-FreeArg : FreeVars (Arg Term)
-FreeArg = record { freeVars = freeArgTerm 0 }
+  FreeArg : FreeVars (Arg Term)
+  FreeArg = record { freeVars = freeArgTerm 0 }
 
-FreeArgs : FreeVars (List (Arg Term))
-FreeArgs = record { freeVars = freeArgs 0 }
+  FreeArgs : FreeVars (List (Arg Term))
+  FreeArgs = record { freeVars = freeArgs 0 }
 
-FreeArgType : FreeVars (Arg Type)
-FreeArgType = record { freeVars = freeArgType 0 }
+  FreeArgType : FreeVars (Arg Type)
+  FreeArgType = record { freeVars = freeArgType 0 }
