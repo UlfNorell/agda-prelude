@@ -145,7 +145,4 @@ private
 
 instance
   ShowSigma : ∀ {a b} {A : Set a} {B : A → Set b} {{ShowA : Show A}} {{ShowB : ∀ {x} → Show (B x)}} → Show (Σ A B)
-  ShowSigma {{ShowB = ShowB}} = record { showsPrec = showPair {{ShowB = ShowB}} }
-
-  ShowPair : ∀ {a b} {A : Set a} {B : Set b} {{ShowA : Show A}} {{ShowB : Show B}} → Show (A × B)
-  ShowPair {{ShowB = ShowB}} = ShowSigma {{ShowB = ShowB}}
+  ShowSigma = record { showsPrec = showPair }
