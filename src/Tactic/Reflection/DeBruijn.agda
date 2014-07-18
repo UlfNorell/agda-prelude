@@ -3,15 +3,16 @@ module Tactic.Reflection.DeBruijn where
 
 open import Prelude
 open import Builtin.Reflection
+open import Data.Traversable
 
 record DeBruijn {a} (A : Set a) : Set a where
   field
-    strFrom : (from n : Nat) → A → Maybe A
+    strengthenFrom : (from n : Nat) → A → Maybe A
     weakenFrom     : (from n : Nat) → A → A
 
   strengthen : Nat → A → Maybe A
   strengthen 0 = just
-  strengthen n = strFrom 0 n
+  strengthen n = strengthenFrom 0 n
 
   weaken : Nat → A → A
   weaken zero = id
@@ -95,7 +96,7 @@ private
   wk lo k (con c args)  = con c (wkArgs lo k args)
   wk lo k (def f args)  = def f (wkArgs lo k args)
   wk lo k (lam v t)     = lam v (wk (suc lo) k t)
-  wk lo k (pi a b)      = pi (wkArgType lo k a) (wkType (suc lo) (suc k) b)
+  wk lo k (pi a b)      = pi (wkArgType lo k a) (wkType (suc lo) k b)
   wk lo k (sort s)      = sort (wkSort lo k s)
   wk lo k (lit l)       = lit l
   wk lo k (pat-lam cs args) = pat-lam (wkClauses lo k cs) (wkArgs lo k args)
@@ -118,15 +119,24 @@ private
 
 -- Instances --
 
+DeBruijnTraversable : ∀ {a} {F : Set a → Set a} {{_ : Functor F}} {{_ : Traversable F}}
+                        {A : Set a} {{_ : DeBruijn A}} → DeBruijn (F A)
+DeBruijnTraversable =
+  record { strengthenFrom = λ lo k → traverse (strengthenFrom lo k)
+         ; weakenFrom = λ lo k → fmap (weakenFrom lo k) }
+
 instance
   DeBruijnTerm : DeBruijn Term
-  DeBruijnTerm = record { strFrom = strTerm ; weakenFrom = wk }
+  DeBruijnTerm = record { strengthenFrom = strTerm ; weakenFrom = wk }
 
   DeBruijnType : DeBruijn Type
-  DeBruijnType = record { strFrom = strType ; weakenFrom = wkType }
+  DeBruijnType = record { strengthenFrom = strType ; weakenFrom = wkType }
 
-  DeBruijnArgs : DeBruijn (List (Arg Term))
-  DeBruijnArgs = record { strFrom = strArgs ; weakenFrom = wkArgs }
+  DeBruijnList : ∀ {a} {A : Set a} {{_ : DeBruijn A}} → DeBruijn (List A)
+  DeBruijnList = DeBruijnTraversable
 
-  DeBruijnArgType : DeBruijn (Arg Type)
-  DeBruijnArgType = record { strFrom = strArgType ; weakenFrom = wkArgType }
+  DeBruijnArg : {A : Set} {{_ : DeBruijn A}} → DeBruijn (Arg A)
+  DeBruijnArg = DeBruijnTraversable
+
+  DeBruijnMaybe : {A : Set} {{_ : DeBruijn A}} → DeBruijn (Maybe A)
+  DeBruijnMaybe = DeBruijnTraversable
