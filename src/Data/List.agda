@@ -25,6 +25,10 @@ instance
 _∈_ : ∀ {a} {A : Set a} → A → List A → Set a
 x ∈ xs = Any (_≡_ x) xs
 
+forgetAny : ∀ {a p} {A : Set a} {P : A → Set p} {xs : List A} → Any P xs → Nat
+forgetAny (zero _) = zero
+forgetAny (suc  i) = suc (forgetAny i)
+
 lookupAny : ∀ {a b} {A : Set a} {P Q : A → Set b} {xs} → All P xs → Any Q xs → Σ A (λ x → P x × Q x)
 lookupAny (p ∷ ps) (zero q) = _ , p , q
 lookupAny (p ∷ ps) (suc  i) = lookupAny ps i
