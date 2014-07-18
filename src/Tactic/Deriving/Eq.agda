@@ -1,5 +1,5 @@
 
-module Tactic.Deriving where
+module Tactic.Deriving.Eq where
 
 open import Prelude
 open import Data.List
