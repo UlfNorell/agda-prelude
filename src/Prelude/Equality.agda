@@ -23,6 +23,9 @@ sym refl = refl
 cong : ∀ {a b} {A : Set a} {B : Set b} (f : A → B) {x y} → x ≡ y → f x ≡ f y
 cong f refl = refl
 
+transport : ∀ {a b} {A : Set a} (B : A → Set b) {x y} → x ≡ y → B x → B y
+transport B refl bx = bx
+
 decEq₁ : ∀ {a b} {A : Set a} {B : Set b} {f : A → B} → (∀ {x y} → f x ≡ f y → x ≡ y) →
            ∀ {x y} → Dec (x ≡ y) → Dec (f x ≡ f y)
 decEq₁ f-inj (yes refl) = yes refl
