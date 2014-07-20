@@ -9,3 +9,8 @@ data ⊥ : Set where
 infix 4 ¬_
 ¬_ : ∀ {a} (A : Set a) → Set a
 ¬ A = A → ⊥
+
+data ⊥′ {a} : Set a where
+
+⊥′-elim : ∀ {a b} {A : Set a} → ⊥′ {b} → A
+⊥′-elim ()
