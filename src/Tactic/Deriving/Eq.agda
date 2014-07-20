@@ -147,12 +147,6 @@ private
     clauses ((c , a) ∷ cs) (zero refl) j lhs = this-clause c a j lhs ∷ map other-clause cs
     clauses (c       ∷ cs) (suc i)     j lhs = other-clause c        ∷ clauses cs i j lhs
 
-  -- injPred : (cs : Constructors) → Focus cs → Term → Term
-  -- injPred cs (focus i j) lhs = pat-lam (clauses cs i j lhs) []
-
-  -- injTerm : (cs : Constructors) → Focus cs → Term → Term → Term
-  -- injTerm cs foc lhs eq = `subst (injPred cs foc lhs) eq `refl
-
   downFrom : Nat → List Nat
   downFrom 0 = []
   downFrom (suc n) = n ∷ downFrom n
@@ -293,18 +287,53 @@ private
       n = countNormal spec
       pars = map (λ i → hArg (var (i + 2 * n) [])) (downFrom params)
 
+  -- Coarse approximation of unification
+  private
+    eqLit : Literal → Literal → Bool
+    eqLit (nat x)    (nat y)    = isYes (x == y)
+    eqLit (float x)  (float y)  = isYes (x == y)
+    eqLit (char x)   (char y)   = isYes (x == y)
+    eqLit (string x) (string y) = isYes (x == y)
+    eqLit (name x)   (name y)   = isYes (x == y)
+    eqLit _          _          = false
+
+    unifyArgs : (xs ys : List (Arg Term)) → Bool
+    unifyTerm : (x y : Term) → Bool
+
+    unifyArgs [] [] = true
+    unifyArgs [] (_ ∷ _) = false
+    unifyArgs (_ ∷ _) [] = false
+    unifyArgs (arg _ x ∷ xs) (arg _ y ∷ ys) = unifyTerm x y && unifyArgs xs ys
+
+    unifyTerm (var _ _) _ = true
+    unifyTerm _ (var _ _) = true
+    unifyTerm (con c₁ args₁) (con c₂ args₂) =
+      isYes (c₁ == c₂) && unifyArgs args₁ args₂
+    unifyTerm (lit l₁) (lit l₂) = eqLit l₁ l₂
+    unifyTerm x y = false
+
+  unify : Term → Term → Bool
+  unify (def _ us) (def _ vs) = unifyArgs us vs
+  unify _ _ = false  -- impossible case
+
+
+  compatibleConstructors : (c₁ c₂ : Name) → Bool
+  compatibleConstructors = unify on unEl ∘ snd ∘ telView ∘ typeOf
+
   mismatchConClause : InstanceTable → Name × ConstructorSpec → Name × ConstructorSpec → Clause
   mismatchConClause tbl c₁ c₂ =
     clause (conP c₁ ∷ conP c₂ ∷ []) no-confusion
 
-  eqClause : (cs : Constructors) → InstanceTable → Nat → ConSpec cs → ConSpec cs → Clause
+  eqClause : (cs : Constructors) → InstanceTable → Nat → ConSpec cs → ConSpec cs → List Clause
   eqClause cs tbl params ((c₁ , spec₁) , i₁) ((c₂ , spec₂) , i₂) =
     ifYes c₁ == c₂
-    then matchingConClause cs tbl params ((c₁ , spec₁) , i₁)
-    else mismatchConClause tbl (c₁ , spec₁) (c₂ , spec₂)
+    then matchingConClause cs tbl params ((c₁ , spec₁) , i₁) ∷ []
+    else if compatibleConstructors c₁ c₂
+    then mismatchConClause tbl (c₁ , spec₁) (c₂ , spec₂) ∷ []
+    else []
 
   eqClauses : Constructors → InstanceTable → Nat → List Clause
-  eqClauses cs tbl params = map (uncurry (eqClause cs tbl params)) $ pairs (annotate∈ cs)
+  eqClauses cs tbl params = concatMap (uncurry (eqClause cs tbl params)) $ pairs (annotate∈ cs)
 
   -- Computing the type --
 
