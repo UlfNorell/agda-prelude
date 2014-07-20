@@ -19,6 +19,7 @@ open import Tactic.Reflection.Equality
 open import Tactic.Reflection.Free
 open import Tactic.Reflection.Quote
 open import Tactic.Reflection.Telescope
+open import Tactic.Deriving.Eq
 
 Hello = printf "%c%s" 'H' "ello"
 World = printf "%6s" "World"
@@ -29,6 +30,8 @@ putStrI : String → StateT Nat IO Unit
 putStrI s = get >>= λ n →
             put (suc n) >>
             lift (putStr (printf "%d%s" n s))
+
+unquoteDecl eqVec = derivingEq (quote Vec) eqVec
 
 main : IO ⊤
 main = _ <$ runStateT (mapM putStrI (Hello ∷ World ∷ "\n" ∷ [])) 0
