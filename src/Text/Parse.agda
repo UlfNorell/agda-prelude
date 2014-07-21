@@ -85,7 +85,7 @@ sat! p = fst <$> sat p
 token : {{EqTok : Eq Tok}} → Tok → P ⊤
 token t = _ <$ sat (isYes ∘ _==_ t)
 
-{-# NO_TERMINATION_CHECK #-}
+{-# NON_TERMINATING #-}
 many many₁ : ∀ {A} → P A → P (List A)
 many p = return [] +++ many₁ p
 many₁ p = _∷_ <$> p <*> many p
