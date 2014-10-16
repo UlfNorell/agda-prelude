@@ -57,7 +57,7 @@ private
   digit : Nat → Char
   digit n = natToChar (n + charToNat '0')
 
-  {-# NO_TERMINATION_CHECK #-}
+  {-# TERMINATING #-}
   showNat′ : Nat → List Char → List Char
   showNat′ 0 ds = ds
   showNat′ n ds = showNat′ (n div 10) (digit (n mod 10) ∷ ds)
