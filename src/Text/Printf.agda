@@ -93,7 +93,7 @@ private
   hexDigit a n = if n < 10 then packString [ natToChar (n + charToNat '0') ]
                            else packString [ natToChar (n - 10 + charToNat a) ]
 
-  {-# NO_TERMINATION_CHECK #-}
+  {-# TERMINATING #-}
   showHex′ : Char → Nat → String
   showHex′ _ 0 = ""
   showHex′ a n = hexDigit a (n mod 16) & showHex′ a (n div 16)
