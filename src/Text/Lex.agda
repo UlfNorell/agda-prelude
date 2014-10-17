@@ -38,7 +38,7 @@ matchToken {A = A} p =
   record { State   = List (Σ A (IsTrue ∘ p))
          ; initial = []
          ; accept  = λ xs → just (reverse xs)
-         ; consume = λ x xs → if′ p x then just ((x , ⋯) ∷ xs) else nothing
+         ; consume = λ x xs → if′ p x then just ((x , it) ∷ xs) else nothing
          }
 
 natToken : TokenDFA Char Nat

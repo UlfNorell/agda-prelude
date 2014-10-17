@@ -32,5 +32,5 @@ _on_ : ∀ {a b c} {A : Set a} {B : A → Set b} {C : ∀ x y → B x → B y �
          C x y (f x) (f y)
 h on f = λ x y → h (f x) (f y)
 
-⋯ : ∀ {a} {A : Set a} {{x : A}} → A
-⋯ {{x}} = x
+it : ∀ {a} {A : Set a} {{x : A}} → A
+it {{x}} = x
