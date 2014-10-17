@@ -8,10 +8,10 @@ open import Tactic.Reflection.DeBruijn
 open import Tactic.Reflection.Telescope
 open import Tactic.Reflection.Free
 
-private
-  subst : ∀ {a b} {A : Set a} (B : A → Set b) {x y : A} → x ≡ y → B x → B y
-  subst B refl b = b
+typed : ∀ {a} (A : Set a) → A → A
+typed _ x = x
 
+private
   -- Pattern synonyms --
 
   pattern con₁ f x     = con f (vArg x ∷ [])
@@ -24,7 +24,7 @@ private
 
   infix 5 _`≡_
   pattern _`≡_ x y = def₂ (quote _≡_) x y
-  pattern `subst x y z = def₃ (quote subst) x y z
+  pattern `subst x y z = def₃ (quote transport) x y z
   pattern `refl = con (quote refl) []
 
   pattern `Eq a = def (quote Eq) (vArg a ∷ [])
@@ -155,9 +155,6 @@ private
   downFromVec {0} = []
   downFromVec {suc n} = n ∷ downFromVec
 
-  typed : ∀ {a} (A : Set a) → A → A
-  typed _ x = x
-
   iterate : ∀ {a} {A : Set a} → Nat → (A → A) → A → A
   iterate zero    f x = x
   iterate (suc n) f x = f (iterate n f x)
@@ -198,7 +195,7 @@ private
   --        : Dec (c xs y ys ≡ c xs z zs)
   castArg : (c : Name) (xs : List Term) (y : Term) (ys zs : List Term) (eq : Term) → Term → Term
   castArg c xs y ys zs eq cont =
-    def (quote subst) $′ map vArg
+    def (quote transport) $′ map vArg
     $ lam visible (nPi n $ def₁ (quote Dec)
         (con c (map (vArg ∘ weaken (n + 1)) (xs ++ y ∷ ys)) `≡
          con c (map vArg $ weaken (n + 1) xs ++ var n [] ∷ zs′)))
@@ -359,20 +356,22 @@ private
      λ { (just i) → computeType d (1 + n) ((n <$ a) ∷ xs) (iArg (el unknown $ weaken (length is) i) ∷ weaken 1 is) tel
        ; nothing →  computeType d (1 + n) ((n <$ a) ∷ xs) (weaken 1 is) tel })
 
-  eqType : Name → Type
-  eqType d = el unknown (computeType d 0 [] [] $ fst $ telView $ typeOf d)
-
   -- Instance tables --
 
   data MissingEqFun : Set where
 
   simpleITable : Name → Name → InstanceTable
   simpleITable d f (var x) = quote _==_
-  simpleITable d f (def x) = ifYes x == d then f else quote MissingEqFun
+  simpleITable d f (def x) = ifYes x == d then f else quote _==_ -- quote MissingEqFun
   simpleITable d f _ = quote MissingEqFun
 
 -- Tying it all together --
 
+deriveEqType : Name → Term
+deriveEqType d = computeType d 0 [] [] $ fst $ telView $ typeOf d
+
+deriveEqDef : Name → Name → List Clause
+deriveEqDef d f = eqClauses (computeConstructors d) (simpleITable d f) (dataParameters d)
+
 derivingEq : Name → Name → Function
-derivingEq d f = fun-def (eqType d)
-                         (eqClauses (computeConstructors d) (simpleITable d f) (dataParameters d))
+derivingEq d f = fun-def (el unknown $ deriveEqType d) (deriveEqDef d f)
