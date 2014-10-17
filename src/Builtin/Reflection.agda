@@ -80,6 +80,21 @@ instance
   TraversableArg : Traversable Arg
   TraversableArg = record { traverse = λ { f (arg i x) → pure (arg i) <*> f x } }
 
+-- Name abstraction.
+
+data Abs (A : Set) : Set where
+  abs : (s : String) (x : A) → Abs A
+
+{-# BUILTIN ABS        Abs      #-}
+{-# BUILTIN ABSABS     abs      #-}
+
+instance
+  FunctorAbs : Functor Abs
+  FunctorAbs = record { fmap = λ { f (abs s x) → abs s (f x) } }
+
+  TraversableAbs : Traversable Abs
+  TraversableAbs = record { traverse = λ { f (abs s x) → pure (abs s) <*> f x } }
+
 -- Literals.
 
 data Literal : Set where
@@ -103,9 +118,9 @@ mutual
     var     : (x : Nat) (args : List (Arg Term)) → Term
     con     : (c : Name) (args : List (Arg Term)) → Term
     def     : (f : Name) (args : List (Arg Term)) → Term
-    lam     : (v : Visibility) (t : Term) → Term
+    lam     : (v : Visibility) (t : Abs Term) → Term
     pat-lam : (cs : List Clause) (args : List (Arg Term)) → Term
-    pi      : (a : Arg Type) (b : Type) → Term
+    pi      : (a : Arg Type) (b : Abs Type) → Term
     sort    : (s : Sort) → Term
     lit     : (l : Literal) → Term
     unknown : Term
@@ -121,7 +136,7 @@ mutual
   data Pattern : Set where
     con    : Name → List (Arg Pattern) → Pattern
     dot    : Pattern
-    var    : Pattern
+    var    : (s : String) → Pattern
     lit    : Literal → Pattern
     proj   : Name → Pattern
     absurd : Pattern
@@ -222,8 +237,8 @@ private
     where
       getTData : Type → Name
       getData : Term → Name
-      getData (def d _) = d
-      getData (pi a b)  = getTData b
+      getData (def d _)        = d
+      getData (pi a (abs _ b)) = getTData b
       getData _         = bad
       getTData (el _ b) = getData b
 
@@ -258,6 +273,12 @@ arg-info-inj₁ refl = refl
 
 arg-info-inj₂ : ∀ {v v′ r r′} → arg-info v r ≡ arg-info v′ r′ → r ≡ r′
 arg-info-inj₂ refl = refl
+
+abs-inj₁ : ∀ {A s s′} {x x′ : A} → abs s x ≡ abs s′ x′ → s ≡ s′
+abs-inj₁ refl = refl
+
+abs-inj₂ : ∀ {A s s′} {x x′ : A} → abs s x ≡ abs s′ x′ → x ≡ x′
+abs-inj₂ refl = refl
 
 var-inj₁ : ∀ {x x′ args args′} → Term.var x args ≡ var x′ args′ → x ≡ x′
 var-inj₁ refl = refl
