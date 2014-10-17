@@ -39,6 +39,11 @@ suc n * m = n * m + m
 
 {-# BUILTIN NATTIMES _*_ #-}
 
+infixr 8 _^_
+_^_ : Nat → Nat → Nat
+n ^ zero = 1
+n ^ suc m = n ^ m * n
+
 --- Equality ---
 
 NonZero : Nat → Set
