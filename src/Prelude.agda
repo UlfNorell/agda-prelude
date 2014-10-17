@@ -26,3 +26,6 @@ open import Prelude.Show        public
 open import Prelude.Ord         public
 
 open import Prelude.IO          public
+
+infixr 5 _::_
+pattern _::_ x xs = x ∷ xs
