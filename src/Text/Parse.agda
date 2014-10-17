@@ -77,7 +77,7 @@ sat p = symbol >>= match
   where
     -- Inlining 'match' gives internal error!
     match : Tok → P (Σ Tok (IsTrue ∘ p))
-    match t = if′ p t then return (t , ⋯) else fail
+    match t = if′ p t then return (t , it) else fail
 
 sat! : (Tok → Bool) → P Tok
 sat! p = fst <$> sat p
