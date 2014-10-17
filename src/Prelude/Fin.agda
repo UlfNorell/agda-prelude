@@ -43,10 +43,12 @@ private
   eqFin (suc i) (suc .i) | yes refl = yes refl
   eqFin (suc i) (suc  j) | no neq   = no λ eq → neq (fsuc-inj eq)
 
-EqFin : ∀ {n} → Eq (Fin n)
-EqFin = record { _==_ = eqFin }
+instance
+  EqFin : ∀ {n} → Eq (Fin n)
+  EqFin = record { _==_ = eqFin }
 
 --- Ord ---
 
-OrdFin : ∀ {n} → Ord (Fin n)
-OrdFin = OrdBy finToNat-inj
+instance
+  OrdFin : ∀ {n} → Ord (Fin n)
+  OrdFin = OrdBy finToNat-inj
