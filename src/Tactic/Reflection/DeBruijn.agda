@@ -31,7 +31,7 @@ patternBindings = binds
 
     bind (con c ps) = binds ps
     bind dot        = 1
-    bind var        = 1
+    bind (var _)    = 1
     bind (lit l)    = 0
     bind (proj x)   = 0
     bind absurd     = 0
@@ -47,6 +47,8 @@ private
   strSort    : Str Sort
   strClauses : Str (List Clause)
   strClause  : Str Clause
+  strAbsTerm : Str (Abs Term)
+  strAbsType : Str (Abs Type)
 
   strTerm : Str Term
   strTerm lo n (var x args) =
@@ -55,12 +57,15 @@ private
     else                    var (x - n) <$> strArgs lo n args
   strTerm lo n (con c args)  = con c <$> strArgs lo n args
   strTerm lo n (def f args)  = def f <$> strArgs lo n args
-  strTerm lo n (lam v t)     = lam v <$> strTerm (suc lo) n t
-  strTerm lo n (pi a b)      = pi    <$> strArgType lo n a <*> strType (suc lo) n b
+  strTerm lo n (lam v t)     = lam v <$> strAbsTerm lo n t
+  strTerm lo n (pi a b)      = pi    <$> strArgType lo n a <*> strAbsType lo n b
   strTerm lo n (sort s)      = sort  <$> strSort lo n s
   strTerm lo n (lit l)       = just (lit l)
   strTerm lo n (pat-lam _ _) = just unknown -- todo
   strTerm lo n unknown       = just unknown
+
+  strAbsTerm lo n (abs s t)  = abs s <$> strTerm (suc lo) n t
+  strAbsType lo n (abs s t)  = abs s <$> strType (suc lo) n t
 
   strArgs    lo n []         = just []
   strArgs    lo n (x ∷ args) = _∷_   <$> strArg  lo n x <*> strArgs lo n args
@@ -88,6 +93,8 @@ private
   wkSort    : Wk Sort
   wkClauses : Wk (List Clause)
   wkClause  : Wk Clause
+  wkAbsTerm : Wk (Abs Term)
+  wkAbsType : Wk (Abs Type)
 
   wk : Wk Term
   wk lo k (var x args) =
@@ -95,13 +102,15 @@ private
     else           var (x + k) (wkArgs lo k args)
   wk lo k (con c args)  = con c (wkArgs lo k args)
   wk lo k (def f args)  = def f (wkArgs lo k args)
-  wk lo k (lam v t)     = lam v (wk (suc lo) k t)
-  wk lo k (pi a b)      = pi (wkArgType lo k a) (wkType (suc lo) k b)
+  wk lo k (lam v t)     = lam v (wkAbsTerm lo k t)
+  wk lo k (pi a b)      = pi (wkArgType lo k a) (wkAbsType lo k b)
   wk lo k (sort s)      = sort (wkSort lo k s)
   wk lo k (lit l)       = lit l
   wk lo k (pat-lam cs args) = pat-lam (wkClauses lo k cs) (wkArgs lo k args)
   wk lo k unknown       = unknown
 
+  wkAbsTerm lo k (abs s t)  = abs s (wk     (suc lo) k t)
+  wkAbsType lo k (abs s t)  = abs s (wkType (suc lo) k t)
   wkArgs    lo k [] = []
   wkArgs    lo k (x ∷ args) = wkArg lo k x ∷ wkArgs lo k args
   wkArg     lo k (arg i v)  = arg i (wk lo k v)

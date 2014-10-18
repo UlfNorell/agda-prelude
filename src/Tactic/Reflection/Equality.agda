@@ -81,8 +81,14 @@ private
   eqArgType : (x y : Arg Type) → Dec (x ≡ y)
   eqArgType (arg i x) (arg i₁ x₁) = decEq₂ arg-inj₁ arg-inj₂ (i == i₁) (eqType x x₁)
 
+  eqAbsType : (x y : Abs Type) → Dec (x ≡ y)
+  eqAbsType (abs i x) (abs i₁ x₁) = decEq₂ abs-inj₁ abs-inj₂ (i == i₁) (eqType x x₁)
+
   eqArgTerm : (x y : Arg Term) → Dec (x ≡ y)
   eqArgTerm (arg i x) (arg i₁ x₁) = decEq₂ arg-inj₁ arg-inj₂ (i == i₁) (eqTerm x x₁)
+
+  eqAbsTerm : (x y : Abs Term) → Dec (x ≡ y)
+  eqAbsTerm (abs s x) (abs s₁ x₁) = decEq₂ abs-inj₁ abs-inj₂ (s == s₁) (eqTerm x x₁)
 
   eqArgs : (x y : List (Arg Term)) → Dec (x ≡ y)
   eqArgs [] [] = yes refl
@@ -93,8 +99,8 @@ private
   eqTerm (var x args) (var x₁ args₁) = decEq₂ var-inj₁ var-inj₂ (x == x₁) (eqArgs args args₁)
   eqTerm (con c args) (con c₁ args₁) = decEq₂ con-inj₁ con-inj₂ (c == c₁) (eqArgs args args₁)
   eqTerm (def f args) (def f₁ args₁) = decEq₂ def-inj₁ def-inj₂ (f == f₁) (eqArgs args args₁)
-  eqTerm (lam v x) (lam v₁ y) = decEq₂ lam-inj₁ lam-inj₂ (v == v₁) (eqTerm x y)
-  eqTerm (pi t₁ t₂) (pi t₃ t₄) = decEq₂ pi-inj₁ pi-inj₂ (eqArgType t₁ t₃) (eqType t₂ t₄)
+  eqTerm (lam v x) (lam v₁ y) = decEq₂ lam-inj₁ lam-inj₂ (v == v₁) (eqAbsTerm x y)
+  eqTerm (pi t₁ t₂) (pi t₃ t₄) = decEq₂ pi-inj₁ pi-inj₂ (eqArgType t₁ t₃) (eqAbsType t₂ t₄)
   eqTerm (sort x) (sort x₁) = decEq₁ sort-inj (eqSort x x₁)
   eqTerm (lit l) (lit l₁)   = decEq₁ lit-inj (l == l₁)
   eqTerm unknown unknown = yes refl

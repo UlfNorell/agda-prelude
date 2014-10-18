@@ -43,9 +43,9 @@ private
       }
   freeTerm n (con c args) = freeArgs n args
   freeTerm n (def f args) = freeArgs n args
-  freeTerm n (lam _ v)    = freeTerm (suc n) v
+  freeTerm n (lam _ (abs _ v)) = freeTerm (suc n) v
   freeTerm n (pat-lam cs args) = freeClauses n cs ∪ freeArgs n args
-  freeTerm n (pi a b) = freeArgType n a ∪ freeType (suc n) b
+  freeTerm n (pi a (abs _ b))  = freeArgType n a ∪ freeType (suc n) b
   freeTerm n (sort s) = freeSort n s
   freeTerm n (lit l) = ∅
   freeTerm n unknown = ∅

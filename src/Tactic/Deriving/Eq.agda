@@ -28,10 +28,12 @@ private
   pattern `refl = con (quote refl) []
 
   pattern `Eq a = def (quote Eq) (vArg a ∷ [])
-  pattern _`→_ a b = pi (vArg (el unknown a)) (el unknown b)
-  pattern _`→ʰ_ a b = pi (hArg (el unknown a)) (el unknown b)
-  pattern _`→ⁱ_ a b = pi (iArg (el unknown a)) (el unknown b)
+  pattern _`→_  a b = pi (vArg (el unknown a)) (abs "_" (el unknown b))
+  pattern _`→ʰ_ a b = pi (hArg (el unknown a)) (abs "_" (el unknown b))
+  pattern _`→ⁱ_ a b = pi (iArg (el unknown a)) (abs "_" (el unknown b))
   infixr 4 _`→_ _`→ʰ_ _`→ⁱ_
+
+  pattern vLam s t = lam visible (abs s t)
 
   -- Analysing constructor types --
 
@@ -133,7 +135,7 @@ private
 
   private
     conP : Name × ConstructorSpec → Arg Pattern
-    conP (c , spec) = vArg (con c (replicate (countNormal spec) (vArg var)))
+    conP (c , spec) = vArg (con c (replicate (countNormal spec) (vArg (var "x"))))
 
     other-clause : Name × ConstructorSpec → Clause
     other-clause cspec = clause (conP cspec ∷ []) (def (quote ⊥) [])
@@ -163,7 +165,7 @@ private
   nPi n = iterate n (λ a → unknown `→ a)
 
   nLam : Nat → Term → Term
-  nLam n = iterate n (lam visible)
+  nLam n = iterate n (vLam "_")
 
   injType : (c : Name) (pars : List (Arg Term)) (xs : List Term) → Nat → Term
   injType c pars xs n =
@@ -182,11 +184,11 @@ private
                       ∷ (map vArg (ys ++ zs ++ [ eq ])))
     where
       ps : List (Arg Pattern)
-      ps = (vArg var <$ ys) ++ (vArg dot <$ zs) ++ [ vArg `refl ]
+      ps = (vArg (var "_") <$ ys) ++ (vArg dot <$ zs) ++ [ vArg `refl ]
 
   disprove : Name → (pars : List (Arg Term)) (xs ys zs : List Term) → Nat → Term
   disprove c pars xs ys zs neq =
-    con₁ (quote no) $′ lam visible $
+    con₁ (quote no) $′ vLam "¬p" $
     var (1 + neq) (vArg (injPrf c (weaken 1 pars) (weaken 1 xs) (weaken 1 ys) (weaken 1 zs) (var 0 [])) ∷ [])
 
   -- eq : y ≡ z
@@ -196,7 +198,7 @@ private
   castArg : (c : Name) (xs : List Term) (y : Term) (ys zs : List Term) (eq : Term) → Term → Term
   castArg c xs y ys zs eq cont =
     def (quote transport) $′ map vArg
-    $ lam visible (nPi n $ def₁ (quote Dec)
+    $ vLam "q" (nPi n $ def₁ (quote Dec)
         (con c (map (vArg ∘ weaken (n + 1)) (xs ++ y ∷ ys)) `≡
          con c (map vArg $ weaken (n + 1) xs ++ var n [] ∷ zs′)))
     ∷ eq ∷ nLam n cont ∷ zs
@@ -206,8 +208,8 @@ private
   splitOnRes : (c : Name) (pars : List (Arg Term)) (xs : List Term) (y z : Term) (ys zs : List Term) → Term → Term
   splitOnRes c pars xs y z ys zs cont =
     pat-lam
-    ( clause (vArg (con₁ (quote yes) var) ∷ []) (castArg c xs′ y′ ys′ zs′ (var 0 []) (weakenFrom (length zs) 1 cont))
-    ∷ clause (vArg (con₁ (quote no)  var) ∷ []) (disprove c pars′ xs′ (y′ ∷ ys′) (z′ ∷ zs′) 0)
+    ( clause (vArg (con₁ (quote yes) (var  "p")) ∷ []) (castArg c xs′ y′ ys′ zs′ (var 0 []) (weakenFrom (length zs) 1 cont))
+    ∷ clause (vArg (con₁ (quote no)  (var "¬p")) ∷ []) (disprove c pars′ xs′ (y′ ∷ ys′) (z′ ∷ zs′) 0)
     ∷ []) []
     where
       pars′ = weaken 1 pars
@@ -278,7 +280,7 @@ private
 
   matchingConClause : (cs : Constructors) → InstanceTable → Nat → ConSpec cs → Clause
   matchingConClause cs tbl params ((c , spec) , i) =
-    clause (replicate params (hArg var) ++ conP (c , spec) ∷ conP (c , spec) ∷ [])
+    clause (replicate params (hArg (var "_")) ++ conP (c , spec) ∷ conP (c , spec) ∷ [])
            (constructorCase cs i pars (argTable tbl spec n 1))
     where
       n = countNormal spec
@@ -340,8 +342,8 @@ private
   computeInstanceType : Nat → List (Arg Nat) → Type → Maybe Term
   computeInstanceType n xs (el _ (sort _)) =
     just (`Eq (var n (makeArgs n xs)))
-  computeInstanceType n xs (el _ (pi a b)) =
-    pi (hArg (unArg a)) ∘ el unknown <$> computeInstanceType (suc n) ((n <$ a) ∷ xs) b
+  computeInstanceType n xs (el _ (pi a (abs s b))) =
+    pi (hArg (unArg a)) ∘ abs s ∘ el unknown <$> computeInstanceType (suc n) ((n <$ a) ∷ xs) b
   computeInstanceType _ _ _ = nothing
 
   computeType : Name → Nat → List (Arg Nat) → Telescope → Telescope → Term
