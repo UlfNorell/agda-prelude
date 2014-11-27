@@ -1,26 +1,31 @@
 
-module Tactic.Deriving.Eq where
-
 open import Prelude
 open import Data.List
+open import Data.Traversable
 open import Builtin.Reflection
-open import Tactic.Reflection.DeBruijn
-open import Tactic.Reflection.Telescope
 open import Tactic.Reflection.Free
+open import Tactic.Reflection.DeBruijn
+open import Tactic.Reflection.Equality
+open import Tactic.Reflection.Telescope
 
-typed : ∀ {a} (A : Set a) → A → A
-typed _ x = x
+module Tactic.Deriving.Eq where
+
+_∋_ : ∀ {a} (A : Set a) → A → A
+A ∋ x = x
 
 private
   -- Pattern synonyms --
 
+  pattern con₀ f       = con f ([])
   pattern con₁ f x     = con f (vArg x ∷ [])
   pattern con₂ f x y   = con f (vArg x ∷ vArg y ∷ [])
   pattern con₃ f x y z = con f (vArg x ∷ vArg y ∷ vArg z ∷ [])
 
+  pattern def₀ f       = def f ([])
   pattern def₁ f x     = def f (vArg x ∷ [])
   pattern def₂ f x y   = def f (vArg x ∷ vArg y ∷ [])
   pattern def₃ f x y z = def f (vArg x ∷ vArg y ∷ vArg z ∷ [])
+  pattern def₄ f x y z u = def f (vArg x ∷ vArg y ∷ vArg z ∷ vArg u ∷ [])
 
   infix 5 _`≡_
   pattern _`≡_ x y = def₂ (quote _≡_) x y
@@ -35,306 +40,305 @@ private
 
   pattern vLam s t = lam visible (abs s t)
 
+  -- Helper functions --
+
+  nLam : ∀ {A} → List (Arg A) → Term → Term
+  nLam [] t = t
+  nLam (arg (arg-info v _) s ∷ tel) t = lam v (abs "x" (nLam tel t))
+
+  nPi : ∀ {A} → List (Arg A) → Term → Term
+  nPi [] t = t
+  nPi (arg i _ ∷ tel) t = pi (arg i (el unknown unknown)) (abs "x" (el unknown (nPi tel t)))
+
+  newArgs : ∀ {A} → List (Arg A) → List (Arg Term)
+  newArgs {A} tel = newArgsFrom (length tel) tel
+    where
+      newArgsFrom : Nat → List (Arg A) → List (Arg Term)
+      newArgsFrom (suc n) (arg i _ ∷ tel) = arg i (var n []) ∷ newArgsFrom n tel
+      newArgsFrom _ _ = []
+
+  hideTel : ∀ {A} → List (Arg A) → List (Arg A)
+  hideTel [] = []
+  hideTel (arg (arg-info _ r) t ∷ tel) = arg (arg-info hidden r) t ∷ hideTel tel
+
+  weakenTelFrom : (from n : Nat) → Telescope → Telescope
+  weakenTelFrom from n [] = []
+  weakenTelFrom from n (t ∷ tel) = weakenFrom from n t ∷ weakenTelFrom (suc from) n tel
+
+  weakenTel : (n : Nat) → Telescope → Telescope
+  weakenTel 0 = id
+  weakenTel n = weakenTelFrom 0 n
+
+  #pars : (d : Name) → Nat
+  #pars d = case (definitionOf d) of λ
+    { (data-type n _) → n
+    ; _               → 0
+    }
+
+  argsTel : (c : Name) → Telescope
+  argsTel c = case (telView (typeOf c)) of λ
+    { (tel , el _ (def d ixs)) → drop (#pars d) tel
+    ; (tel , _               ) → tel
+    }
+
+  #args : (c : Name) → Nat
+  #args c = length (argsTel c)
+
+  params : (c : Name) → List (Arg Type)
+  params c = case (telView (typeOf c)) of λ
+    { (tel , el _ (def d ixs)) → take (#pars d) tel
+    ; _                        → []
+    }
+
+  -- Unification of datatype indices --
+
+  data Unify : Set where
+    positive : List Nat → Unify
+    negative : Unify
+    failure  : String → Unify
+
+  _&U_ : Unify → Unify → Unify
+  (positive xs) &U (positive ys) = positive (xs ++ ys)
+  (positive _)  &U negative      = negative
+  negative      &U (positive _)  = negative
+  negative      &U negative      = negative
+  (failure msg) &U _             = failure msg
+  _             &U (failure msg) = failure msg
+
+  unify : Term → Term → Unify
+  unifyArgs : List (Arg Term) → List (Arg Term) → Unify
+
+  unify s            t            with s == t
+  unify s            t            | yes _ = positive []
+  unify (var x [])   (var y [])   | no  _ =
+    if (x < y) -- In var-var case, instantiate the one that is bound the closest to us.
+    then (positive (x ∷ []))
+    else (positive (y ∷ []))
+  unify (var x [])   t            | no  _ =
+    if (elem x (freeVars t))
+    then (failure "cyclic occurrence") -- We don't currently know if the occurrence is rigid or not
+    else (positive (x ∷ []))
+  unify t            (var x [])   | no  _ =
+    if (elem x (freeVars t))
+    then (failure "cyclic occurrence")
+    else (positive (x ∷ []))
+  unify (con c₁ xs₁) (con c₂ xs₂) | no  _ =
+    if (isYes (c₁ == c₂))
+    then unifyArgs xs₁ xs₂
+    else negative
+  unify _ _                       | no  _ = failure "not a constructor or a variable"
+
+  unifyArgs [] [] = positive []
+  unifyArgs [] (_ ∷ _) = failure "panic: different number of arguments"
+  unifyArgs (_ ∷ _) [] = failure "panic: different number of arguments"
+  unifyArgs (arg v₁ x ∷ xs) (arg v₂ y ∷ ys) =
+    if (isYes (_==_ {{EqArgInfo}} v₁ v₂))
+    then (unify x y &U unifyArgs xs ys)
+    else (failure "panic: hiding mismatch")
+
+  unifyIndices : (c₁ c₂ : Name) → Unify
+  unifyIndices c₁ c₂ = case (telView (typeOf c₁) ,′ telView (typeOf c₂)) of λ
+    { ((tel₁ , el _ (def d₁ xs₁)) , (tel₂ , el _ (def d₂ xs₂))) →
+        let n₁ = #pars d₁
+            n₂ = #pars d₂
+            ixs₁ = drop n₁ xs₁
+            ixs₂ = drop n₂ xs₂
+        in unifyArgs (weaken                        (length tel₂ - n₂) ixs₁)
+           -- weaken all variables of first constructor by number of arguments of second constructor
+                     (weakenFrom (length tel₂ - n₂) (length tel₁ - n₁) ixs₂)
+           -- weaken parameters of second constructor by number of arguments of first constructor
+    ; _ → failure "panic: constructor type doesn't end in a def"
+    }
+
   -- Analysing constructor types --
 
-  data ConArgKind : Set where
-    index normal : ConArgKind
+  forcedArgs : (c : Name) → List Nat
+  forcedArgs c = case (unifyIndices c c) of λ
+    { (positive xs) → xs
+    ; _             → []
+    }
+
+  data Forced : Set where forced free : Forced
 
   instance
-    EqConArgKind : Eq ConArgKind
-    EqConArgKind = record { _==_ = eq }
-      where
-        eq : ∀ x y → Dec (x ≡ y)
-        eq index index = yes refl
-        eq index normal = no (λ ())
-        eq normal index = no (λ ())
-        eq normal normal = yes refl
+    DeBruijnForced : DeBruijn Forced
+    DeBruijnForced = record
+      { strengthenFrom = λ _ _ → just
+      ; weakenFrom     = λ _ _ → id
+      }
 
-  data TypeHead : Set where
-    fun set : TypeHead
-    var     : Nat → TypeHead
-    def     : Name → TypeHead
-    bad     : TypeHead
+    DeBruijnVec : ∀ {a} {A : Set a} {n} {{_ : DeBruijn A}} → DeBruijn (Vec A n)
+    DeBruijnVec = record
+      { strengthenFrom = λ m n → traverse (strengthenFrom m n)
+      ; weakenFrom     = λ m n → fmap (weakenFrom m n)
+      }
 
-  ConstructorSpec = List (Arg ConArgKind × TypeHead)
-  Constructors = List (Name × ConstructorSpec)
+    DeBruijnProd : {A B : Set} {{_ : DeBruijn A}} {{_ : DeBruijn B}} → DeBruijn (A × B)
+    DeBruijnProd = record
+      { strengthenFrom = λ { m n (x , y) → _,_ <$> (strengthenFrom m n x) <*> (strengthenFrom m n y) }
+      ; weakenFrom     = λ { m n (x , y) → weakenFrom m n x , weakenFrom m n y }
+      }
 
-  typeHead : Type → TypeHead
-  typeHead (el s (var x _)) = var x
-  typeHead (el s (con _ _)) = bad
-  typeHead (el s (def f _)) = def f
-  typeHead (el s (lam v t)) = bad
-  typeHead (el s (pat-lam cs args)) = bad
-  typeHead (el s (pi a b)) = fun
-  typeHead (el s (sort s₁)) = set
-  typeHead (el s (lit l)) = bad
-  typeHead (el s unknown) = bad
+  RemainingArgs : Nat → Set
+  RemainingArgs = Vec (Arg (Forced × Term × Term))
 
-  private
-    classify : Telescope → Type → List (Arg ConArgKind × TypeHead)
-    classify tel a = cl (listToVec tel)
-      where
-        fvs = freeVars a
-        cl : ∀ {n} → Vec (Arg Type) n → List (Arg ConArgKind × TypeHead)
-        cl [] = []
-        cl {n = suc j} (arg i a ∷ as) = (arg i kind , adjust (typeHead a)) ∷ cl as
-          where
-            kind = if elem j fvs then index else normal
-            adjust : TypeHead → TypeHead
-            adjust (var x) = var (x + suc j)
-            adjust k = k
+  leftArgs : ∀ {n} → RemainingArgs n → List (Arg Term)
+  leftArgs = map (fmap (fst ∘ snd)) ∘ vecToList
 
-  classifyConstructorArgs : Name → ConstructorSpec
-  classifyConstructorArgs = uncurry classify ∘ telView ∘ typeOf
+  rightArgs : ∀ {n} → RemainingArgs n → List (Arg Term)
+  rightArgs = map (fmap (snd ∘ snd)) ∘ vecToList
 
-  computeConstructors : Name → Constructors
-  computeConstructors d =
-    case definitionOf d of
-    λ { (data-type cs) → map (id &&& classifyConstructorArgs) cs
-      ; _ → [] }
+  classifyArgs : (c : Name) → RemainingArgs _
+  classifyArgs c = classify (#argsc - 1) (#freec - 1) (argsTel c)
+  -- The final argument should be (weakenTel (#argsc + #freec) (argsTel c)),
+  -- but we don't really care about the types of the arguments anyway.
+    where
+      forcedc = forcedArgs c
 
-  data NormalArg (spec : ConstructorSpec) : Set where
-    normal : ∀ {h} → (vArg normal , h) ∈ spec → NormalArg spec
+      #argsc   = #args c
+      #forcedc = length forcedc
+      #freec   = #argsc - #forcedc
 
-  sucNormal : ∀ {x xs} → NormalArg xs → NormalArg (x ∷ xs)
-  sucNormal (normal i) = normal (suc i)
+      classify : (m n : Nat) (tel : List (Arg Type)) → RemainingArgs (length tel)
+      classify m n [] = []
+      classify m n (arg i (el _ ty) ∷ tel) =
+        if (elem m forcedc)
+        then arg i (forced , var (#freec + m) [] , var (#freec + m) []) ∷ classify (m - 1) n       tel
+        else arg i (free   , var (#freec + m) [] , var n            []) ∷ classify (m - 1) (n - 1) tel
 
-  count : ∀ {a} {A : Set a} → (A → Bool) → List A → Nat
-  count p []       = 0
-  count p (x ∷ xs) = (if p x then 1 else 0) + count p xs
+  rightArgsFree : ∀ {n} → RemainingArgs n → List (Arg Term)
+  rightArgsFree [] = []
+  rightArgsFree (arg _ (forced , _ , _) ∷ xs) = rightArgsFree xs
+  rightArgsFree (arg i (free   , _ , x) ∷ xs) = arg i x ∷ rightArgsFree xs
 
-  isNormal : (a : Arg ConArgKind) → Maybe (a ≡ vArg normal)
-  isNormal (vArg normal) = just refl
-  isNormal _             = nothing
+  countFree : ∀ {n} → RemainingArgs n → Nat
+  countFree xs = length (rightArgsFree xs)
 
-  isJust : ∀ {a} {A : Set a} → Maybe A → Bool
-  isJust (just _) = true
-  isJust nothing  = false
+  refreshArgs : ∀ {n} → RemainingArgs n → RemainingArgs n
+  refreshArgs xs = refresh (nfree - 1) xs
+    where
+      nfree = countFree xs
 
-  countNormal : ConstructorSpec → Nat
-  countNormal = count λ x → isJust (isNormal (fst x))
-
-  normalArgs : {spec : ConstructorSpec} → Vec (NormalArg spec) (countNormal spec)
-  normalArgs {[]} = []
-  normalArgs {(a , h) ∷ spec} with isNormal a
-  normalArgs {(.(vArg normal) , h) ∷ spec} | just refl = normal zero! ∷ (sucNormal <$> normalArgs)
-  normalArgs {(a , h) ∷ spec}              | nothing   = sucNormal <$> normalArgs
-
-  normalIx : ∀ {h} {spec : ConstructorSpec} → (vArg normal , h) ∈ spec → Nat
-  normalIx (zero p) = zero
-  normalIx {spec = (a , _) ∷ spec} (suc i) =
-    if isJust (isNormal a) then suc (normalIx i) else normalIx i
+      refresh : ∀ {n} → Nat → RemainingArgs n → RemainingArgs n
+      refresh n [] = []
+      refresh n (arg i (forced , x , y) ∷ xs) = arg i (forced , x , y) ∷ refresh n xs
+      refresh n (arg i (free   , x , y) ∷ xs) = arg i (free , x , var n []) ∷ refresh (n - 1) xs
 
   -- Matching constructor case --
 
-  data Focus (cs : Constructors) : Set where
-    focus : ∀ {c spec h} → (c , spec) ∈ cs → (vArg normal , h) ∈ spec → Focus cs
+  caseDec : ∀ {a b} {A : Set a} {B : Set b} → Dec A → (A → B) → (¬ A → B) → B
+  caseDec (yes x) y n = y x
+  caseDec (no x)  y n = n x
 
-  focusCon : ∀ {cs} → Focus cs → Name
-  focusCon (focus {c = c} _ _) = c
-
-  private
-    conP : Name × ConstructorSpec → Arg Pattern
-    conP (c , spec) = vArg (con c (replicate (countNormal spec) (vArg (var "x"))))
-
-    other-clause : Name × ConstructorSpec → Clause
-    other-clause cspec = clause (conP cspec ∷ []) (def (quote ⊥) [])
-
-    this-clause : ∀ {h} (c : Name) (spec : ConstructorSpec) → (vArg normal , h) ∈ spec → Term → Clause
-    this-clause c spec i lhs = clause (conP (c , spec) ∷ []) (weaken a lhs `≡ var (a - suc (normalIx i)) [])
-      where a = countNormal spec
-
-    clauses : ∀ {c spec h} (cs : Constructors) → (c , spec) ∈ cs → (vArg normal , h) ∈ spec → Term → List Clause
-    clauses [] () j _
-    clauses ((c , a) ∷ cs) (zero refl) j lhs = this-clause c a j lhs ∷ map other-clause cs
-    clauses (c       ∷ cs) (suc i)     j lhs = other-clause c        ∷ clauses cs i j lhs
-
-  downFrom : Nat → List Nat
-  downFrom 0 = []
-  downFrom (suc n) = n ∷ downFrom n
-
-  downFromVec : ∀ {n} → Vec Nat n
-  downFromVec {0} = []
-  downFromVec {suc n} = n ∷ downFromVec
-
-  iterate : ∀ {a} {A : Set a} → Nat → (A → A) → A → A
-  iterate zero    f x = x
-  iterate (suc n) f x = f (iterate n f x)
-
-  nPi : Nat → Term → Term
-  nPi n = iterate n (λ a → unknown `→ a)
-
-  nLam : Nat → Term → Term
-  nLam n = iterate n (vLam "_")
-
-  injType : (c : Name) (pars : List (Arg Term)) (xs : List Term) → Nat → Term
-  injType c pars xs n =
-    nPi (2 * n) (con c (weaken (2 * n) pars ++ xArgs ++ args₁) `≡ con c (xArgs ++ args₂) `→
-                 var (2 * n) [] `≡ var n [])
+  checkEqArgs : ∀ {n} (c : Name) (xs : List (Arg Term)) (ys : RemainingArgs n) → Term
+  checkEqArgs c xs (arg i (forced , y , z) ∷ args) =
+    checkEqArgs c (xs ++ [ arg i y ]) args
+  checkEqArgs {suc remainingArgs} c xs (arg i (free , y , z) ∷ args) =
+    def₃ (quote caseDec)
+      (def₂ (quote _==_) y z)
+      (vLam "x≡y" checkEqArgsYes)
+      (vLam "x≢y" checkEqArgsNo)
     where
-      xArgs = map vArg (weaken (2 * n) xs)
-      args₁ args₂ : List (Arg Term)
-      args₁ = map (λ i → vArg (var (i + n) [])) (downFrom n)
-      args₂ = map (λ i → vArg (var  i      [])) (downFrom n)
+      remainingFree = countFree args
 
-  injPrf : Name → (pars : List (Arg Term)) (xs ys zs : List Term) → Term → Term
-  injPrf c pars xs ys zs eq =
-    def (quote typed) ( vArg (injType c pars xs (length ys))
-                      ∷ vArg (pat-lam (clause ps (con (quote refl) []) ∷ []) [])
-                      ∷ (map vArg (ys ++ zs ++ [ eq ])))
+      checkEqArgsYes : Term
+      checkEqArgsYes =
+        def (quote transport) (
+          (vArg (vLam "x" (nPi (rightArgsFree args) (def₁ (quote Dec)
+            (weaken (2 + remainingFree)
+               (con c (xs ++ arg i y ∷ (leftArgs args)))
+             `≡
+             con c (weaken (2 + remainingFree) xs ++
+                    arg i (var remainingFree []) ∷
+                    rightArgs (refreshArgs (weaken (2 + remainingFree) args)))))))) ∷
+          (vArg (var 0 [])) ∷
+          (vArg (nLam (rightArgsFree args)
+            (checkEqArgs c
+              (weaken (1 + remainingFree) (xs ++ [ arg i y ]))
+              (refreshArgs (weaken (1 + remainingFree) args))))) ∷
+          weaken 1 (rightArgsFree args))
+
+      checkEqArgsNo : Term
+      checkEqArgsNo =
+        con₁ (quote no) (vLam "eq" (var 1 (vArg (def₃ (quote _∋_)
+          (nPi (hideTel (arg i z ∷ rightArgsFree args))
+            (weaken (3 + remainingFree) (con c (xs ++ arg i y ∷ leftArgs args))
+              `≡ con c (weaken (3 + remainingFree) xs ++
+                        arg i (var remainingFree []) ∷
+                        rightArgs (refreshArgs (weaken (3 + remainingFree) args)))
+            `→
+             weaken (4 + remainingFree) y `≡ var (1 + remainingFree) []))
+          (pat-lam (clause
+            (replicate (1 + remainingFree) (hArg dot) ++ vArg `refl ∷ [])
+            `refl ∷ []) [])
+          (var 0 [])) ∷ [])))
+
+  checkEqArgs _ _ _ = con₁ (quote yes) (con₀ (quote refl))
+
+  matchingClause : (c : Name) → Clause
+  matchingClause c = clause (makeParamsPats ++
+                              vArg (con c (makeLeftPattern args)) ∷
+                              vArg (con c (makeRightPattern args)) ∷ [])
+                            (checkEqArgs c makeParams args)
     where
-      ps : List (Arg Pattern)
-      ps = (vArg (var "_") <$ ys) ++ (vArg dot <$ zs) ++ [ vArg `refl ]
+      args = classifyArgs c
 
-  disprove : Name → (pars : List (Arg Term)) (xs ys zs : List Term) → Nat → Term
-  disprove c pars xs ys zs neq =
-    con₁ (quote no) $′ vLam "¬p" $
-    var (1 + neq) (vArg (injPrf c (weaken 1 pars) (weaken 1 xs) (weaken 1 ys) (weaken 1 zs) (var 0 [])) ∷ [])
+      makeParamsPats : List (Arg Pattern)
+      makeParamsPats = map (fmap (λ _ → var "A")) (hideTel (params c))
 
-  -- eq : y ≡ z
-  -- zs′ ⊢ cont : Dec (c xs y ys ≡ c xs y zs′)
-  -- Builds subst (λ q → ∀ zs′ → Dec (c xs y ys ≡ c xs q zs′)) eq zs cont
-  --        : Dec (c xs y ys ≡ c xs z zs)
-  castArg : (c : Name) (xs : List Term) (y : Term) (ys zs : List Term) (eq : Term) → Term → Term
-  castArg c xs y ys zs eq cont =
-    def (quote transport) $′ map vArg
-    $ vLam "q" (nPi n $ def₁ (quote Dec)
-        (con c (map (vArg ∘ weaken (n + 1)) (xs ++ y ∷ ys)) `≡
-         con c (map vArg $ weaken (n + 1) xs ++ var n [] ∷ zs′)))
-    ∷ eq ∷ nLam n cont ∷ zs
-    where n  = length zs
-          zs′ = map (λ i → var i []) (downFrom n)
+      makeParams : List (Arg Term)
+      makeParams = weaken (length (vecToList args) + countFree args) (newArgs (params c))
 
-  splitOnRes : (c : Name) (pars : List (Arg Term)) (xs : List Term) (y z : Term) (ys zs : List Term) → Term → Term
-  splitOnRes c pars xs y z ys zs cont =
-    pat-lam
-    ( clause (vArg (con₁ (quote yes) (var  "p")) ∷ []) (castArg c xs′ y′ ys′ zs′ (var 0 []) (weakenFrom (length zs) 1 cont))
-    ∷ clause (vArg (con₁ (quote no)  (var "¬p")) ∷ []) (disprove c pars′ xs′ (y′ ∷ ys′) (z′ ∷ zs′) 0)
-    ∷ []) []
+      makeLeftPattern : ∀ {n} → RemainingArgs n → List (Arg Pattern)
+      makeLeftPattern [] = []
+      makeLeftPattern (arg i _ ∷ xs) = arg i (var "x") ∷ makeLeftPattern xs
+
+      makeRightPattern : ∀ {n} → RemainingArgs n → List (Arg Pattern)
+      makeRightPattern [] = []
+      makeRightPattern (arg i (forced , _ , _) ∷ xs) = arg i dot ∷ makeRightPattern xs
+      makeRightPattern (arg i (free   , _ , _) ∷ xs) = arg i (var "y") ∷ makeRightPattern xs
+
+  -- Mismatching constructor case --
+
+  mismatchingClause : (c₁ c₂ : Name) (fs : List Nat) → Clause
+  mismatchingClause c₁ c₂ fs =
+    clause (vArg (con c₁ (makePattern (#args₁ + #args₂ - 1) (argsTel c₁))) ∷
+            vArg (con c₂ (makePattern (#args₂ - 1) (argsTel c₂))) ∷ [])
+           (con (quote no) ([ vArg (pat-lam ([ absurd-clause ([ vArg absurd ]) ]) []) ]))
     where
-      pars′ = weaken 1 pars
-      xs′ = weaken 1 xs
-      y′  = weaken 1 y
-      z′  = weaken 1 z
-      ys′ = weaken 1 ys
-      zs′ = weaken 1 zs
+      args₁ = argsTel c₁
+      args₂ = argsTel c₂
+      #args₁ = length args₁
+      #args₂ = length args₂
+      forced₁ = filter (λ i → #args₂ ≤ i) fs
+      forced₂ = filter (λ i → #args₂ > i) fs
+      #forced₁ = length forced₁
+      #forced₂ = length forced₂
 
-  caseOnArg : Name → (eqF : Name) (pars : List (Arg Term)) (xs : List Term) (y z : Term) (ys zs : List Term) → Term → Term
-  caseOnArg c eqF pars xs y z ys zs cont =
-    def₂ (quote case_of_) (def₂ eqF y z) (splitOnRes c pars xs y z ys zs cont)
-
-  private
-    conCase : ∀ {n c spec} {cs : Constructors} → (c , spec) ∈ cs → List (Arg Term) → List Term →
-                      Vec (NormalArg spec × Name × Term) n → Vec Term n → Term
-    conCase         i pars xs [] [] = con₁ (quote yes) `refl
-    conCase {n = suc k} {c = c} i pars xs ((normal j , eqFun , y) ∷ args) (z ∷ zs) =
-      caseOnArg c eqFun pars xs y z
-                (map (snd ∘ snd) $ vecToList args)
-                (vecToList zs)
-                (conCase i (weaken k pars) (weaken k $ xs ++ [ y ]) (second (second (weaken k)) <$> args) zs′)
-      where zs′ = (λ i → var i []) <$> downFromVec
-
-  constructorCase : ∀ {c spec} (cs : Constructors) → (c , spec) ∈ cs → List (Arg Term) → Vec (Name × Term × Term) (countNormal spec) → Term
-  constructorCase cs i params args =
-    conCase i params []
-            ((λ a c → a , fst c , fst (snd c)) <$> normalArgs <*> args)
-            (snd ∘ snd <$> args)
-
-  -- The no-confusion case --
-
-  absurdLam : Term
-  absurdLam = pat-lam [ absurd-clause (vArg absurd ∷ []) ] []
-
-  no-confusion : Term
-  no-confusion = con₁ (quote no) absurdLam
+      makePattern : (k : Nat) (args : List (Arg Type)) → List (Arg Pattern)
+      makePattern k [] = []
+      makePattern k (arg i _ ∷ args) = (if (elem k fs) then (arg i dot) else arg i (var "x"))
+                                         ∷ makePattern (k - 1) args
 
   -- Clauses --
 
-  cross : ∀ {a b} {A : Set a} {B : Set b} → List A → List B → List (A × B)
-  cross xs ys = concatMap (λ x → map (_,_ x) ys) xs
+  makeClause : (c₁ c₂ : Name) → List Clause
+  makeClause c₁ c₂ = case (c₁ == c₂) of λ
+    { (yes _) → [ matchingClause c₁ ]
+    ; (no  _) → case (unifyIndices c₁ c₂) of λ
+      { (positive fs) → [ mismatchingClause c₁ c₂ fs ]
+      ; _             → []
+      }
+    }
 
-  pairs : ∀ {a} {A : Set a} → List A → List (A × A)
-  pairs [] = []
-  pairs xs = cross xs xs
+  constructorPairs : (d : Name) → List (Name × Name)
+  constructorPairs d = case (definitionOf d) of λ
+    { (data-type _ cs) → concat (map (λ c₁ → map (_,_ c₁) cs) cs)
+    ; _ → []
+    }
 
-  annotate∈ : ∀ {a} {A : Set a} (xs : List A) → List (Σ A λ x → x ∈ xs)
-  annotate∈ {A = A} xs = loop xs id
-    where
-      loop : (ys : List A) → (∀ {x} → x ∈ ys → x ∈ xs) → List (Σ A (flip _∈_ xs))
-      loop []       inj = []
-      loop (x ∷ ys) inj = (x , inj zero!) ∷ (loop ys (inj ∘ suc))
-
-  InstanceTable = TypeHead → Name
-
-  lookupInstance : TypeHead → InstanceTable → Name
-  lookupInstance h tbl = tbl h
-
-  ConSpec : Constructors → Set
-  ConSpec cs = Σ (Name × ConstructorSpec) (flip _∈_ cs)
-
-  argTable : InstanceTable → (spec : ConstructorSpec) → Nat → Nat → Vec (Name × Term × Term) (countNormal spec)
-  argTable tbl [] n i = []
-  argTable tbl ((a , h) ∷ spec) n i with isNormal a
-  ... | just z  = (lookupInstance h tbl , var (2 * n - i) [] , var (n - i) []) ∷ argTable tbl spec n (suc i)
-  ... | nothing = argTable tbl spec n i
-
-  matchingConClause : (cs : Constructors) → InstanceTable → Nat → ConSpec cs → Clause
-  matchingConClause cs tbl params ((c , spec) , i) =
-    clause (replicate params (hArg (var "_")) ++ conP (c , spec) ∷ conP (c , spec) ∷ [])
-           (constructorCase cs i pars (argTable tbl spec n 1))
-    where
-      n = countNormal spec
-      pars = map (λ i → hArg (var (i + 2 * n) [])) (downFrom params)
-
-  -- Coarse approximation of unification
-  private
-    eqLit : Literal → Literal → Bool
-    eqLit (nat x)    (nat y)    = isYes (x == y)
-    eqLit (float x)  (float y)  = isYes (x == y)
-    eqLit (char x)   (char y)   = isYes (x == y)
-    eqLit (string x) (string y) = isYes (x == y)
-    eqLit (name x)   (name y)   = isYes (x == y)
-    eqLit _          _          = false
-
-    unifyArgs : (xs ys : List (Arg Term)) → Bool
-    unifyTerm : (x y : Term) → Bool
-
-    unifyArgs [] [] = true
-    unifyArgs [] (_ ∷ _) = false
-    unifyArgs (_ ∷ _) [] = false
-    unifyArgs (arg _ x ∷ xs) (arg _ y ∷ ys) = unifyTerm x y && unifyArgs xs ys
-
-    unifyTerm (var _ _) _ = true
-    unifyTerm _ (var _ _) = true
-    unifyTerm (con c₁ args₁) (con c₂ args₂) =
-      isYes (c₁ == c₂) && unifyArgs args₁ args₂
-    unifyTerm (lit l₁) (lit l₂) = eqLit l₁ l₂
-    unifyTerm x y = false
-
-  unify : Term → Term → Bool
-  unify (def _ us) (def _ vs) = unifyArgs us vs
-  unify _ _ = false  -- impossible case
-
-
-  compatibleConstructors : (c₁ c₂ : Name) → Bool
-  compatibleConstructors = unify on unEl ∘ snd ∘ telView ∘ typeOf
-
-  mismatchConClause : InstanceTable → Name × ConstructorSpec → Name × ConstructorSpec → Clause
-  mismatchConClause tbl c₁ c₂ =
-    clause (conP c₁ ∷ conP c₂ ∷ []) no-confusion
-
-  eqClause : (cs : Constructors) → InstanceTable → Nat → ConSpec cs → ConSpec cs → List Clause
-  eqClause cs tbl params ((c₁ , spec₁) , i₁) ((c₂ , spec₂) , i₂) =
-    ifYes c₁ == c₂
-    then matchingConClause cs tbl params ((c₁ , spec₁) , i₁) ∷ []
-    else if compatibleConstructors c₁ c₂
-    then mismatchConClause tbl (c₁ , spec₁) (c₂ , spec₂) ∷ []
-    else []
-
-  eqClauses : Constructors → InstanceTable → Nat → List Clause
-  eqClauses cs tbl params = concatMap (uncurry (eqClause cs tbl params)) $ pairs (annotate∈ cs)
-
-  -- Computing the type --
+  eqDefinition : (d : Name) → List Clause
+  eqDefinition d = concat (map (uncurry makeClause) (constructorPairs d))
 
   makeArgs : Nat → List (Arg Nat) → List (Arg Term)
   makeArgs n xs = reverse $ map (fmap (λ i → var (n - i - 1) [])) xs
@@ -358,22 +362,8 @@ private
      λ { (just i) → computeType d (1 + n) ((n <$ a) ∷ xs) (iArg (el unknown $ weaken (length is) i) ∷ weaken 1 is) tel
        ; nothing →  computeType d (1 + n) ((n <$ a) ∷ xs) (weaken 1 is) tel })
 
-  -- Instance tables --
-
-  data MissingEqFun : Set where
-
-  simpleITable : Name → Name → InstanceTable
-  simpleITable d f (var x) = quote _==_
-  simpleITable d f (def x) = ifYes x == d then f else quote _==_ -- quote MissingEqFun
-  simpleITable d f _ = quote MissingEqFun
-
--- Tying it all together --
-
 deriveEqType : Name → Term
 deriveEqType d = computeType d 0 [] [] $ fst $ telView $ typeOf d
 
-deriveEqDef : Name → Name → List Clause
-deriveEqDef d f = eqClauses (computeConstructors d) (simpleITable d f) (dataParameters d)
-
-derivingEq : Name → Name → Function
-derivingEq d f = fun-def (el unknown $ deriveEqType d) (deriveEqDef d f)
+deriveEqDef : Name → List Clause
+deriveEqDef d = eqDefinition d

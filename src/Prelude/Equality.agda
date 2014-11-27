@@ -20,8 +20,15 @@ open Eq {{...}} public
 sym : ∀ {a} {A : Set a} {x y : A} → x ≡ y → y ≡ x
 sym refl = refl
 
+trans : ∀ {a} {A : Set a} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+trans refl refl = refl
+
 cong : ∀ {a b} {A : Set a} {B : Set b} (f : A → B) {x y} → x ≡ y → f x ≡ f y
 cong f refl = refl
+
+cong₂ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} (f : A → B → C) {x₁ x₂ y₁ y₂} →
+        x₁ ≡ x₂ → y₁ ≡ y₂ → f x₁ y₁ ≡ f x₂ y₂
+cong₂ f refl refl = refl
 
 transport : ∀ {a b} {A : Set a} (B : A → Set b) {x y} → x ≡ y → B x → B y
 transport B refl bx = bx

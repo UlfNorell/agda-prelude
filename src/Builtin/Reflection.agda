@@ -215,7 +215,7 @@ private
 
 data Definition : Set where
   function    : Function  → Definition
-  data-type   : (cs : List Name) → Definition
+  data-type   : (pars : Nat) (cs : List Name) → Definition
   record-type : Record → Definition
   data-cons   : (d : Name) → Definition
   axiom       : Definition
@@ -226,6 +226,7 @@ private
     primQNameType        : Name → Type
     primQNameDefinition  : Name → Def
     primDataConstructors : DataType → List Name
+    primDataNumberOfParameters : DataType → Nat
 
 private
   data BadConstructorType : Set where
@@ -244,7 +245,7 @@ private
 
   makeDef : Name → Def → Definition
   makeDef _ (function x)  = function x
-  makeDef _ (data-type x) = data-type (primDataConstructors x)
+  makeDef _ (data-type x) = data-type (primDataNumberOfParameters x) (primDataConstructors x)
   makeDef _ axiom         = axiom
   makeDef _ (record′ x)   = record-type x
   makeDef c constructor′  = data-cons (conData c)
