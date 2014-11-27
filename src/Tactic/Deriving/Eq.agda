@@ -233,7 +233,7 @@ private
   checkEqArgs : ∀ {n} (c : Name) (xs : List (Arg Term)) (ys : RemainingArgs n) → Term
   checkEqArgs c xs (arg i (forced , y , z) ∷ args) =
     checkEqArgs c (xs ++ [ arg i y ]) args
-  checkEqArgs {suc remainingArgs} c xs (arg i (free , y , z) ∷ args)
+  checkEqArgs {suc remainingArgs} c xs (arg i (free , y , z) ∷ args) =
     def₃ (quote caseDec)
       (def₂ (quote _==_) y z)
       (vLam "x≡y" checkEqArgsYes)
