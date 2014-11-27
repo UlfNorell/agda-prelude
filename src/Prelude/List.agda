@@ -65,6 +65,16 @@ filter p [] = []
 filter p (x ∷ xs) = if p x then x ∷ filter p xs
                            else filter p xs
 
+take : ∀ {a} {A : Set a} → Nat → List A → List A
+take zero    _        = []
+take (suc n) []       = []
+take (suc n) (x ∷ xs) = x ∷ take n xs
+
+drop : ∀ {a} {A : Set a} → Nat → List A → List A
+drop zero    xs       = xs
+drop (suc n) []       = []
+drop (suc n) (x ∷ xs) = drop n xs
+
 null : ∀ {a} {A : Set a} → List A → Bool
 null []      = true
 null (_ ∷ _) = false

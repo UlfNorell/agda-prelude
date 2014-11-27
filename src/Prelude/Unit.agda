@@ -2,7 +2,8 @@
 module Prelude.Unit where
 
 record ⊤ : Set where
-  constructor tt
+  instance
+    constructor tt
 
 -- To keep changes from compat-2.4.0 to a minimum.
 Unit = ⊤

@@ -31,8 +31,5 @@ putStrI s = get >>= λ n →
             put (suc n) >>
             lift (putStr (printf "%d%s" n s))
 
-eqVec : unquote (deriveEqType (quote Vec))
-unquoteDef eqVec = deriveEqDef (quote Vec) (quote eqVec)
-
 main : IO ⊤
 main = _ <$ runStateT (mapM putStrI (Hello ∷ World ∷ "\n" ∷ [])) 0
