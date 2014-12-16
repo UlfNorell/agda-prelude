@@ -90,10 +90,45 @@ private
     ; _                        → []
     }
 
+  -- Parallel substitution --
+
+  Substitution : Set
+  Substitution = List (Nat × Term)
+
+  underLambda : Substitution → Substitution
+  underLambda = map (λ { (i , t) → suc i , weaken 1 t })
+
+  {-# TERMINATING #-}
+  subst : Substitution → Term → Term
+  apply : Term → List (Arg Term) → Term
+  substArgs : Substitution → List (Arg Term) → List (Arg Term)
+
+  subst sub (var x args) = case (lookup sub x) of λ 
+    { (just s) → apply s (substArgs sub args) 
+    ; nothing  → var x (substArgs sub args) 
+    }
+  subst sub (con c args) = con c (substArgs sub args)
+  subst sub (def f args) = def f (substArgs sub args)
+  subst sub (lam v t)    = lam v (fmap (subst (underLambda sub)) t)
+  subst sub (lit l)      = lit l
+  subst sub _            = unknown -- TODO
+
+  apply f [] = f
+  apply (var x args) xs = var x (args ++ xs)
+  apply (con c args) xs = con c (args ++ xs)
+  apply (def f args) xs = def f (args ++ xs)
+  apply (lam _ (abs _ t)) (arg _ x ∷ xs) = case (strengthen 1 (subst ((0 , weaken 1 x) ∷ []) t)) of λ
+    { (just f) → apply f xs
+    ; nothing  → unknown
+    }
+  apply _ _ = unknown -- TODO
+
+  substArgs sub = map (fmap (subst sub))
+
   -- Unification of datatype indices --
 
   data Unify : Set where
-    positive : List Nat → Unify
+    positive : List (Nat × Term) → Unify
     negative : Unify
     failure  : String → Unify
 
@@ -105,6 +140,7 @@ private
   (failure msg) &U _             = failure msg
   _             &U (failure msg) = failure msg
 
+  {-# TERMINATING #-}
   unify : Term → Term → Unify
   unifyArgs : List (Arg Term) → List (Arg Term) → Unify
 
@@ -112,16 +148,16 @@ private
   unify s            t            | yes _ = positive []
   unify (var x [])   (var y [])   | no  _ =
     if (x < y) -- In var-var case, instantiate the one that is bound the closest to us.
-    then (positive (x ∷ []))
-    else (positive (y ∷ []))
+    then (positive ((x , var y []) ∷ []))
+    else (positive ((y , var x []) ∷ []))
   unify (var x [])   t            | no  _ =
     if (elem x (freeVars t))
     then (failure "cyclic occurrence") -- We don't currently know if the occurrence is rigid or not
-    else (positive (x ∷ []))
+    else (positive ((x , t) ∷ []))
   unify t            (var x [])   | no  _ =
     if (elem x (freeVars t))
     then (failure "cyclic occurrence")
-    else (positive (x ∷ []))
+    else (positive ((x , t) ∷ []))
   unify (con c₁ xs₁) (con c₂ xs₂) | no  _ =
     if (isYes (c₁ == c₂))
     then unifyArgs xs₁ xs₂
@@ -133,7 +169,11 @@ private
   unifyArgs (_ ∷ _) [] = failure "panic: different number of arguments"
   unifyArgs (arg v₁ x ∷ xs) (arg v₂ y ∷ ys) =
     if (isYes (_==_ {{EqArgInfo}} v₁ v₂))
-    then (unify x y &U unifyArgs xs ys)
+    then (case (unify x y) of λ
+      { (positive sub) → positive sub &U unifyArgs (substArgs sub xs) (substArgs sub ys)
+      ; negative       → negative
+      ; (failure msg)  → failure msg
+      })
     else (failure "panic: hiding mismatch")
 
   unifyIndices : (c₁ c₂ : Name) → Unify
@@ -154,7 +194,7 @@ private
 
   forcedArgs : (c : Name) → List Nat
   forcedArgs c = case (unifyIndices c c) of λ
-    { (positive xs) → xs
+    { (positive xs) → map fst xs
     ; _             → []
     }
 
@@ -326,7 +366,7 @@ private
   makeClause c₁ c₂ = case (c₁ == c₂) of λ
     { (yes _) → [ matchingClause c₁ ]
     ; (no  _) → case (unifyIndices c₁ c₂) of λ
-      { (positive fs) → [ mismatchingClause c₁ c₂ fs ]
+      { (positive fs) → [ mismatchingClause c₁ c₂ (map fst fs) ]
       ; _             → []
       }
     }
