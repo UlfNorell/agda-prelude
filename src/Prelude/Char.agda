@@ -1,8 +1,8 @@
 
 module Prelude.Char where
 
-open import Prelude.Nat
 open import Prelude.Bool
+open import Prelude.Nat
 open import Prelude.Equality
 open import Prelude.Equality.Unsafe
 open import Prelude.Decidable

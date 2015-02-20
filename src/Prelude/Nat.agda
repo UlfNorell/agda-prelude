@@ -69,7 +69,7 @@ private
 
   decEqNat : (n m : Nat) → Dec (n ≡ m)
   decEqNat n m with eqNat n m | eqNatSound n m
-  ... | true  | eq = yes (safeEqual (eq _))
+  ... | true  | eq = yes (safeEqual (eq true))
   ... | false | _  = no  unsafeNotEqual
 
 instance
@@ -132,8 +132,8 @@ private
 
   lemNoLessEqual : ∀ n m → ¬ IsTrue (lessNat n m) → ¬ IsTrue (lessNat m n) → n ≡ m
   lemNoLessEqual zero zero _ _ = refl
-  lemNoLessEqual zero (suc m) h₁ h₂ = ⊥-elim (h₁ _)
-  lemNoLessEqual (suc n) zero h₁ h₂ = ⊥-elim (h₂ _)
+  lemNoLessEqual zero (suc m) h₁ h₂ = ⊥-elim (h₁ true)
+  lemNoLessEqual (suc n) zero h₁ h₂ = ⊥-elim (h₂ true)
   lemNoLessEqual (suc n) (suc m) h₁ h₂ = cong suc (lemNoLessEqual n m h₁ h₂)
 
   -- Using safeEqual here let's us not worry about the performance of the

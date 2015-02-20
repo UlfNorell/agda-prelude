@@ -23,8 +23,8 @@ instance
 
 -- Bool --
 
-pattern `true  = con (quote true) []
-pattern `false = con (quote false) []
+pattern `true  = con (quote Bool.true) []
+pattern `false = con (quote Bool.false) []
 
 instance
   QuotableBool : Quotable Bool

@@ -36,25 +36,25 @@ not : Bool → Bool
 not true  = false
 not false = true
 
-IsTrue : Bool → Set
-IsTrue true  = ⊤
-IsTrue false = ⊥
+data IsTrue : Bool → Set where
+  instance true : IsTrue true
 
-IsFalse : Bool → Set
-IsFalse = IsTrue ∘ not
+data IsFalse : Bool → Set where
+  instance false : IsFalse false
 
-EqBool : Eq Bool
-EqBool = record { _==_ = eqBool }
-  where
-    eqBool : (x y : Bool) → Dec (x ≡ y)
-    eqBool false false = yes refl
-    eqBool false true  = no (λ ())
-    eqBool true  false = no (λ ())
-    eqBool true  true  = yes refl
+instance
+  EqBool : Eq Bool
+  EqBool = record { _==_ = eqBool }
+    where
+      eqBool : (x y : Bool) → Dec (x ≡ y)
+      eqBool false false = yes refl
+      eqBool false true  = no (λ ())
+      eqBool true  false = no (λ ())
+      eqBool true  true  = yes refl
 
 decBool : ∀ b → Dec (IsTrue b)
-decBool false = no id
-decBool true  = yes _
+decBool false = no λ ()
+decBool true  = yes true
 
 isYes : ∀ {a} {A : Set a} → Dec A → Bool
 isYes (yes _) = true
