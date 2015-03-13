@@ -21,6 +21,8 @@ open import Tactic.Reflection.Quote
 open import Tactic.Reflection.Telescope
 open import Tactic.Deriving.Eq
 
+open import Data.Nat.DivMod
+
 Hello = printf "%c%s" 'H' "ello"
 World = printf "%6s" "World"
 
@@ -32,4 +34,5 @@ putStrI s = get >>= λ n →
             lift (putStr (printf "%d%s" n s))
 
 main : IO ⊤
-main = _ <$ runStateT (mapM putStrI (Hello ∷ World ∷ "\n" ∷ [])) 0
+main = _ <$ (runStateT (mapM putStrI (Hello ∷ World ∷ " " ∷ [])) 0 >>
+             putStrLn (show (432429 divmod 41)))

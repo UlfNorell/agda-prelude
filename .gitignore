@@ -2,3 +2,4 @@ agda-ffi/dist
 *.agdai
 MAlonzo
 test/hello
+test/Main
