@@ -86,8 +86,8 @@ divAux k m (suc n) (suc j) = divAux k m n j
 {-# BUILTIN NATDIVSUCAUX divAux #-}
 
 syntax natDiv m n = n div m
-natDiv : (m : Nat) {nz : NonZero m} → Nat → Nat
-natDiv zero {} n
+natDiv : (m : Nat) {{nz : NonZero m}} → Nat → Nat
+natDiv zero {{}} n
 natDiv (suc m) n = divAux 0 m n m
 
 modAux : Nat → Nat → Nat → Nat → Nat
@@ -98,8 +98,8 @@ modAux k m (suc n) (suc j) = modAux (suc k) m n j
 {-# BUILTIN NATMODSUCAUX modAux #-}
 
 syntax natMod m n = n mod m
-natMod : (m : Nat) {nz : NonZero m} → Nat → Nat
-natMod zero {} n
+natMod : (m : Nat) {{nz : NonZero m}} → Nat → Nat
+natMod zero {{}} n
 natMod (suc m) n = modAux 0 m n m
 
 --- Comparison ---

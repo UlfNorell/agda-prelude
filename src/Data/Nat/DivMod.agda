@@ -104,8 +104,8 @@ data DivMod a b : Set where
   qr : ∀ q r → LessThan r b → q * b + r ≡ a → DivMod a b
 
 syntax divMod b a = a divmod b
-divMod : ∀ b {_ : NonZero b} a → DivMod a b
-divMod zero {} a
+divMod : ∀ b {{_ : NonZero b}} a → DivMod a b
+divMod zero {{}} a
 divMod (suc b) a = qr (a div suc b) (a mod suc b) (modLess a b) (divmod-spec a b)
 
 data Even n : Set where
