@@ -34,6 +34,6 @@ foldl-foldr : ∀ {a} {A : Set a} (f : A → A → A) (z : A) →
 foldl-foldr f z assoc idl idr [] = refl
 foldl-foldr f z assoc idl idr (x ∷ xs)
   rewrite sym (foldl-foldr f z assoc idl idr xs)
-        | idl x ≡tr sym (idr x)
+        | idl x ⟨≡⟩ʳ idr x
         = foldl-assoc f assoc x z xs
 

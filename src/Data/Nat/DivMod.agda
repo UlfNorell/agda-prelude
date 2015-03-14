@@ -21,7 +21,7 @@ private
     -- Want cong tactic for this!
     let lem : a + suc b - b ≡ suc a + b - b
         lem = cong (λ z → z - b) (tactic auto)
-    in lem ≡tr lemPlusMinus (suc a) b
+    in lem ⟨≡⟩ lemPlusMinus (suc a) b
 
   lemModAux : ∀ k m n j → LessThan j n → modAux k m n j ≡ modAux 0 m (n - suc j) m
   lemModAux k m zero j (diff _ ())
@@ -39,7 +39,7 @@ private
 
   modLessAux : ∀ k m n j → LessThan (k + j) (suc m) → LessThan (modAux k m n j) (suc m)
   modLessAux k m zero j (diff d lt) =
-    diff (j + d) $ lt ≡tr tactic auto
+    diff (j + d) $ lt ⟨≡⟩ tactic auto
   modLessAux k m (suc n) zero _ =
     modLessAux 0 m n m $ diff 0 $ tactic auto
   modLessAux k m (suc n) (suc j) (diff d lt) =
