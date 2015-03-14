@@ -22,6 +22,7 @@ open import Tactic.Reflection.Telescope
 open import Tactic.Deriving.Eq
 
 open import Data.Nat.DivMod
+open import Data.Nat.GCD
 
 Hello = printf "%c%s" 'H' "ello"
 World = printf "%6s" "World"
@@ -35,4 +36,6 @@ putStrI s = get >>= λ n →
 
 main : IO ⊤
 main = _ <$ (runStateT (mapM putStrI (Hello ∷ World ∷ " " ∷ [])) 0 >>
-             putStrLn (show (432429 divmod 41)))
+             putStr (show (432429 divmod 41)) >>
+             putStr (" " & show (gcd! (19 * 17 * 31) (31 * 5))) >>
+             putStrLn "")
