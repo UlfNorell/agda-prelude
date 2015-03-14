@@ -22,6 +22,7 @@ open import Tactic.Reflection.Telescope
 open import Tactic.Deriving.Eq
 
 open import Data.Nat.DivMod
+open import Data.Nat.Divide
 open import Data.Nat.GCD
 
 Hello = printf "%c%s" 'H' "ello"
