@@ -8,7 +8,7 @@ open import Prelude.Applicative
 
 record Monad {a b} (M : Set a → Set b) : Set (lsuc a ⊔ b) where
   infixr 1 _=<<_
-  infixl 1 _>>=_
+  infixl 1 _>>=_ _>>_
   field
     return : ∀ {A} → A → M A
     _>>=_ : ∀ {A B} → M A → (A → M B) → M B
