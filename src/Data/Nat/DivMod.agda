@@ -103,10 +103,54 @@ private
 data DivMod a b : Set where
   qr : ∀ q r → LessThan r b → q * b + r ≡ a → DivMod a b
 
+quot : ∀ {a b} → DivMod a b → Nat
+quot (qr q _ _ _) = q
+
+rem : ∀ {a b} → DivMod a b → Nat
+rem (qr _ r _ _) = r
+
+rem-less : ∀ {a b} (d : DivMod a b) → LessThan (rem d) b
+rem-less (qr _ _ lt _) = lt
+
+quot-rem-sound : ∀ {a b} (d : DivMod a b) → quot d * b + rem d ≡ a
+quot-rem-sound (qr _ _ _ eq) = eq
+
 syntax divMod b a = a divmod b
 divMod : ∀ b {{_ : NonZero b}} a → DivMod a b
 divMod zero {{}} a
 divMod (suc b) a = qr (a div suc b) (a mod suc b) (modLess a b) (divmod-spec a b)
+
+--- Properties ---
+
+mod-less : ∀ b {{_ : NonZero b}} a → LessThan (a mod b) b
+mod-less zero {{}} _
+mod-less (suc b) a = rem-less (a divmod suc b)
+
+divmod-sound : ∀ b {{_ : NonZero b}} a → (a div b) * b + a mod b ≡ a
+divmod-sound zero {{}} _
+divmod-sound (suc b) a = quot-rem-sound (a divmod suc b)
+
+private
+  divmod-unique′ : ∀ b q₁ q₂ r₁ r₂ → LessThan r₁ b → LessThan r₂ b → q₁ * b + r₁ ≡ q₂ * b + r₂ → q₁ ≡ q₂ × r₁ ≡ r₂
+  divmod-unique′ b zero zero r₁ r₂ lt₁ lt₂ eq = refl , eq
+  divmod-unique′ b zero (suc q₂) .(q₂ * b + b + r₂) r₂ (diff k eq) lt₂ refl =
+    ⊥-elim (0≠suc (k + q₂ * b + r₂) (use eq $ tactic assumed))
+  divmod-unique′ b (suc q₁) zero r₁ .(q₁ * b + b + r₁) lt₁ (diff k eq) refl =
+    ⊥-elim (0≠suc (k + q₁ * b + r₁) (use eq $ tactic assumed))
+  divmod-unique′ b (suc q₁) (suc q₂) r₁ r₂ lt₁ lt₂ eq =
+    first (cong suc) $ divmod-unique′ b q₁ q₂ r₁ r₂ lt₁ lt₂ (use eq $ tactic assumed)
+
+divmod-unique : ∀ {a b} (d₁ d₂ : DivMod a b) → quot d₁ ≡ quot d₂ × rem d₁ ≡ rem d₂
+divmod-unique (qr q₁ r₁ lt₁ eq₁) (qr q₂ r₂ lt₂ eq₂) =
+  divmod-unique′ _ q₁ q₂ r₁ r₂ lt₁ lt₂ (eq₁ ⟨≡⟩ʳ eq₂)
+
+quot-unique : ∀ {a b} (d₁ d₂ : DivMod a b) → quot d₁ ≡ quot d₂
+quot-unique d₁ d₂ = fst (divmod-unique d₁ d₂)
+
+rem-unique : ∀ {a b} (d₁ d₂ : DivMod a b) → rem d₁ ≡ rem d₂
+rem-unique d₁ d₂ = snd (divmod-unique d₁ d₂)
+
+--- Even/Odd ---
 
 data Even n : Set where
   dbl : ∀ k → k * 2 ≡ n → Even n
