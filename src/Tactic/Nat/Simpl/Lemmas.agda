@@ -6,7 +6,7 @@ open import Tactic.Nat.NF
 open import Tactic.Nat.Exp
 open import Tactic.Nat.Bag
 open import Tactic.Nat.Auto
-open import Data.Nat.Properties
+open import Data.Nat.Properties.Core
 open import Data.List.Properties
 open import Tactic.Nat.Auto.Lemmas
 

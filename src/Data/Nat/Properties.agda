@@ -2,64 +2,54 @@
 module Data.Nat.Properties where
 
 open import Prelude
+open import Data.Nat.Properties.Core public
+open import Tactic.Nat
 
-add-0-r : ∀ n → n + 0 ≡ n
-add-0-r  0 = refl
-add-0-r (suc n) rewrite add-0-r n = refl
+--- LessNat ---
 
-private
-  add-suc-r : ∀ n m → n + suc m ≡ suc n + m
-  add-suc-r zero m = refl
-  add-suc-r (suc n) m rewrite add-suc-r n m = refl
+less-trans : ∀ {x y z} → LessNat x y → LessNat y z → LessNat x z
+less-trans (diff! a) (diff! b) = diff (suc (b + a)) tactic auto
 
-add-commute : ∀ x y → x + y ≡ y + x
-add-commute zero y = sym (add-0-r _)
-add-commute (suc x) y rewrite add-commute x y = sym (add-suc-r y _)
+less-zero : ∀ {a b} → LessThan a b → LessThan 0 b
+less-zero {a} (diff! k) = diff (k + a) tactic auto
 
-add-assoc : ∀ x y z → x + (y + z) ≡ x + y + z
-add-assoc zero y z = refl
-add-assoc (suc x) y z rewrite add-assoc x y z = refl
+less-zero-suc : ∀ {a} → LessThan 0 (suc a)
+less-zero-suc {a} = diff a (tactic auto)
 
-mul-1-r : ∀ x → x * 1 ≡ x
-mul-1-r zero = refl
-mul-1-r (suc x) rewrite mul-1-r x = add-commute x _
+--- Subtraction ---
 
-mul-0-r : ∀ x → x * 0 ≡ 0
-mul-0-r zero = refl
-mul-0-r (suc x) rewrite mul-0-r x = refl
+cancel-sub : ∀ b → b - b ≡ 0
+cancel-sub zero    = refl
+cancel-sub (suc b) = cancel-sub b
 
-mul-distr-r : ∀ x y z → (x + y) * z ≡ x * z + y * z
-mul-distr-r zero y z = refl
-mul-distr-r (suc x) y z rewrite mul-distr-r x y z
-                              | sym (add-assoc (x * z) (y * z) z)
-                              | add-commute (y * z) z
-                              = add-assoc (x * z) _ _
+cancel-add-sub : ∀ a b → a + b - b ≡ a
+cancel-add-sub zero b = cancel-sub b
+cancel-add-sub (suc a) zero = tactic auto
+cancel-add-sub (suc a) (suc b) =
+  -- Want cong tactic for this!
+  let lem : a + suc b - b ≡ suc a + b - b
+      lem = cong (λ z → z - b) (tactic auto)
+  in lem ⟨≡⟩ cancel-add-sub (suc a) b
 
-mul-distr-l : ∀ x y z → x * (y + z) ≡ x * y + x * z
-mul-distr-l zero y z = refl
-mul-distr-l (suc x) y z rewrite mul-distr-l x y z
-                              | sym (add-assoc (x * y) (x * z) (y + z))
-                              | add-assoc (x * z) y z
-                              | add-commute (x * z) y
-                              | sym (add-assoc y (x * z) z)
-                              = add-assoc (x * y) _ _
+sub-0-l : ∀ n → 0 - n ≡ 0
+sub-0-l zero = refl
+sub-0-l (suc n) = refl
 
-mul-assoc : ∀ x y z → x * (y * z) ≡ x * y * z
-mul-assoc zero y z = refl
-mul-assoc (suc x) y z rewrite mul-distr-r (x * y) y z
-                            | mul-assoc x y z
-                            = refl
+sub-add-r : ∀ a b c → a - (b + c) ≡ a - b - c
+sub-add-r a zero c = refl
+sub-add-r zero b c rewrite sub-0-l (b + c) | sub-0-l b | sub-0-l c = refl
+sub-add-r (suc a) (suc b) c = sub-add-r a b c
 
-mul-commute : ∀ x y → x * y ≡ y * x
-mul-commute zero y = sym (mul-0-r y)
-mul-commute (suc x) y rewrite mul-commute x y
-                            | mul-distr-l y 1 x
-                            | mul-1-r y
-                            = add-commute (y * x) _
+sub-mul-distr-l : ∀ a b c → (a - b) * c ≡ a * c - b * c
+sub-mul-distr-l zero b c rewrite sub-0-l b | sub-0-l (b * c) = refl
+sub-mul-distr-l (suc a) zero c = refl
+sub-mul-distr-l (suc a) (suc b) c rewrite sub-mul-distr-l a b c =
+  a * c - b * c
+    ≡⟨ cong (_- (b * c)) (cancel-add-sub _ c) ⟩ʳ
+  a * c + c - c - b * c
+    ≡⟨ sub-add-r (a * c + c) c (b * c) ⟩ʳ
+  a * c + c - (c + b * c)
+    ≡⟨ cong ((a * c + c) -_) (add-commute c (b * c)) ⟩
+  a * c + c - (b * c + c) ∎
 
-add-inj₂ : ∀ x y z → x + y ≡ x + z → y ≡ z
-add-inj₂  zero   y z p = p
-add-inj₂ (suc x) y z p = add-inj₂ x y z (suc-inj p)
 
-add-inj₁ : ∀ x y z → x + z ≡ y + z → x ≡ y
-add-inj₁ x y z rewrite add-commute x z | add-commute y z = add-inj₂ z x y

@@ -5,7 +5,7 @@ open import Prelude
 open import Tactic.Nat.NF
 open import Tactic.Nat.Exp
 open import Tactic.Nat.Bag
-open import Data.Nat.Properties
+open import Data.Nat.Properties.Core
 
 map++ : ∀ {a b} {A : Set a} {B : Set b} (f : A → B) (xs ys : List A) →
           map f (xs ++ ys) ≡ map f xs ++ map f ys
