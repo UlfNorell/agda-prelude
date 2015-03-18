@@ -31,7 +31,7 @@ ts-sound (suc (suc i) , x) ρ
   rewrite sym (product1-sound (map ρ x))
         = tactic auto
 
-map-eq : ∀ {a b} {A : Set a} {B : Set b} (f g : A → B) →
+map-eq : ∀ {c b} {A : Set c} {B : Set b} (f g : A → B) →
            (∀ x → f x ≡ g x) → ∀ xs → map f xs ≡ map g xs
 map-eq f g f=g [] = refl
 map-eq f g f=g (x ∷ xs) rewrite f=g x | map-eq f g f=g xs = refl
@@ -39,6 +39,7 @@ map-eq f g f=g (x ∷ xs) rewrite f=g x | map-eq f g f=g xs = refl
 private
   et  = flip ⟦_⟧t
   ets = flip ⟦_⟧ts
+  plus-nf = λ a ρ xs → a + ⟦ xs ⟧n ρ
 
 ns-sound : ∀ nf ρ → ⟦ nf ⟧ns ρ ≡ ⟦ nf ⟧n ρ
 ns-sound [] ρ = refl
@@ -64,62 +65,72 @@ snd-*** f g (x , y) = refl
 eta : ∀ {a b} {A : Set a} {B : Set b} (p : A × B) → p ≡ (fst p , snd p)
 eta (x , y) = refl
 
-shuffle₁ : ∀ a b c → a + (b + c) ≡ b + (a + c)
-shuffle₁ a b c = tactic auto
+private
+  shuffle₁ : ∀ a b c → a + (b + c) ≡ b + (a + c)
+  shuffle₁ a b c = tactic auto
 
-cancel-sound′ : ∀ a b nf₁ nf₂ ρ → a + ⟦ fst (cancel nf₁ nf₂) ⟧n ρ ≡ b + ⟦ snd (cancel nf₁ nf₂) ⟧n ρ →
-                             a + ⟦ nf₁ ⟧n ρ ≡ b + ⟦ nf₂ ⟧n ρ
+private
+  lem-sound : ∀ a b ρ f g (xs : NF × NF) →
+          a + ⟦ fst ((f *** g) xs) ⟧n ρ ≡ b + ⟦ snd ((f *** g) xs) ⟧n ρ →
+          a + ⟦ f (fst xs) ⟧n ρ         ≡ b + ⟦ g (snd xs) ⟧n ρ
+  lem-sound a b ρ f g xs H =
+    cong (plus-nf a ρ) (fst-*** f g xs)
+    ʳ⟨≡⟩ H
+     ⟨≡⟩ cong (plus-nf b ρ) (snd-*** f g xs)
+
+cancel-sound′ : ∀ a b nf₁ nf₂ ρ →
+                  a + ⟦ fst (cancel nf₁ nf₂) ⟧n ρ ≡ b + ⟦ snd (cancel nf₁ nf₂) ⟧n ρ →
+                  a + ⟦ nf₁ ⟧n ρ ≡ b + ⟦ nf₂ ⟧n ρ
 cancel-sound′ a b [] []        ρ H = H
 cancel-sound′ a b [] (x ∷ nf₂) ρ H = H
 cancel-sound′ a b (x ∷ nf₁) [] ρ H = H
 cancel-sound′ a b ((i , x) ∷ nf₁) ((j , y) ∷ nf₂) ρ H
   with compare x y
-... | less    _ rewrite fst-*** (List._∷_ (i , x)) id (cancel nf₁ ((j , y) ∷ nf₂))
-                      | snd-*** (List._∷_ (i , x)) id (cancel nf₁ ((j , y) ∷ nf₂))
-                      | add-assoc a (et ρ (i , x)) (⟦ fst (cancel nf₁ ((j , y) ∷ nf₂)) ⟧n ρ)
-                      | add-assoc a (et ρ (i , x)) (⟦ nf₁ ⟧n ρ)
-                      = cancel-sound′ (a + et ρ (i , x)) b nf₁ ((j , y) ∷ nf₂) ρ H
-... | greater _ rewrite fst-*** id (List._∷_ (j , y)) (cancel ((i , x) ∷ nf₁) nf₂)
-                      | snd-*** id (List._∷_ (j , y)) (cancel ((i , x) ∷ nf₁) nf₂)
-                      | add-assoc b (et ρ (j , y)) (⟦ snd (cancel ((i , x) ∷ nf₁) nf₂) ⟧n ρ)
-                      | add-assoc b (et ρ (j , y)) (⟦ nf₂ ⟧n ρ)
-                      = cancel-sound′ a (b + et ρ (j , y)) ((i , x) ∷ nf₁) nf₂ ρ H
+... | less _ = add-assoc a _ _ ⟨≡⟩ cancel-sound′ (a + et ρ (i , x)) b nf₁ ((j , y) ∷ nf₂) ρ
+                 (add-assoc a _ _ ʳ⟨≡⟩ lem-sound a b ρ (_∷_ (i , x)) id (cancel nf₁ ((j , y) ∷ nf₂)) H)
+... | greater _ =
+        cancel-sound′ a (b + et ρ (j , y)) ((i , x) ∷ nf₁) nf₂ ρ
+          (lem-sound a b ρ id (_∷_ (j , y)) (cancel ((i , x) ∷ nf₁) nf₂) H ⟨≡⟩ add-assoc b _ _)
+        ⟨≡⟩ʳ add-assoc b _ _
 cancel-sound′ a b ((i , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl
   with compare i j
-cancel-sound′ a b ((i , x) ∷ nf₁) ((.(suc k + i) , .x) ∷ nf₂) ρ H | equal refl | less (diff! k)
-  rewrite fst-*** id (List._∷_ (suc k , x)) (cancel nf₁ nf₂)
-        | snd-*** id (List._∷_ (suc k , x)) (cancel nf₁ nf₂)
-        | add-assoc b (et ρ (suc k , x)) (⟦ snd (cancel nf₁ nf₂) ⟧n ρ)
-        | shuffle₁ a (et ρ (i , x)) (⟦ nf₁ ⟧n ρ)
-        | cancel-sound′ a (b + et ρ (suc k , x)) nf₁ nf₂ ρ H
-        = tactic auto
-cancel-sound′ a b ((.(suc k + j) , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl | greater (diff! k)
-  rewrite fst-*** (List._∷_ (suc k , x)) id (cancel nf₁ nf₂)
-        | snd-*** (List._∷_ (suc k , x)) id (cancel nf₁ nf₂)
-        | add-assoc a (et ρ (suc k , x)) (⟦ fst (cancel nf₁ nf₂) ⟧n ρ)
-        | shuffle₁ b (et ρ (j , x)) (⟦ nf₂ ⟧n ρ)
-        | sym (cancel-sound′ (a + et ρ (suc k , x)) b nf₁ nf₂ ρ H)
-        = tactic auto
-cancel-sound′ a b ((i , x) ∷ nf₁) ((.i , .x) ∷ nf₂) ρ H | equal refl | equal refl
-  rewrite shuffle₁ a (et ρ (i , x)) (⟦ nf₁ ⟧n ρ)
-        | cancel-sound′ a b nf₁ nf₂ ρ H
-        = tactic auto
+cancel-sound′ a b ((i , x) ∷ nf₁) ((.(suc k + i) , .x) ∷ nf₂) ρ H | equal refl | less (diff! k) =
+  shuffle₁ a (et ρ (i , x)) _
+  ⟨≡⟩ cong (et ρ (i , x) +_) (cancel-sound′ a (b + et ρ (suc k , x)) nf₁ nf₂ ρ
+        (lem-sound a b ρ id (_∷_ (suc k , x)) (cancel nf₁ nf₂) H ⟨≡⟩ add-assoc b _ _))
+  ⟨≡⟩ (tactic auto)
+cancel-sound′ a b ((.(suc k + j) , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl | greater (diff! k) =
+  sym (shuffle₁ b (et ρ (j , x)) _
+       ⟨≡⟩ cong (et ρ (j , x) +_) (sym (cancel-sound′ (a + et ρ (suc k , x)) b nf₁ nf₂ ρ
+             (add-assoc a _ _ ʳ⟨≡⟩ lem-sound a b ρ (_∷_ (suc k , x)) id (cancel nf₁ nf₂) H)))
+       ⟨≡⟩ (tactic auto))
+cancel-sound′ a b ((i , x) ∷ nf₁) ((.i , .x) ∷ nf₂) ρ H | equal refl | equal refl =
+  shuffle₁ a (et ρ (i , x)) _
+  ⟨≡⟩ cong (et ρ (i , x) +_) (cancel-sound′ a b nf₁ nf₂ ρ H)
+  ⟨≡⟩ shuffle₁ (et ρ (i , x)) b _
 
 cancel-sound : ∀ nf₁ nf₂ ρ → NFEqS (cancel nf₁ nf₂) ρ → NFEq (nf₁ , nf₂) ρ
-cancel-sound nf₁ nf₂ ρ H rewrite cong (λ p → NFEqS p ρ) (eta (cancel nf₁ nf₂))
-                              | ns-sound (fst (cancel nf₁ nf₂)) ρ
-                              | ns-sound (snd (cancel nf₁ nf₂)) ρ
-                              = cancel-sound′ 0 0 nf₁ nf₂ ρ H
-
-prod : Env → List Nat → Nat
-prod ρ x = product (map ρ x)
+cancel-sound nf₁ nf₂ ρ H rewrite cong (λ p → NFEqS p ρ) (eta (cancel nf₁ nf₂)) =
+  (cancel-sound′ 0 0 nf₁ nf₂ ρ
+    (ns-sound (fst (cancel nf₁ nf₂)) ρ
+       ʳ⟨≡⟩ H ⟨≡⟩
+     ns-sound (snd (cancel nf₁ nf₂)) ρ))
 
 private
-  shuffle₂ : ∀ a b c d e → a + (b + c + d + e) ≡ c + (a + (b + d) + e)
-  shuffle₂ a b c d e = tactic auto
+  prod : Env → List Nat → Nat
+  prod ρ x = product (map ρ x)
 
-  shuffle₃ : ∀ a b c d → a + (b + c + d) ≡ a + (b + c) + d
-  shuffle₃ a b c d = tactic auto
+private
+  lem-complete : ∀ a b ρ f g (xs : NF × NF) →
+          a + ⟦ f (fst xs) ⟧n ρ         ≡ b + ⟦ g (snd xs) ⟧n ρ →
+          a + ⟦ fst ((f *** g) xs) ⟧n ρ ≡ b + ⟦ snd ((f *** g) xs) ⟧n ρ
+  lem-complete a b ρ f g xs H =
+    cong (plus-nf a ρ) (fst-*** f g xs)
+     ⟨≡⟩  H
+     ⟨≡⟩ʳ cong (plus-nf b ρ) (snd-*** f g xs)
+
+  arith₁ : ∀ b k i x y → b + ((k + i) * x + x + y) ≡ i * x + (b + (k * x + x) + y)
+  arith₁ b k i x y = tactic auto
 
 cancel-complete′ : ∀ a b nf₁ nf₂ ρ →
                      a + ⟦ nf₁ ⟧n ρ ≡ b + ⟦ nf₂ ⟧n ρ →
@@ -128,43 +139,38 @@ cancel-complete′ a b [] [] ρ H = H
 cancel-complete′ a b [] (x ∷ nf₂) ρ H = H
 cancel-complete′ a b (x ∷ nf₁) [] ρ H = H
 cancel-complete′ a b ((i , x) ∷ nf₁) ((j , y) ∷ nf₂) ρ H with compare x y
-... | less lt
-  rewrite fst-*** (List._∷_ (i , x)) id (cancel nf₁ ((j , y) ∷ nf₂))
-        | snd-*** (List._∷_ (i , x)) id (cancel nf₁ ((j , y) ∷ nf₂))
-        | add-assoc a (et ρ (i , x)) (⟦ fst (cancel nf₁ ((j , y) ∷ nf₂)) ⟧n ρ)
-        | add-assoc a (et ρ (i , x)) (⟦ nf₁ ⟧n ρ)
-        = cancel-complete′ (a + et ρ (i , x)) b nf₁ ((j , y) ∷ nf₂) ρ H
-... | greater _ rewrite fst-*** id (List._∷_ (j , y)) (cancel ((i , x) ∷ nf₁) nf₂)
-                      | snd-*** id (List._∷_ (j , y)) (cancel ((i , x) ∷ nf₁) nf₂)
-                      | add-assoc b (et ρ (j , y)) (⟦ snd (cancel ((i , x) ∷ nf₁) nf₂) ⟧n ρ)
-                      | add-assoc b (et ρ (j , y)) (⟦ nf₂ ⟧n ρ)
-                      = cancel-complete′ a (b + et ρ (j , y)) ((i , x) ∷ nf₁) nf₂ ρ H
+... | less lt =
+  lem-complete a b ρ (_∷_ (i , x)) id (cancel nf₁ ((j , y) ∷ nf₂))
+    (add-assoc a _ _
+     ⟨≡⟩ cancel-complete′ (a + et ρ (i , x)) b nf₁ ((j , y) ∷ nf₂) ρ
+           (add-assoc a _ _ ʳ⟨≡⟩ H))
+... | greater _ =
+  lem-complete a b ρ id (_∷_ (j , y)) (cancel ((i , x) ∷ nf₁) nf₂)
+    (cancel-complete′ a (b + et ρ (j , y)) ((i , x) ∷ nf₁) nf₂ ρ
+      (H ⟨≡⟩ add-assoc b _ _)
+     ⟨≡⟩ʳ add-assoc b _ _)
 cancel-complete′ a b ((i , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl with compare i j
-cancel-complete′ a b ((i , x) ∷ nf₁) ((.(suc (k + i)) , .x) ∷ nf₂) ρ H | equal refl | less (diff! k)
-  rewrite fst-*** id (List._∷_ (suc k , x)) (cancel nf₁ nf₂)
-        | snd-*** id (List._∷_ (suc k , x)) (cancel nf₁ nf₂)
-        | shuffle₁ a (i * prod ρ x) (⟦ nf₁ ⟧n ρ)
-        | mul-distr-r k i (prod ρ x)
-        | shuffle₂ b (k * prod ρ x) (i * prod ρ x) (prod ρ x) (⟦ nf₂ ⟧n ρ)
-        | cancel-complete′ a (b + suc k * prod ρ x) nf₁ nf₂ ρ (add-inj₂ (i * prod ρ x) _ _ H)
-        = tactic auto
-cancel-complete′ a b ((.(suc (k + j)) , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl | greater (diff! k)
-  rewrite fst-*** (List._∷_ (suc k , x)) id (cancel nf₁ nf₂)
-        | snd-*** (List._∷_ (suc k , x)) id (cancel nf₁ nf₂)
-        | shuffle₁ b (j * prod ρ x) (⟦ nf₂ ⟧n ρ)
-        | mul-distr-r k j (prod ρ x)
-        | shuffle₂ a (k * prod ρ x) (j * prod ρ x) (prod ρ x) (⟦ nf₁ ⟧n ρ)
-        | shuffle₃ a (k * prod ρ x) (prod ρ x) (⟦ fst (cancel nf₁ nf₂) ⟧n ρ)
-        | cancel-complete′ (a + suc k * prod ρ x) b nf₁ nf₂ ρ (add-inj₂ (j * prod ρ x) _ _ H)
-        = refl
-cancel-complete′ a b ((i , x) ∷ nf₁) ((.i , .x) ∷ nf₂) ρ H | equal refl | equal refl
-  rewrite shuffle₁ a (i * prod ρ x) (⟦ nf₁ ⟧n ρ)
-        | shuffle₁ b (i * prod ρ x) (⟦ nf₂ ⟧n ρ)
-        = cancel-complete′ a b nf₁ nf₂ ρ (add-inj₂ (i * prod ρ x) _ _ H)
+cancel-complete′ a b ((i , x) ∷ nf₁) ((.(suc (k + i)) , .x) ∷ nf₂) ρ H | equal refl | less (diff! k) =
+  lem-complete a b ρ id (_∷_ (suc k , x)) (cancel nf₁ nf₂)
+    (cancel-complete′ a (b + suc k * prod ρ x) nf₁ nf₂ ρ
+      (add-inj₂ (i * prod ρ x) _ _
+        (shuffle₁ (i * prod ρ x) a _
+          ⟨≡⟩ H ⟨≡⟩ arith₁ b k i _ _))
+    ⟨≡⟩ʳ add-assoc b _ _)
+cancel-complete′ a b ((.(suc (k + j)) , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl | greater (diff! k) =
+  lem-complete a b ρ (_∷_ (suc k , x)) id (cancel nf₁ nf₂)
+    (add-assoc a _ _ ⟨≡⟩
+     cancel-complete′ (a + suc k * prod ρ x) b nf₁ nf₂ ρ
+       (add-inj₂ (j * prod ρ x) _ _
+         (sym (shuffle₁ (j * prod ρ x) b _ ⟨≡⟩ʳ
+               arith₁ a k j _ _ ʳ⟨≡⟩ H))))
+cancel-complete′ a b ((i , x) ∷ nf₁) ((.i , .x) ∷ nf₂) ρ H | equal refl | equal refl =
+  cancel-complete′ a b nf₁ nf₂ ρ
+    (add-inj₂ (i * prod ρ x) _ _
+      (shuffle₁ a (i * prod ρ x) _ ʳ⟨≡⟩ H ⟨≡⟩ shuffle₁ b (i * prod ρ x) _))
 
 cancel-complete : ∀ nf₁ nf₂ ρ → NFEq (nf₁ , nf₂) ρ → NFEqS (cancel nf₁ nf₂) ρ
-cancel-complete nf₁ nf₂ ρ H
-  rewrite cong (λ p → NFEqS p ρ) (eta (cancel nf₁ nf₂))
-        | ns-sound (fst (cancel nf₁ nf₂)) ρ
-        | ns-sound (snd (cancel nf₁ nf₂)) ρ
-        = cancel-complete′ 0 0 nf₁ nf₂ ρ H
+cancel-complete nf₁ nf₂ ρ H rewrite cong (λ p → NFEqS p ρ) (eta (cancel nf₁ nf₂)) =
+       ns-sound (fst (cancel nf₁ nf₂)) ρ
+  ⟨≡⟩  cancel-complete′ 0 0 nf₁ nf₂ ρ H
+  ⟨≡⟩ʳ ns-sound (snd (cancel nf₁ nf₂)) ρ
