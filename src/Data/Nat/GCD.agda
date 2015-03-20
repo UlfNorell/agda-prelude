@@ -13,8 +13,11 @@ open import Prelude.Equality.Unsafe
 
 data GCD (a b : Nat) : Set where
   gcd-res : ∀ d → d Divides a → d Divides b → 
-          (∀ k {{_ : NonZero k}} → k Divides a → k Divides b → k Divides d) →
-          GCD a b
+              (∀ k → k Divides a → k Divides b → k Divides d) →
+              GCD a b
+
+get-gcd : ∀ {a b} → GCD a b → Nat
+get-gcd (gcd-res d _ _ _) = d
 
 private
   gcd-step : ∀ {a b} q {r} → GCD (suc b) r → q * suc b + r ≡ a → GCD a (suc b)
@@ -28,10 +31,12 @@ private
     case a divmod suc b of λ
     { (qr q r lt eq) → gcd-step q (gcd-cert-acc (suc b) r (wf r lt)) eq }
 
+private
+  erase-prf : ∀ {a b} → GCD a b → GCD a b
+  erase-prf (gcd-res d d|a d|b gr) = gcd-res d d|a d|b $ λ k k|a k|b → fast-divides (gr k k|a k|b)
+
 gcd : ∀ a b → GCD a b
-gcd a b =
-  case gcd-cert-acc a b (wfNat b) of
-  λ { (gcd-res d d|a d|b gr) → gcd-res d d|a d|b $ λ k k|a k|b → fast-divides (gr k k|a k|b) }
+gcd a b = erase-prf (gcd-cert-acc a b (wfNat b))
 
 gcd! : Nat → Nat → Nat
-gcd! a b = case gcd a b of λ { (gcd-res d _ _ _) → d }
+gcd! a b = get-gcd (gcd a b)

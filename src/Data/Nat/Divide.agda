@@ -25,6 +25,9 @@ divides-add (factor! q) (factor! q₁) = factor (q + q₁) tactic auto
 divides-mul-r : ∀ a {b d} → d Divides b → d Divides (a * b)
 divides-mul-r a (factor! q) = factor (a * q) tactic auto
 
+divides-mul-l : ∀ {a} b {d} → d Divides a → d Divides (a * b)
+divides-mul-l b (factor! q) = factor (b * q) tactic auto
+
 divides-sub-l : ∀ {a b d} → d Divides (a + b) → d Divides a → d Divides b
 divides-sub-l {b = b} {d} (factor q₁ eq) (factor! q) = factor (q₁ - q) $
   (q₁ - q) * d
@@ -62,8 +65,20 @@ divides-antisym {suc a} (factor! (suc q)) (factor (suc (suc q₁)) eq) = use eq 
 divides-trans : ∀ {a b c} → a Divides b → b Divides c → a Divides c
 divides-trans (factor! q) (factor! q′) = factor (q′ * q) tactic auto
 
-fast-divides : ∀ {a b} {{_ : NonZero a}} → a Divides b → a Divides b
-fast-divides {a} {b} a|b = factor (b div a) (safeEqual (div-divides a|b))
+divides-zero : ∀ {a} → 0 Divides a → a ≡ 0
+divides-zero (factor! q) = tactic auto
+
+private
+  safediv : Nat → Nat → Nat
+  safediv a 0 = 0
+  safediv a (suc b) = a div suc b
+
+  divides-safediv : ∀ {a b} → a Divides b → safediv b a * a ≡ b
+  divides-safediv {zero } 0|b = sym (divides-zero 0|b)
+  divides-safediv {suc a} a|b = div-divides a|b
+
+fast-divides : ∀ {a b} → a Divides b → a Divides b
+fast-divides {a} {b} a|b = factor (safediv b a) (safeEqual (divides-safediv a|b))
 
 private
   no-divides-suc-mod : ∀ {a b} q {r} → LessNat (suc r) a → q * a + suc r ≡ b → ¬ (a Divides b)
