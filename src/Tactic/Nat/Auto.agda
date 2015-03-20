@@ -27,10 +27,10 @@ unliftNFEq e₁ e₂ ρ H =
   ⟦ e₂      ⟧e ρ ≡⟨ sound e₂ ρ ⟩
   ⟦ norm e₂ ⟧n ρ ∎
 
-proof : ∀ e₁ e₂ ρ → Maybe (⟦ e₁ ⟧e ρ ≡ ⟦ e₂ ⟧e ρ)
-proof e₁ e₂ ρ with norm e₁ == norm e₂
-proof e₁ e₂ ρ    | no  _    = nothing
-proof e₁ e₂ ρ    | yes nfeq = just (liftNFEq e₁ e₂ ρ (cong (λ n → ⟦ n ⟧n ρ) nfeq))
+auto-proof : ∀ e₁ e₂ ρ → Maybe (⟦ e₁ ⟧e ρ ≡ ⟦ e₂ ⟧e ρ)
+auto-proof e₁ e₂ ρ with norm e₁ == norm e₂
+auto-proof e₁ e₂ ρ    | no  _    = nothing
+auto-proof e₁ e₂ ρ    | yes nfeq = just (liftNFEq e₁ e₂ ρ (cong (λ n → ⟦ n ⟧n ρ) nfeq))
 
 -- TODO: use the context!
 auto : List (Arg Type) → Term → Term
@@ -43,10 +43,11 @@ auto _ t =
         ∷ []
     ; (just ((e₁ , e₂) , Γ)) →
       def (quote getProof)
-        $ vArg (def (quote proof) ( vArg (` e₁)
-                                  ∷ vArg (` e₂)
-                                  ∷ vArg (quotedEnv Γ)
-                                  ∷ []))
+        $ vArg (def (quote auto-proof)
+                    ( vArg (` e₁)
+                    ∷ vArg (` e₂)
+                    ∷ vArg (quotedEnv Γ)
+                    ∷ []))
         ∷ vArg (def (quote cantProve) $ vArg (stripImplicit t) ∷ [])
         ∷ []
     }
