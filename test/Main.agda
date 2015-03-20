@@ -20,6 +20,7 @@ open import Tactic.Reflection.Free
 open import Tactic.Reflection.Quote
 open import Tactic.Reflection.Telescope
 open import Tactic.Deriving.Eq
+open import Tactic.Nat.Induction
 
 open import Data.Nat.DivMod
 open import Data.Nat.Divide
@@ -40,3 +41,10 @@ main = _ <$ (runStateT (mapM putStrI (Hello ∷ World ∷ " " ∷ [])) 0 >>
              putStr (show (432429 divmod 41)) >>
              putStr (" " & show (gcd! (19 * 17 * 31) (31 * 5))) >>
              putStrLn "")
+
+downFrom : Nat → List Nat
+downFrom  zero   = []
+downFrom (suc n) = suc n ∷ downFrom n
+
+thm : ∀ n → 6 * sum (map (_^ 2) (downFrom n)) ≡ n * (n + 1) * (2 * n + 1)
+thm = tactic induction
