@@ -16,6 +16,9 @@ less-zero {a} (diff! k) = diff (k + a) tactic auto
 less-zero-suc : ∀ {a} → LessThan 0 (suc a)
 less-zero-suc {a} = diff a (tactic auto)
 
+less-antirefl : ∀ {a b : Nat} → LessThan a b → ¬ (a ≡ b)
+less-antirefl (diff! k) eq = 0≠suc k (use eq $ tactic assumed)
+
 --- Subtraction ---
 
 cancel-sub : ∀ b → b - b ≡ 0
