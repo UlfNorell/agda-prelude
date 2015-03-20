@@ -40,3 +40,27 @@ gcd a b = erase-prf (gcd-cert-acc a b (wfNat b))
 
 gcd! : Nat → Nat → Nat
 gcd! a b = get-gcd (gcd a b)
+
+--- Properties ---
+
+private
+  gcd-unique′ : ∀ {a b} (g₁ g₂ : GCD a b) → get-gcd g₁ ≡ get-gcd g₂
+  gcd-unique′ (gcd-res zero _ _ _) (gcd-res zero _ _ _) = refl
+  gcd-unique′ (gcd-res zero 0|a 0|b _) (gcd-res (suc d) _ _ gr) =
+    sym (divides-zero (gr 0 0|a 0|b))
+  gcd-unique′ (gcd-res (suc d) _ _ gr) (gcd-res zero 0|a 0|b _) =
+    divides-zero (gr 0 0|a 0|b)
+  gcd-unique′ (gcd-res (suc d) d|a d|b grd) (gcd-res (suc d′) d′|a d′|b grd′) =
+    divides-antisym (grd′ (suc d) d|a d|b)
+                    (grd (suc d′) d′|a d′|b)
+
+gcd-unique : ∀ a b d → d Divides a → d Divides b → (∀ k → k Divides a → k Divides b → k Divides d) →
+               gcd! a b ≡ d
+gcd-unique a b d d|a d|b gr = gcd-unique′ (gcd a b) (gcd-res d d|a d|b gr)
+
+gcd-mul-l : ∀ a b → gcd! a (a * b) ≡ a
+gcd-mul-l a b = gcd-unique a (a * b) a divides-refl (divides-mul-l b divides-refl) (λ _ k|a _ → k|a)
+
+gcd-mul-r : ∀ a b → gcd! b (a * b) ≡ b
+gcd-mul-r a b = gcd-unique b (a * b) b divides-refl (divides-mul-r a divides-refl) (λ _ k|b _ → k|b)
+
