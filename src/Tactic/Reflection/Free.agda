@@ -47,6 +47,10 @@ private
   freeTerm n (pat-lam cs args) = freeClauses n cs ∪ freeArgs n args
   freeTerm n (pi a (abs _ b))  = freeArgType n a ∪ freeType (suc n) b
   freeTerm n (sort s) = freeSort n s
+  freeTerm n (quote-goal (abs _ t)) = freeTerm (suc n) t
+  freeTerm n (quote-term t) = freeTerm n t
+  freeTerm n (unquote-term t) = freeTerm n t
+  freeTerm n quote-context = ∅
   freeTerm n (lit l) = ∅
   freeTerm n unknown = ∅
 

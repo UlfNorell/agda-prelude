@@ -115,15 +115,19 @@ data Literal : Set where
 
 mutual
   data Term : Set where
-    var     : (x : Nat) (args : List (Arg Term)) → Term
-    con     : (c : Name) (args : List (Arg Term)) → Term
-    def     : (f : Name) (args : List (Arg Term)) → Term
-    lam     : (v : Visibility) (t : Abs Term) → Term
-    pat-lam : (cs : List Clause) (args : List (Arg Term)) → Term
-    pi      : (a : Arg Type) (b : Abs Type) → Term
-    sort    : (s : Sort) → Term
-    lit     : (l : Literal) → Term
-    unknown : Term
+    var           : (x : Nat) (args : List (Arg Term)) → Term
+    con           : (c : Name) (args : List (Arg Term)) → Term
+    def           : (f : Name) (args : List (Arg Term)) → Term
+    lam           : (v : Visibility) (t : Abs Term) → Term
+    pat-lam       : (cs : List Clause) (args : List (Arg Term)) → Term
+    pi            : (a : Arg Type) (b : Abs Type) → Term
+    sort          : (s : Sort) → Term
+    lit           : (l : Literal) → Term
+    quote-goal    : (t : Abs Term) → Term
+    quote-term    : (t : Term) → Term
+    quote-context : Term
+    unquote-term  : (t : Term) → Term
+    unknown       : Term
 
   data Type : Set where
     el : (s : Sort) (t : Term) → Type
@@ -162,6 +166,10 @@ unEl (el _ v) = v
 {-# BUILTIN AGDATERMPI          pi      #-}
 {-# BUILTIN AGDATERMSORT        sort    #-}
 {-# BUILTIN AGDATERMLIT         lit     #-}
+{-# BUILTIN AGDATERMQUOTETERM    quote-term    #-}
+{-# BUILTIN AGDATERMQUOTEGOAL    quote-goal    #-}
+{-# BUILTIN AGDATERMQUOTECONTEXT quote-context #-}
+{-# BUILTIN AGDATERMUNQUOTE      unquote-term  #-}
 {-# BUILTIN AGDATERMUNSUPPORTED unknown #-}
 {-# BUILTIN AGDATYPEEL          el      #-}
 {-# BUILTIN AGDASORTSET         set     #-}
@@ -316,6 +324,15 @@ sort-inj refl = refl
 
 lit-inj : ∀ {x y} → Term.lit x ≡ lit y → x ≡ y
 lit-inj refl = refl
+
+quote-goal-inj : ∀ {x y} → quote-goal x ≡ quote-goal y → x ≡ y
+quote-goal-inj refl = refl
+
+quote-term-inj : ∀ {x y} → quote-term x ≡ quote-term y → x ≡ y
+quote-term-inj refl = refl
+
+unquote-term-inj : ∀ {x y} → unquote-term x ≡ unquote-term y → x ≡ y
+unquote-term-inj refl = refl
 
 set-inj : ∀ {x y} → set x ≡ set y → x ≡ y
 set-inj refl = refl

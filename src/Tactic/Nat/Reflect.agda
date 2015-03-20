@@ -130,6 +130,10 @@ stripImplicit (lam v t) = lam v (stripImplicitAbsTerm t)
 stripImplicit (pi t₁ t₂) = pi (stripImplicitArgType t₁) (stripImplicitAbsType t₂)
 stripImplicit (sort x) = sort x
 stripImplicit (lit l) = lit l
+stripImplicit (quote-goal t) = quote-goal (stripImplicitAbsTerm t)
+stripImplicit (quote-term t) = quote-term (stripImplicit t)
+stripImplicit quote-context  = quote-context
+stripImplicit (unquote-term t) = unquote-term (stripImplicit t)
 stripImplicit (pat-lam cs args) = pat-lam cs (stripImplicitArgs args)
 stripImplicit unknown = unknown
 
@@ -155,7 +159,7 @@ quotedEnv ts = def (quote buildEnv) $ defaultArg (quoteList $ map stripImplicit 
 QED : {A : Set} {x : Maybe A} → Set
 QED {x = x} = IsJust x
 
-getProof : {u v : Nat} (prf : Maybe (u ≡ v)) → QED {x = prf} → u ≡ v
+getProof : {A : Set} (prf : Maybe A) → QED {x = prf} → A
 getProof (just eq) _ = eq
 getProof nothing ()
 
