@@ -29,7 +29,7 @@ ts-sound (0 , x) ρ = mul-0-r (product1 (map ρ x))
 ts-sound (1 , x) ρ = product1-sound (map ρ x)
 ts-sound (suc (suc i) , x) ρ
   rewrite sym (product1-sound (map ρ x))
-        = tactic auto
+        = auto
 
 map-eq : ∀ {c b} {A : Set c} {B : Set b} (f g : A → B) →
            (∀ x → f x ≡ g x) → ∀ xs → map f xs ≡ map g xs
@@ -67,7 +67,7 @@ eta (x , y) = refl
 
 private
   shuffle₁ : ∀ a b c → a + (b + c) ≡ b + (a + c)
-  shuffle₁ a b c = tactic auto
+  shuffle₁ a b c = auto
 
 private
   lem-sound : ∀ a b ρ f g (xs : NF × NF) →
@@ -98,12 +98,12 @@ cancel-sound′ a b ((i , x) ∷ nf₁) ((.(suc k + i) , .x) ∷ nf₂) ρ H | e
   shuffle₁ a (et ρ (i , x)) _
   ⟨≡⟩ cong (et ρ (i , x) +_) (cancel-sound′ a (b + et ρ (suc k , x)) nf₁ nf₂ ρ
         (lem-sound a b ρ id (_∷_ (suc k , x)) (cancel nf₁ nf₂) H ⟨≡⟩ add-assoc b _ _))
-  ⟨≡⟩ (tactic auto)
+  ⟨≡⟩ auto
 cancel-sound′ a b ((.(suc k + j) , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl | greater (diff! k) =
   sym (shuffle₁ b (et ρ (j , x)) _
        ⟨≡⟩ cong (et ρ (j , x) +_) (sym (cancel-sound′ (a + et ρ (suc k , x)) b nf₁ nf₂ ρ
              (add-assoc a _ _ ʳ⟨≡⟩ lem-sound a b ρ (_∷_ (suc k , x)) id (cancel nf₁ nf₂) H)))
-       ⟨≡⟩ (tactic auto))
+       ⟨≡⟩ auto)
 cancel-sound′ a b ((i , x) ∷ nf₁) ((.i , .x) ∷ nf₂) ρ H | equal refl | equal refl =
   shuffle₁ a (et ρ (i , x)) _
   ⟨≡⟩ cong (et ρ (i , x) +_) (cancel-sound′ a b nf₁ nf₂ ρ H)
@@ -130,7 +130,7 @@ private
      ⟨≡⟩ʳ cong (plus-nf b ρ) (snd-*** f g xs)
 
   arith₁ : ∀ b k i x y → b + ((k + i) * x + x + y) ≡ i * x + (b + (k * x + x) + y)
-  arith₁ b k i x y = tactic auto
+  arith₁ b k i x y = auto
 
 cancel-complete′ : ∀ a b nf₁ nf₂ ρ →
                      a + ⟦ nf₁ ⟧n ρ ≡ b + ⟦ nf₂ ⟧n ρ →

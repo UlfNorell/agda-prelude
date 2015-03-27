@@ -5,6 +5,7 @@ open import Prelude
 open import Prelude.Equality.Unsafe
 open import Builtin.Reflection
 open import Tactic.Reflection.Quote
+open import Tactic.Reflection
 
 open import Tactic.Nat.NF
 open import Tactic.Nat.Exp
@@ -32,9 +33,8 @@ auto-proof e₁ e₂ ρ with norm e₁ == norm e₂
 auto-proof e₁ e₂ ρ    | no  _    = nothing
 auto-proof e₁ e₂ ρ    | yes nfeq = just (liftNFEq e₁ e₂ ρ (cong (λ n → ⟦ n ⟧n ρ) nfeq))
 
--- TODO: use the context!
-auto : List (Arg Type) → Term → Term
-auto _ t =
+auto-tactic : Term → Term
+auto-tactic t =
   case termToExp t of
   λ { nothing →
       def (quote getProof)
@@ -51,3 +51,7 @@ auto _ t =
         ∷ vArg (def (quote cantProve) $ vArg (stripImplicit t) ∷ [])
         ∷ []
     }
+
+macro
+  auto : Term
+  auto = on-goal (quote auto-tactic)

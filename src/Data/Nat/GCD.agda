@@ -64,3 +64,5 @@ gcd-mul-l a b = gcd-unique a (a * b) a divides-refl (divides-mul-l b divides-ref
 gcd-mul-r : ∀ a b → gcd! b (a * b) ≡ b
 gcd-mul-r a b = gcd-unique b (a * b) b divides-refl (divides-mul-r a divides-refl) (λ _ k|b _ → k|b)
 
+gcd-zero : ∀ n → gcd! 0 n ≡ n
+gcd-zero n = gcd-unique 0 n n (factor! 0) divides-refl (λ _ _ k|n → k|n)

@@ -16,11 +16,11 @@ private
 
   lemPlusMinus : ∀ a b → a + b - b ≡ a
   lemPlusMinus zero b = lemCancelMinus b
-  lemPlusMinus (suc a) zero = tactic auto
+  lemPlusMinus (suc a) zero = auto
   lemPlusMinus (suc a) (suc b) =
     -- Want cong tactic for this!
     let lem : a + suc b - b ≡ suc a + b - b
-        lem = cong (λ z → z - b) (tactic auto)
+        lem = cong (λ z → z - b) auto
     in lem ⟨≡⟩ lemPlusMinus (suc a) b
 
   lemModAux : ∀ k m n j → LessThan j n → modAux k m n j ≡ modAux 0 m (n - suc j) m
@@ -28,37 +28,36 @@ private
   lemModAux k m (suc n) zero lt = refl
   lemModAux k m (suc n) (suc j) (diff d eq) =
     lemModAux (suc k) m n j
-    $ diff d $ use eq $ tactic assumed
+    $ diff d $ follows-from eq
 
   lemDivAux : ∀ k m n j → LessThan j n → divAux k m n j ≡ divAux (suc k) m (n - suc j) m
   lemDivAux k m zero j (diff _ ())
   lemDivAux k m (suc n) zero lt = refl
   lemDivAux k m (suc n) (suc j) (diff d eq) =
     lemDivAux k m n j
-    $ diff d $ use eq $ tactic assumed
+    $ diff d $ follows-from eq
 
   modLessAux : ∀ k m n j → LessThan (k + j) (suc m) → LessThan (modAux k m n j) (suc m)
   modLessAux k m zero j (diff d lt) =
-    diff (j + d) $ lt ⟨≡⟩ tactic auto
+    diff (j + d) $ lt ⟨≡⟩ auto
   modLessAux k m (suc n) zero _ =
-    modLessAux 0 m n m $ diff 0 $ tactic auto
+    modLessAux 0 m n m $ diff 0 $ auto
   modLessAux k m (suc n) (suc j) (diff d lt) =
     modLessAux (suc k) m n j
-    $ diff d $ use lt tactic assumed
+    $ diff d $ follows-from lt
 
   LessThan′ : Nat → Nat → Set
   LessThan′ a b = b ≡ b - suc a + suc a
 
   toPrimed : ∀ {a b} → LessThan a b → LessThan′ a b
-  toPrimed {a = a} (diff! k) rewrite lemPlusMinus k a = tactic auto
+  toPrimed {a = a} (diff! k) rewrite lemPlusMinus k a = auto
 
   modLessAux′ : ∀ k m n j → LessThan (k + j) (suc m) → LessThan′ (modAux k m n j) (suc m)
   modLessAux′ k m n j lt = toPrimed (modLessAux k m n j lt)
 
   modLess : ∀ a b → LessThan (a mod suc b) (suc b)
   modLess a b = diff (b - a mod suc b) $ safeEqual $
-                use (modLessAux′ 0 b a b (diff 0 tactic auto))
-                     tactic assumed
+                follows-from (modLessAux′ 0 b a b (diff 0 auto))
 
   0≠1 : ∀ {a} {A : Set a} → 0 ≡ 1 → A
   0≠1 ()
@@ -67,7 +66,7 @@ private
   notLess1 (diff k eq) = 0≠1 (use eq tactic simpl | λ ())
 
   lessSuc-inj : ∀ {a b} → LessNat (suc a) (suc b) → LessNat a b
-  lessSuc-inj (diff j eq) = diff j (use eq tactic assumed)
+  lessSuc-inj (diff j eq) = diff j (follows-from eq)
 
   divAuxGt : ∀ k a b j → LessNat a (suc j) → divAux k b a j ≡ k
   divAuxGt k  zero   b  j      lt = refl
@@ -75,9 +74,9 @@ private
   divAuxGt k (suc a) b (suc j) lt = divAuxGt k a b j (lessSuc-inj lt)
 
   modAuxGt : ∀ k a b j → LessNat a (suc j) → modAux k b a j ≡ k + a
-  modAuxGt k zero b j lt = tactic auto
+  modAuxGt k zero b j lt = auto
   modAuxGt k (suc a) b  zero   lt = notLess1 lt
-  modAuxGt k (suc a) b (suc j) lt = use (modAuxGt (suc k) a b j (lessSuc-inj lt)) tactic assumed
+  modAuxGt k (suc a) b (suc j) lt = follows-from (modAuxGt (suc k) a b j (lessSuc-inj lt))
 
   divmodAux : ∀ k a b → Acc LessThan a → divAux k b a b * suc b + modAux 0 b a b ≡ k * suc b + a
   divmodAux k a b wf with compare b a
@@ -91,8 +90,7 @@ private
     rewrite lemDivAux k b (suc (j + b)) b (diff! j)
           | lemModAux 0 b (suc (j + b)) b (diff! j)
           | lemPlusMinus j b
-          = use (divmodAux (suc k) j b (wf j (diff b (tactic auto))))
-                (tactic assumed)
+          = follows-from (divmodAux (suc k) j b (wf j (diff b auto)))
 
   divmod-spec : ∀ a b′ → let b = suc b′ in
                   a div b * b + a mod b ≡ a
@@ -134,11 +132,11 @@ private
   divmod-unique′ : ∀ b q₁ q₂ r₁ r₂ → LessThan r₁ b → LessThan r₂ b → q₁ * b + r₁ ≡ q₂ * b + r₂ → q₁ ≡ q₂ × r₁ ≡ r₂
   divmod-unique′ b zero zero r₁ r₂ lt₁ lt₂ eq = refl , eq
   divmod-unique′ b zero (suc q₂) .(q₂ * b + b + r₂) r₂ (diff k eq) lt₂ refl =
-    ⊥-elim (0≠suc (k + q₂ * b + r₂) (use eq $ tactic assumed))
+    ⊥-elim (0≠suc (k + q₂ * b + r₂) (follows-from eq))
   divmod-unique′ b (suc q₁) zero r₁ .(q₁ * b + b + r₁) lt₁ (diff k eq) refl =
-    ⊥-elim (0≠suc (k + q₁ * b + r₁) (use eq $ tactic assumed))
+    ⊥-elim (0≠suc (k + q₁ * b + r₁) (follows-from eq))
   divmod-unique′ b (suc q₁) (suc q₂) r₁ r₂ lt₁ lt₂ eq =
-    first (cong suc) $ divmod-unique′ b q₁ q₂ r₁ r₂ lt₁ lt₂ (use eq $ tactic assumed)
+    first (cong suc) $ divmod-unique′ b q₁ q₂ r₁ r₂ lt₁ lt₂ (follows-from eq)
 
 divmod-unique : ∀ {a b} (d₁ d₂ : DivMod a b) → quot d₁ ≡ quot d₂ × rem d₁ ≡ rem d₂
 divmod-unique (qr q₁ r₁ lt₁ eq₁) (qr q₂ r₂ lt₂ eq₂) =
@@ -160,8 +158,8 @@ data Odd n : Set where
 
 parity : ∀ n → Either (Odd n) (Even n)
 parity n with n divmod 2
-parity n | qr q 0 lt eq = right $ dbl   q (use eq tactic assumed)
-parity n | qr q 1 lt eq = left  $ dbl+1 q (use eq tactic assumed)
+parity n | qr q 0 lt eq = right $ dbl   q (follows-from eq)
+parity n | qr q 1 lt eq = left  $ dbl+1 q (follows-from eq)
 parity n | qr q (suc (suc _)) (diff _ bad) _ = 0≠1 $ use bad $ tactic simpl | λ ()
 
 instance

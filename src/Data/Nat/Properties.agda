@@ -8,16 +8,22 @@ open import Tactic.Nat
 --- LessNat ---
 
 less-trans : ∀ {x y z} → LessNat x y → LessNat y z → LessNat x z
-less-trans (diff! a) (diff! b) = diff (suc (b + a)) tactic auto
+less-trans (diff! a) (diff! b) = diff (suc (b + a)) auto
 
 less-zero : ∀ {a b} → LessThan a b → LessThan 0 b
-less-zero {a} (diff! k) = diff (k + a) tactic auto
+less-zero {a} (diff! k) = diff (k + a) auto
+
+less-suc : {a b : Nat} → LessThan a b → LessThan a (suc b)
+less-suc (diff k eq) = diff (suc k) (cong suc eq)
+
+less-suc-l : ∀ {a b : Nat} → LessThan (suc a) b → LessThan a b
+less-suc-l (diff k eq) = diff (suc k) (follows-from eq)
 
 less-zero-suc : ∀ {a} → LessThan 0 (suc a)
-less-zero-suc {a} = diff a (tactic auto)
+less-zero-suc {a} = diff a auto
 
 less-antirefl : ∀ {a b : Nat} → LessThan a b → ¬ (a ≡ b)
-less-antirefl (diff! k) eq = 0≠suc k (use eq $ tactic assumed)
+less-antirefl (diff! k) eq = 0≠suc k (follows-from eq)
 
 --- Subtraction ---
 
@@ -27,11 +33,11 @@ cancel-sub (suc b) = cancel-sub b
 
 cancel-add-sub : ∀ a b → a + b - b ≡ a
 cancel-add-sub zero b = cancel-sub b
-cancel-add-sub (suc a) zero = tactic auto
+cancel-add-sub (suc a) zero = auto
 cancel-add-sub (suc a) (suc b) =
   -- Want cong tactic for this!
   let lem : a + suc b - b ≡ suc a + b - b
-      lem = cong (λ z → z - b) (tactic auto)
+      lem = cong (λ z → z - b) auto
   in lem ⟨≡⟩ cancel-add-sub (suc a) b
 
 sub-0-l : ∀ n → 0 - n ≡ 0

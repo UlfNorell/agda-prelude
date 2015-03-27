@@ -5,6 +5,7 @@ open import Prelude
 open import Prelude.Equality.Unsafe using (safeEqual)
 open import Builtin.Reflection
 open import Tactic.Reflection.Quote
+open import Tactic.Reflection
 
 open import Tactic.Nat.Reflect
 open import Tactic.Nat.NF
@@ -62,8 +63,8 @@ simpl _ t =
                             ∷ [])
     }
 
-assumed : List (Arg Type) → Term → Term
-assumed _ t =
+assumed-tactic : Term → Term
+assumed-tactic t =
   case termToHyps t of
   λ { nothing →
       def (quote getProof)
@@ -76,3 +77,11 @@ assumed _ t =
                             ∷ vArg (def (quote id) [])
                             ∷ [])
     }
+
+macro
+  follows-from : Term → Term
+  follows-from t =
+    def (quote use)
+      $ vArg t
+      ∷ vArg (on-goal (quote assumed-tactic))
+      ∷ []

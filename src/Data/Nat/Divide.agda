@@ -17,16 +17,16 @@ pattern factor! q = factor q refl
 
 divides-divmod : ∀ {a b} {{_ : NonZero b}} → b Divides a → DivMod a b
 divides-divmod {b = zero } {{}}
-divides-divmod {b = suc b} (factor q eq) = qr q 0 less-zero-suc ((tactic auto) ⟨≡⟩ eq)
+divides-divmod {b = suc b} (factor q eq) = qr q 0 less-zero-suc (auto ⟨≡⟩ eq)
 
 divides-add : ∀ {a b d} → d Divides a → d Divides b → d Divides (a + b)
-divides-add (factor! q) (factor! q₁) = factor (q + q₁) tactic auto
+divides-add (factor! q) (factor! q₁) = factor (q + q₁) auto
 
 divides-mul-r : ∀ a {b d} → d Divides b → d Divides (a * b)
-divides-mul-r a (factor! q) = factor (a * q) tactic auto
+divides-mul-r a (factor! q) = factor (a * q) auto
 
 divides-mul-l : ∀ {a} b {d} → d Divides a → d Divides (a * b)
-divides-mul-l b (factor! q) = factor (b * q) tactic auto
+divides-mul-l b (factor! q) = factor (b * q) auto
 
 divides-sub-l : ∀ {a b d} → d Divides (a + b) → d Divides a → d Divides b
 divides-sub-l {b = b} {d} (factor q₁ eq) (factor! q) = factor (q₁ - q) $
@@ -50,23 +50,23 @@ mod-divides {suc a} {b} (factor q eq) =
 
 div-divides : ∀ {a b} {{_ : NonZero a}} → a Divides b → (b div a) * a ≡ b
 div-divides {a} {b} a|b with divmod-sound a b
-... | eq rewrite mod-divides a|b = use eq (tactic assumed)
+... | eq rewrite mod-divides a|b = follows-from eq
 
 divides-refl : ∀ {a} → a Divides a
 divides-refl = factor! 1
 
 divides-antisym : ∀ {a b} → a Divides b → b Divides a → a ≡ b
-divides-antisym         (factor! q)       (factor! 0)                = tactic auto
+divides-antisym         (factor! q)       (factor! 0)                = auto
 divides-antisym         (factor! q)       (factor 1 eq)              = sym eq
-divides-antisym {zero}  (factor! q)       (factor (suc (suc q₁)) eq) = tactic auto
-divides-antisym {suc a} (factor! 0)       (factor (suc (suc q₁)) eq) = use (sym eq) $ tactic assumed
+divides-antisym {zero}  (factor! q)       (factor (suc (suc q₁)) eq) = auto
+divides-antisym {suc a} (factor! 0)       (factor (suc (suc q₁)) eq) = follows-from (sym eq)
 divides-antisym {suc a} (factor! (suc q)) (factor (suc (suc q₁)) eq) = use eq $ tactic simpl | (λ ())
 
 divides-trans : ∀ {a b c} → a Divides b → b Divides c → a Divides c
-divides-trans (factor! q) (factor! q′) = factor (q′ * q) tactic auto
+divides-trans (factor! q) (factor! q′) = factor (q′ * q) auto
 
 divides-zero : ∀ {a} → 0 Divides a → a ≡ 0
-divides-zero (factor! q) = tactic auto
+divides-zero (factor! q) = auto
 
 private
   safediv : Nat → Nat → Nat
@@ -89,12 +89,12 @@ private
                  (qr q (suc r) lt eq)
 
   no-divides-zero : ∀ {a} → ¬ (0 Divides suc a)
-  no-divides-zero {a} (factor q eq) = 0≠suc a (use eq $ tactic assumed)
+  no-divides-zero {a} (factor q eq) = 0≠suc a (follows-from eq)
 
 _divides?_ : ∀ a b → Dec (a Divides b)
 a     divides? zero  = yes (factor! 0)
 zero  divides? suc b = no no-divides-zero
 suc a divides? suc b with suc b divmod suc a
-suc a divides? suc b | qr q  zero    _ eq  = yes (factor q (use eq $ tactic assumed))
+suc a divides? suc b | qr q  zero    _ eq  = yes (factor q (follows-from eq))
 suc a divides? suc b | qr q (suc r) lt eq₁ = no (no-divides-suc-mod q lt eq₁)
 
