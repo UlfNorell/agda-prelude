@@ -78,7 +78,7 @@ private
   divides-safediv {suc a} a|b = div-divides a|b
 
 fast-divides : ∀ {a b} → a Divides b → a Divides b
-fast-divides {a} {b} a|b = factor (safediv b a) (safeEqual (divides-safediv a|b))
+fast-divides {a} {b} a|b = factor (safediv b a) (eraseEquality (divides-safediv a|b))
 
 private
   no-divides-suc-mod : ∀ {a b} q {r} → LessNat (suc r) a → q * a + suc r ≡ b → ¬ (a Divides b)

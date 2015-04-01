@@ -75,8 +75,8 @@ private
 
   decEqNat : (n m : Nat) → Dec (n ≡ m)
   decEqNat n m with eqNat n m | eqNatSound n m | eqNatComplete n m
-  ... | true  | eq | _   = yes (safeEqual (eq true))
-  ... | false | _  | neq = no  (safeNotEqual (neq false))
+  ... | true  | eq | _   = yes (eraseEquality (eq true))
+  ... | false | _  | neq = no  (eraseNegation (neq false))
 
 instance
   EqNat : Eq Nat
@@ -142,14 +142,14 @@ private
   lemNoLessEqual (suc n) zero h₁ h₂ = ⊥-elim (h₂ true)
   lemNoLessEqual (suc n) (suc m) h₁ h₂ = cong suc (lemNoLessEqual n m h₁ h₂)
 
-  -- Using safeEqual here let's us not worry about the performance of the
+  -- Using eraseEquality here let's us not worry about the performance of the
   -- proofs.
   compareNat : ∀ n m → Comparison LessNat n m
   compareNat n m with decBool (lessNat n m)
-  ... | yes p = less (diff (m - suc n) (safeEqual (lemLessNatMinus n m p)))
+  ... | yes p = less (diff (m - suc n) (eraseEquality (lemLessNatMinus n m p)))
   ... | no np₁ with decBool (lessNat m n)
-  ...             | yes p  = greater (diff (n - suc m) (safeEqual (lemLessNatMinus m n p)))
-  ...             | no np₂ = equal (safeEqual (lemNoLessEqual n m np₁ np₂))
+  ...             | yes p  = greater (diff (n - suc m) (eraseEquality (lemLessNatMinus m n p)))
+  ...             | no np₂ = equal (eraseEquality (lemNoLessEqual n m np₁ np₂))
 
 instance
   OrdNat : Ord Nat

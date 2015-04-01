@@ -2,7 +2,7 @@
 module Data.Nat.DivMod where
 
 open import Prelude
-open import Prelude.Equality.Unsafe using (safeEqual)
+open import Prelude.Equality.Unsafe using (eraseEquality)
 open import Control.WellFounded
 open import Tactic.Nat
 open import Tactic.Nat.Reflect
@@ -56,7 +56,7 @@ private
   modLessAux′ k m n j lt = toPrimed (modLessAux k m n j lt)
 
   modLess : ∀ a b → LessThan (a mod suc b) (suc b)
-  modLess a b = diff (b - a mod suc b) $ safeEqual $
+  modLess a b = diff (b - a mod suc b) $ eraseEquality $
                 follows-from (modLessAux′ 0 b a b (diff 0 auto))
 
   0≠1 : ∀ {a} {A : Set a} → 0 ≡ 1 → A
@@ -94,7 +94,7 @@ private
 
   divmod-spec : ∀ a b′ → let b = suc b′ in
                   a div b * b + a mod b ≡ a
-  divmod-spec a b = safeEqual (divmodAux 0 a b (wfNat a))
+  divmod-spec a b = eraseEquality (divmodAux 0 a b (wfNat a))
 
 --- Public definitions ---
 

@@ -2,7 +2,7 @@
 module Tactic.Nat.Simpl where
 
 open import Prelude
-open import Prelude.Equality.Unsafe using (safeEqual)
+open import Prelude.Equality.Unsafe using (eraseEquality)
 open import Builtin.Reflection
 open import Tactic.Reflection.Quote
 open import Tactic.Reflection

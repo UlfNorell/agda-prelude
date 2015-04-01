@@ -2,7 +2,7 @@
 module Tactic.Nat.Cong where
 
 open import Prelude
-open import Prelude.Equality.Unsafe using (safeEqual)
+open import Prelude.Equality.Unsafe using (eraseEquality)
 open import Builtin.Reflection
 open import Tactic.Reflection.Quote
 
@@ -15,7 +15,7 @@ open import Tactic.Nat.Auto.Lemmas
 open import EqReasoning
 
 simpl-sound : ∀ e ρ → ⟦ norm e ⟧ns ρ ≡ ⟦ e ⟧e ρ
-simpl-sound e ρ = safeEqual $
+simpl-sound e ρ = eraseEquality $
   ⟦ norm e ⟧ns ρ
     ≡⟨ ns-sound (norm e) ρ ⟩
   ⟦ norm e ⟧n ρ
@@ -83,7 +83,7 @@ fromCTerm′ g (cSubst f eq c) = `subst (raise 1 $ stripImplicit f) (fromCTerm�
 fromCTerm′ g (cSimpl e eqs)  = `simpl (` e) (fromCTerms g eqs)
 
 fromCTerms g []       = `[]₂
-fromCTerms g (c ∷ cs) = fromCTerm′ g c `∷₂ fromCTerms g cs 
+fromCTerms g (c ∷ cs) = fromCTerm′ g c `∷₂ fromCTerms g cs
 
 fromCTerm : ∀ {t} → CTerm t → Term
 fromCTerm c = lam visible (fromCTerm′ (var 0 []) c)

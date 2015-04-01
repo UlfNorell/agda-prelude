@@ -15,7 +15,7 @@ open import Tactic.Nat.Auto.Lemmas
 open Tactic.Nat.Reflect public using (cantProve; invalidGoal)
 
 liftNFEq : ∀ e₁ e₂ ρ → ⟦ norm e₁ ⟧n ρ ≡ ⟦ norm e₂ ⟧n ρ → ⟦ e₁ ⟧e ρ ≡ ⟦ e₂ ⟧e ρ
-liftNFEq e₁ e₂ ρ H = safeEqual $
+liftNFEq e₁ e₂ ρ H = eraseEquality $
   ⟦ e₁      ⟧e ρ ≡⟨ sound e₁ ρ ⟩
   ⟦ norm e₁ ⟧n ρ ≡⟨ H ⟩
   ⟦ norm e₂ ⟧n ρ ≡⟨ sound e₂ ρ ⟩ʳ

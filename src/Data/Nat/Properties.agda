@@ -2,7 +2,7 @@
 module Data.Nat.Properties where
 
 open import Prelude
-open import Prelude.Equality.Unsafe using (safeEqual)
+open import Prelude.Equality.Unsafe using (eraseEquality)
 open import Data.Nat.Properties.Core public
 open import Tactic.Nat
 
@@ -48,7 +48,7 @@ sub-less {a} (diff! k) = cong (_+ suc a) (cancel-add-sub k a) ⟨≡⟩ auto
 --- LessNat ---
 
 fast-diff : ∀ {a b} → LessNat a b → LessNat a b
-fast-diff {a} {b} a<b = diff (b - suc a) (safeEqual (sub-less a<b ʳ⟨≡⟩ auto))
+fast-diff {a} {b} a<b = diff (b - suc a) (eraseEquality (sub-less a<b ʳ⟨≡⟩ auto))
 
 _⟨<⟩_ : ∀ {x y z} → LessNat x y → LessNat y z → LessNat x z
 diff! a ⟨<⟩ diff! b = diff (suc (b + a)) auto
@@ -99,7 +99,7 @@ plus-zero-r zero    b eq = eq
 plus-zero-r (suc a) b eq = ⊥-elim (0≠suc (a + b) (sym eq))
 
 leq-antisym : ∀ {a b} → a [≤] b → b [≤] a → a ≡ b
-leq-antisym (diff! k) (diff k₁ eq) = use eq $ tactic simpl | (λ eq → sym (plus-zero-r k₁ k (sym eq))) 
+leq-antisym (diff! k) (diff k₁ eq) = use eq $ tactic simpl | (λ eq → sym (plus-zero-r k₁ k (sym eq)))
 
 leq-add-l : ∀ a {b} → LessEq b (a + b)
 leq-add-l a {b} = diff! a

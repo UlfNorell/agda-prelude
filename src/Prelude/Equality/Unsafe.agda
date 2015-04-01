@@ -11,16 +11,14 @@ private primitive primTrustMe : ∀ {a} {A : Set a} {x y : A} → x ≡ y
 unsafeEqual : ∀ {a} {A : Set a} {x y : A} → x ≡ y
 unsafeEqual = primTrustMe
 
--- "Safe" version of unsafeEqual. Throws away the actual proof
--- and replaces it by unsafeEqual.
-safeEqual : ∀ {a} {A : Set a} {x y : A} → x ≡ y → x ≡ y
-safeEqual _ = unsafeEqual
-
 postulate
- unsafeNotEqual : ∀ {a} {A : Set a} {x y : A} → ¬ (x ≡ y)
+  -- Used in decidable equality for primitive types (String, Char and Float)
+  unsafeNotEqual : ∀ {a} {A : Set a} {x y : A} → ¬ (x ≡ y)
 
-safeNotEqual : ∀ {a} {A : Set a} {x y : A} → ¬ (x ≡ y) → ¬ (x ≡ y)
-safeNotEqual _ = unsafeNotEqual
+-- Erase an equality proof. Throws away the actual proof
+-- and replaces it by unsafeEqual.
+eraseEquality : ∀ {a} {A : Set a} {x y : A} → x ≡ y → x ≡ y
+eraseEquality _ = unsafeEqual
 
 unsafeCoerce : ∀ {a} {A : Set a} {B : Set a} → A → B
 unsafeCoerce {A = A} {B} x with unsafeEqual {x = A} {y = B}
