@@ -17,7 +17,10 @@ safeEqual : ∀ {a} {A : Set a} {x y : A} → x ≡ y → x ≡ y
 safeEqual _ = unsafeEqual
 
 postulate
-  unsafeNotEqual : ∀ {a} {A : Set a} {x y : A} → ¬ (x ≡ y)
+ unsafeNotEqual : ∀ {a} {A : Set a} {x y : A} → ¬ (x ≡ y)
+
+safeNotEqual : ∀ {a} {A : Set a} {x y : A} → ¬ (x ≡ y) → ¬ (x ≡ y)
+safeNotEqual _ = unsafeNotEqual
 
 unsafeCoerce : ∀ {a} {A : Set a} {B : Set a} → A → B
 unsafeCoerce {A = A} {B} x with unsafeEqual {x = A} {y = B}

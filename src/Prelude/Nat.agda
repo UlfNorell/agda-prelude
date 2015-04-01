@@ -67,10 +67,16 @@ private
   eqNatSound (suc n) zero ()
   eqNatSound (suc n) (suc m) p rewrite eqNatSound n m p = refl
 
+  eqNatComplete : ∀ n m → IsFalse (eqNat n m) → ¬ (n ≡ m)
+  eqNatComplete zero zero () eq
+  eqNatComplete zero (suc m) neq ()
+  eqNatComplete (suc n) zero neq ()
+  eqNatComplete (suc n) (suc m) neq eq = eqNatComplete n m neq (suc-inj eq)
+
   decEqNat : (n m : Nat) → Dec (n ≡ m)
-  decEqNat n m with eqNat n m | eqNatSound n m
-  ... | true  | eq = yes (safeEqual (eq true))
-  ... | false | _  = no  unsafeNotEqual
+  decEqNat n m with eqNat n m | eqNatSound n m | eqNatComplete n m
+  ... | true  | eq | _   = yes (safeEqual (eq true))
+  ... | false | _  | neq = no  (safeNotEqual (neq false))
 
 instance
   EqNat : Eq Nat
