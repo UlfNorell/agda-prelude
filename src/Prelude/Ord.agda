@@ -29,7 +29,13 @@ record Ord {a} (A : Set a) : Set (lsuc a) where
 
 open Ord {{...}} public
 
-infix 4 _<_ _>_ _≤_ _≥_
+_[<]_ : ∀ {a} {A : Set a} {{_ : Ord A}} → A → A → Set a
+a [<] b = LessThan a b
+
+_[>]_ : ∀ {a} {A : Set a} {{_ : Ord A}} → A → A → Set a
+a [>] b = b [<] a
+
+infix 4 _<_ _>_ _≤_ _≥_ _[<]_ _[>]_
 
 _<_ : ∀ {a} {A : Set a} {{OrdA : Ord A}} → A → A → Bool
 x < y = isLess (compare x y)
