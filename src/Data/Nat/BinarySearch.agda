@@ -28,7 +28,7 @@ private
 
   lem-half-nonzero : ∀ n → NonZero ((2 + n) div 2)
   lem-half-nonzero n with (2 + n) div 2 | (2 + n) mod 2 | divmod-sound 2 (2 + n) | mod-less 2 (2 + n)
-  lem-half-nonzero n | zero  | ._ | refl | diff k eq = 0≠suc (k + n) (follows-from eq)
+  lem-half-nonzero n | zero  | ._ | refl | diff k eq = refute eq
   lem-half-nonzero n | suc q | r  | _    | _         = _
 
   lem-upper : ∀ {lo hi d} d′ {{_ : NonZero d′}} →

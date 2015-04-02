@@ -63,6 +63,3 @@ add-inj₂ (suc x) y z p = add-inj₂ x y z (suc-inj p)
 
 add-inj₁ : ∀ x y z → x + z ≡ y + z → x ≡ y
 add-inj₁ x y z rewrite add-commute x z | add-commute y z = add-inj₂ z x y
-
-0≠suc : ∀ n → ¬ (0 ≡ suc n)
-0≠suc n ()

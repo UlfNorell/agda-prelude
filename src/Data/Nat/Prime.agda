@@ -75,7 +75,7 @@ in-range-r :  ∀ {a b} → a ≤ b → b ∈[ a , b ]
 in-range-r a<b = in-range a<b (diff! 0)
 
 non-zero-range : ∀ {n a b} → n ∈[ suc a , b ] → NonZero n
-non-zero-range {zero} {a} (in-range (diff k eq) _) = 0≠suc (k + a) (follows-from eq)
+non-zero-range {zero} {a} (in-range (diff k eq) _) = refute eq
 non-zero-range {suc _} _ = _
 
 data _∈[_,_]? k a b : Set where
@@ -154,8 +154,7 @@ findInRange a  b check | greater gt     = none (λ k k∈ab _ → empty-range gt
 private
   lem-less : ∀ {n r d q} → r ^ 2 ≥ n →
         q * d ≡ n → r < d → suc r ≤ q → ⊥
-  lem-less (diff k eq) refl (diff j refl) (diff! i) =
-    0≠suc 0 (use eq $ tactic simpl | λ eq → ⊥-elim (0≠suc _ eq))
+  lem-less (diff k eq) refl (diff j refl) (diff! i) = refute eq
 
   non-zero-less : ∀ {a} {{_ : NonZero a}} → 0 < a
   non-zero-less {0} {{}}
@@ -172,7 +171,7 @@ private
     in less-raa (lem-less n<r² (cong (_* d) n/d=q ⟨≡⟩ eq) d>r)
 
   divide-bigger : ∀ n k {{_ : NonZero k}} → k < n → k Divides n → n div k ≥ 2
-  divide-bigger ._ k (diff! k₁) (factor zero eq) = ⊥-elim (0≠suc (k₁ + k) eq)
+  divide-bigger ._ k (diff! k₁) (factor zero eq) = refute eq
   divide-bigger n  k k<n (factor 1 eq) = ⊥-elim (less-antirefl k<n eq)
   divide-bigger n  k k<n (factor (suc (suc q)) eq) =
     transport (2 ≤_) (sym $ div-unique (2 + q) eq) (diff q auto)
@@ -205,27 +204,27 @@ private
   is-1-or-n {n} no-div  k (factor q kq=n) | below (diff (suc k₁) eq) =
     let k=0 : k ≡ 0
         k=0 = plus-zero-r k₁ k (follows-from (sym eq))
-    in ⊥-elim (0≠suc n (sym (divides-zero (transport (_Divides suc n) k=0 (factor q kq=n)))))
+    in refute (divides-zero (transport (_Divides suc n) k=0 (factor q kq=n)))
   is-1-or-n {n} no-div  k (factor q kq=n) | above  k>n =
     right (leq-antisym (divides-less _ (factor q kq=n)) (suc-monotone k>n))
 
   lem₂ : ∀ {n d} q → q * d ≡ suc n → LessNat d (suc n) → LessNat 1 q
-  lem₂ 0 eq d≤n = ⊥-elim (0≠suc _ eq)
+  lem₂ 0 eq d≤n = refute eq
   lem₂ 1 eq d≤n = ⊥-elim (less-antirefl d≤n eq)
   lem₂ (suc (suc q)) eq d≤n = diff q auto
 
   two-is-prime : ∀ k → k Divides 2 → Either (k ≡ 1) (k ≡ 2)
   two-is-prime k k|2 with divides-less _ k|2
-  two-is-prime 0 (factor q eq) | k≤2 = ⊥-elim $ 0≠suc 1 $ follows-from eq
+  two-is-prime 0 (factor q eq) | k≤2 = refute eq
   two-is-prime 1 k|2 | k≤2 = left refl
   two-is-prime 2 k|2 | k≤2 = right refl
-  two-is-prime (suc (suc (suc k))) k|2 | diff k₁ eq = ⊥-elim $ 0≠suc (k₁ + k) (follows-from eq)
+  two-is-prime (suc (suc (suc k))) k|2 | diff k₁ eq = refute eq
 
   isPrimeAux : ∀ n → Comparison _<_ 2 n → Prime? n
   isPrimeAux 0 _ = tiny (diff! 1)
   isPrimeAux 1 _ = tiny (diff! 0)
   isPrimeAux 2 _ = yes (prime (diff! 0) two-is-prime)
-  isPrimeAux (suc (suc (suc n))) (greater (diff k eq)) = ⊥-elim (0≠suc (k + suc n) (follows-from eq))
+  isPrimeAux (suc (suc (suc n))) (greater (diff k eq)) = refute eq
   isPrimeAux (suc (suc (suc _))) (equal ())
   isPrimeAux (suc n) (less n>2) with sqrt (suc n) | sqrt-less _ n>2
   ... | root r r²<n sr²>n | r<n with up-to-root (suc r) n r<n (less-suc sr²>n) $ findInRange 2 (suc r) (λ k → k divides? suc n)

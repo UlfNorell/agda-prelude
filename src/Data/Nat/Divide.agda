@@ -59,7 +59,7 @@ divides-antisym         (factor! q)       (factor! 0)                = auto
 divides-antisym         (factor! q)       (factor 1 eq)              = sym eq
 divides-antisym {zero}  (factor! q)       (factor (suc (suc q₁)) eq) = auto
 divides-antisym {suc a} (factor! 0)       (factor (suc (suc q₁)) eq) = follows-from (sym eq)
-divides-antisym {suc a} (factor! (suc q)) (factor (suc (suc q₁)) eq) = use eq $ tactic simpl | (λ ())
+divides-antisym {suc a} (factor! (suc q)) (factor (suc (suc q₁)) eq) = refute eq
 
 divides-trans : ∀ {a b c} → a Divides b → b Divides c → a Divides c
 divides-trans (factor! q) (factor! q′) = factor (q′ * q) auto
@@ -87,12 +87,12 @@ private
   no-divides-suc-mod : ∀ {a b} q {r} → LessNat (suc r) a → q * a + suc r ≡ b → ¬ (a Divides b)
   no-divides-suc-mod {zero} _ (diff _ ())
   no-divides-suc-mod {suc a} q {r} lt eq (factor q′ eq′) =
-    0≠suc r $ rem-unique
-                 (divides-divmod (factor q′ eq′))
-                 (qr q (suc r) lt eq)
+    refute (rem-unique
+              (divides-divmod (factor q′ eq′))
+              (qr q (suc r) lt eq))
 
   no-divides-zero : ∀ {a} → ¬ (0 Divides suc a)
-  no-divides-zero {a} (factor q eq) = 0≠suc a (follows-from eq)
+  no-divides-zero {a} (factor q eq) = refute eq
 
 _divides?_ : ∀ a b → Dec (a Divides b)
 a     divides? zero  = yes (factor! 0)

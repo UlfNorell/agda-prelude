@@ -42,14 +42,14 @@ sqrt-above n with sqrt n
 
 private
   lem : (n r a : Nat) →
-        3 + n ≡ a + r * r →
+        4 + n ≡ suc a + r * r →
         LessNat (suc n) r → ⊥
-  lem n ._ a eq (diff! c) = 0≠suc (c * (4 + c + n * 2) + n * (3 + n) + a) (follows-from eq)
+  lem n ._ a eq (diff! c) = refute eq
 
 sqrt-less : ∀ n → n > 2 → suc (sqrt! n) < n
 sqrt-less 0 (diff k ())
-sqrt-less 1 (diff k eq) = ⊥-elim $ 0≠suc (k + 1) (follows-from eq)
-sqrt-less 2 (diff k eq) = ⊥-elim $ 0≠suc k (follows-from eq)
+sqrt-less 1 (diff k eq) = refute eq
+sqrt-less 2 (diff k eq) = refute eq
 sqrt-less (suc (suc (suc n))) _ with sqrt (3 + n)
 sqrt-less (suc (suc (suc n))) _ | root r (diff a eq) _ =
-  less-raa (lem n r a (suc-inj eq) ∘ suc-monotoneʳ ∘ suc-monotoneʳ)
+  less-raa (lem n r a eq ∘ suc-monotoneʳ ∘ suc-monotoneʳ)

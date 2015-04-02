@@ -58,11 +58,8 @@ private
   modLess a b = diff (b - a mod suc b) $ eraseEquality $
                 follows-from (modLessAux′ 0 b a b (diff 0 auto))
 
-  0≠1 : ∀ {a} {A : Set a} → 0 ≡ 1 → A
-  0≠1 ()
-
   notLess1 : ∀ {a n} {A : Set a} → suc n < 1 → A
-  notLess1 (diff k eq) = 0≠1 (use eq tactic simpl | λ ())
+  notLess1 (diff k eq) = refute eq
 
   lessSuc-inj : ∀ {a b} → LessNat (suc a) (suc b) → LessNat a b
   lessSuc-inj (diff j eq) = diff j (follows-from eq)
@@ -130,16 +127,15 @@ divmod-sound (suc b) a = quot-rem-sound (a divmod suc b)
 private
   divmod-unique′ : ∀ b q₁ q₂ r₁ r₂ → r₁ < b → r₂ < b → q₁ * b + r₁ ≡ q₂ * b + r₂ → q₁ ≡ q₂ × r₁ ≡ r₂
   divmod-unique′ b zero zero r₁ r₂ lt₁ lt₂ eq = refl , eq
-  divmod-unique′ b zero (suc q₂) .(q₂ * b + b + r₂) r₂ (diff k eq) lt₂ refl =
-    ⊥-elim (0≠suc (k + q₂ * b + r₂) (follows-from eq))
-  divmod-unique′ b (suc q₁) zero r₁ .(q₁ * b + b + r₁) lt₁ (diff k eq) refl =
-    ⊥-elim (0≠suc (k + q₁ * b + r₁) (follows-from eq))
+  divmod-unique′ b zero (suc q₂) ._ r₂ (diff k eq) lt₂ refl = refute eq
+  divmod-unique′ b (suc q₁) zero r₁ ._ lt₁ (diff k eq) refl = refute eq
   divmod-unique′ b (suc q₁) (suc q₂) r₁ r₂ lt₁ lt₂ eq =
     first (cong suc) $ divmod-unique′ b q₁ q₂ r₁ r₂ lt₁ lt₂ (follows-from eq)
 
 divmod-unique : ∀ {a b} (d₁ d₂ : DivMod a b) → quot d₁ ≡ quot d₂ × rem d₁ ≡ rem d₂
 divmod-unique (qr q₁ r₁ lt₁ eq₁) (qr q₂ r₂ lt₂ eq₂) =
-  divmod-unique′ _ q₁ q₂ r₁ r₂ lt₁ lt₂ (eq₁ ⟨≡⟩ʳ eq₂)
+  case divmod-unique′ _ q₁ q₂ r₁ r₂ lt₁ lt₂ (eq₁ ⟨≡⟩ʳ eq₂) of
+  λ p → eraseEquality (fst p) , eraseEquality (snd p)
 
 quot-unique : ∀ {a b} (d₁ d₂ : DivMod a b) → quot d₁ ≡ quot d₂
 quot-unique d₁ d₂ = fst (divmod-unique d₁ d₂)
@@ -159,7 +155,7 @@ parity : ∀ n → Either (Odd n) (Even n)
 parity n with n divmod 2
 parity n | qr q 0 lt eq = right $ dbl   q (follows-from eq)
 parity n | qr q 1 lt eq = left  $ dbl+1 q (follows-from eq)
-parity n | qr q (suc (suc _)) (diff _ bad) _ = 0≠1 $ use bad $ tactic simpl | λ ()
+parity n | qr q (suc (suc _)) (diff _ bad) _ = refute bad
 
 instance
   ShowDivMod : ∀ {a b} → Show (DivMod a b)

@@ -87,13 +87,13 @@ less-zero-suc : ∀ {a} → 0 < suc a
 less-zero-suc {a} = diff a auto
 
 less-antirefl : ∀ {a b : Nat} → a < b → ¬ (a ≡ b)
-less-antirefl (diff! k) eq = 0≠suc k (follows-from eq)
+less-antirefl (diff! k) eq = refute eq
 
 less-antisym : ∀ {a b : Nat} → a < b → b < a → ⊥
-less-antisym (diff! k) (diff k₁ eq) = 0≠suc (suc k₁ + k) (follows-from eq)
+less-antisym (diff! k) (diff k₁ eq) = refute eq
 
 less-not-geq : ∀ {a b : Nat} → a < b → b ≤ a → ⊥
-less-not-geq (diff d eq) (diff! d₁) = 0≠suc (d + d₁) (follows-from eq)
+less-not-geq (diff d eq) (diff! d₁) = refute eq
 
 less-raa : {a b : Nat} → ¬ (suc a > b) → a < b
 less-raa {a} {b} a≱b with compare a b
@@ -106,11 +106,11 @@ diff! k ⟨≤⟩ diff! k₁ = diff (k₁ + k) auto
 
 plus-zero-l : ∀ a b → a + b ≡ 0 → a ≡ 0
 plus-zero-l zero b eq = refl
-plus-zero-l (suc a) b eq = ⊥-elim (0≠suc (a + b) (sym eq))
+plus-zero-l (suc a) b eq = refute eq
 
 plus-zero-r : ∀ a b → a + b ≡ 0 → b ≡ 0
 plus-zero-r zero    b eq = eq
-plus-zero-r (suc a) b eq = ⊥-elim (0≠suc (a + b) (sym eq))
+plus-zero-r (suc a) b eq = refute eq
 
 plus-monotone-l : ∀ {a b} c → a < b → a + c < b + c
 plus-monotone-l c (diff k eq) = diff k (follows-from eq)
@@ -119,7 +119,7 @@ plus-monotone-r : ∀ a {b c} → b < c → a + b < a + c
 plus-monotone-r a (diff k eq) = diff k (follows-from eq)
 
 leq-antisym : {a b : Nat} → a ≤ b → b ≤ a → a ≡ b
-leq-antisym (diff! k) (diff k₁ eq) = use eq $ tactic simpl | (λ eq → sym (plus-zero-r k₁ k (sym eq)))
+leq-antisym (diff! k) (diff k₁ eq) = use eq $ tactic simpl | λ eq → sym $ plus-zero-r k₁ k (sym eq)
 
 leq-add-l : ∀ a {b} → b ≤ a + b
 leq-add-l a {b} = diff! a
