@@ -11,7 +11,7 @@ open import Prelude.Equality.Unsafe
 --- Divides predicate ---
 
 data _Divides_ (a b : Nat) : Set where
-  factor : ∀ q → q * a ≡ b → a Divides b
+  factor : ∀ q (eq : q * a ≡ b) → a Divides b
 
 pattern factor! q = factor q refl
 
@@ -68,6 +68,10 @@ divides-trans (factor! q) (factor! q′) = factor (q′ * q) auto
 divides-zero : ∀ {a} → 0 Divides a → a ≡ 0
 divides-zero (factor! q) = auto
 
+divides-less : ∀ {a b} → NonZero b → a Divides b → a [≤] b
+divides-less () (factor! 0)
+divides-less _  (factor! (suc q)) = transport (LessNat _) auto (less-mul-r (suc q))
+
 private
   safediv : Nat → Nat → Nat
   safediv a 0 = 0
@@ -97,4 +101,3 @@ zero  divides? suc b = no no-divides-zero
 suc a divides? suc b with suc b divmod suc a
 suc a divides? suc b | qr q  zero    _ eq  = yes (factor q (follows-from eq))
 suc a divides? suc b | qr q (suc r) lt eq₁ = no (no-divides-suc-mod q lt eq₁)
-
