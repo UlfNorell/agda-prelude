@@ -13,7 +13,7 @@ open import Tactic.Nat.Auto
 open import Tactic.Nat.Auto.Lemmas
 open import Tactic.Nat.Simpl.Lemmas
 
-use : ∀ {a} {A B : Set a} → A → (A → B) → B
+use : ∀ {a b} {A : Set a} {B : Set b} → A → (A → B) → B
 use x f = f x
 
 ExpEq : Exp × Exp → Env → Set
@@ -45,31 +45,21 @@ simplifyH []            ρ ()
 simplifyH (h ∷ [])     ρ H = simplify h ρ H
 simplifyH (h ∷ h₂ ∷ g) ρ H = λ H₁ → simplifyH (h₂ ∷ g) ρ $ H (complicate h ρ H₁)
 
-QGoal : Quotable (List (Exp × Exp))
-QGoal = QuotableList {{QuotableSigma {{QuotableB = it}}}}
-
 simpl : List (Arg Type) → Term → Term
 simpl _ t =
   case termToHyps t of
-  λ { nothing →
-      def (quote getProof)
-        $ vArg (con (quote nothing) [])
-        ∷ vArg (def (quote invalidGoal) $ vArg (stripImplicit t) ∷ [])
-        ∷ []
+  λ { nothing → failedProof (quote invalidGoal) t
     ; (just (goal , Γ)) →
       def (quote simplifyH) ( vArg (` goal)
                             ∷ vArg (quotedEnv Γ)
                             ∷ [])
     }
 
+
 assumed-tactic : Term → Term
 assumed-tactic t =
   case termToHyps t of
-  λ { nothing →
-      def (quote getProof)
-        $ vArg (con (quote nothing) [])
-        ∷ vArg (def (quote invalidGoal) $ vArg (stripImplicit t) ∷ [])
-        ∷ []
+  λ { nothing → failedProof (quote invalidGoal) t
     ; (just (goal , Γ)) →
       def (quote simplifyH) ( vArg (` goal)
                             ∷ vArg (quotedEnv Γ)

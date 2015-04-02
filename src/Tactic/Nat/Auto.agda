@@ -35,11 +35,7 @@ auto-proof e₁ e₂ ρ    | yes nfeq = just (liftNFEq e₁ e₂ ρ (cong (λ n 
 auto-tactic : Term → Term
 auto-tactic t =
   case termToExp t of
-  λ { nothing →
-      def (quote getProof)
-        $ vArg (con (quote nothing) [])
-        ∷ vArg (def (quote invalidGoal) $ vArg (stripImplicit t) ∷ [])
-        ∷ []
+  λ { nothing → failedProof (quote invalidGoal) t
     ; (just ((e₁ , e₂) , Γ)) →
       def (quote getProof)
         $ vArg (def (quote auto-proof)

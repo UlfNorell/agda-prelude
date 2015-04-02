@@ -156,6 +156,13 @@ getProof : {A : Set} (prf : Maybe A) → QED {x = prf} → A
 getProof (just eq) _ = eq
 getProof nothing ()
 
+failedProof : Name → Term → Term
+failedProof err t =
+  def (quote getProof)
+  $ vArg (con (quote nothing) [])
+  ∷ vArg (def err $ vArg (stripImplicit t) ∷ [])
+  ∷ []
+
 cantProve : Set → ⊤
 cantProve _ = _
 
