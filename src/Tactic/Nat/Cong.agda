@@ -4,6 +4,7 @@ module Tactic.Nat.Cong where
 open import Prelude
 open import Builtin.Reflection
 open import Tactic.Reflection.Quote
+open import Tactic.Reflection.DeBruijn
 
 open import Tactic.Nat.Reflect
 open import Tactic.Nat.Exp
@@ -11,7 +12,7 @@ open import Tactic.Nat.NF
 open import Tactic.Nat.Simpl.Lemmas
 open import Tactic.Nat.Auto.Lemmas
 
-open import EqReasoning
+-- open import EqReasoning
 
 simpl-sound : ∀ e ρ → ⟦ norm e ⟧ns ρ ≡ ⟦ e ⟧e ρ
 simpl-sound e ρ = eraseEquality $
@@ -21,6 +22,7 @@ simpl-sound e ρ = eraseEquality $
     ≡⟨ sound e ρ ⟩ʳ
   ⟦ e ⟧e ρ ∎
 
+infixr 5 _∷_
 data All₂ {A B : Set} (P : A → B → Set) : List A → List B → Set where
   []  : All₂ P [] []
   _∷_ : ∀ {x y xs ys} → P x y → All₂ P xs ys → All₂ P (x ∷ xs) (y ∷ ys)
@@ -70,22 +72,22 @@ crefl : ∀ {a} {A : Set a} (x : A) → x ≡ x
 crefl _ = refl
 
 pattern `refl x       = def (quote crefl) (vArg x ∷ [])
-pattern `subst f eq p = def (quote subst) (vArg f ∷ vArg eq ∷ vArg p ∷ [])
+pattern `subst f eq p = def (quote transport) (vArg f ∷ vArg eq ∷ vArg p ∷ [])
 pattern `simpl e eqs  = def (quote simpl-sound′) (vArg e ∷ vArg eqs ∷ [])
 
 fromCTerms : Term → List (CTerm tEq) → Term
 
 fromCTerm′ : ∀ {t} → Term → CTerm t → Term
 fromCTerm′ g cGoal           = g
-fromCTerm′ g (cRefl x)       = `refl  (raise 1 $ stripImplicit x)
-fromCTerm′ g (cSubst f eq c) = `subst (raise 1 $ stripImplicit f) (fromCTerm′ g eq) (fromCTerm′ g c)
+fromCTerm′ g (cRefl x)       = `refl  (weaken 1 $ stripImplicit x)
+fromCTerm′ g (cSubst f eq c) = `subst (weaken 1 $ stripImplicit f) (fromCTerm′ g eq) (fromCTerm′ g c)
 fromCTerm′ g (cSimpl e eqs)  = `simpl (` e) (fromCTerms g eqs)
 
 fromCTerms g []       = `[]₂
 fromCTerms g (c ∷ cs) = fromCTerm′ g c `∷₂ fromCTerms g cs
 
 fromCTerm : ∀ {t} → CTerm t → Term
-fromCTerm c = lam visible (fromCTerm′ (var 0 []) c)
+fromCTerm c = lam visible (abs "x" $ fromCTerm′ (var 0 []) c)
 
 data CExp : Set where
   cCxt  : Term → List (Exp × List CExp) → CExp
@@ -108,14 +110,14 @@ ExType = ∀ n → T (f (n * 0) (n + 0) + 0) (n + 0)
 
 ex : ExType
 ex n =
-  subst (λ x → T x (n + 0))
+  transport (λ x → T x (n + 0))
     (simpl-sound′ (var 0 ⟨+⟩ lit 0)
-      (subst (λ x → f 0 n ≡ f x (n + 0))
+      (transport (λ x → f 0 n ≡ f x (n + 0))
           (simpl-sound′ (var 0 ⟨*⟩ lit 0) (crefl n ∷ []))
-          (subst (λ x → f 0 n ≡ f 0 x)
+          (transport (λ x → f 0 n ≡ f 0 x)
             (simpl-sound′ (var 0 ⟨+⟩ lit 0) (crefl n ∷ [])) (crefl (f 0 n)))
         ∷ []))
-    (subst (λ x → T (f 0 n) x)
+    (transport (λ x → T (f 0 n) x)
       (simpl-sound′ (var 0 ⟨+⟩ lit 0) (crefl n ∷ []))
       {!!})
 
