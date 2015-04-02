@@ -16,9 +16,10 @@ data SearchResult {a} (P : Nat → Set a) (lo hi : Nat) : Set a where
   none      : ¬ P hi → SearchResult P lo hi
   bad-range : lo > hi → SearchResult P lo hi
 
-infixr 0 _⟨=⟩_
-_⟨=⟩_ : ∀ {a b c} → a ≡ b → b ≤ c → a ≤ c
-a=b ⟨=⟩ b≤c = diff 0 (cong suc (sym a=b)) ⟨≤⟩ b≤c
+private
+  infixr 0 _⟨=⟩_
+  _⟨=⟩_ : ∀ {a b c} → a ≡ b → b ≤ c → a ≤ c
+  a=b ⟨=⟩ b≤c = diff 0 (cong suc (sym a=b)) ⟨≤⟩ b≤c
 
 private
   lem-half : ∀ n → suc n div 2 < suc n
@@ -79,7 +80,7 @@ private
 binarySearch : ∀ {a} {P : Nat → Set a} lo hi →
                  (∀ n → Dec (P n)) →
                  SearchResult P lo hi
-binarySearch lo hi check with compare lo hi   -- do lo ≤? hi instead
+binarySearch lo hi check with compare lo hi
 ... | greater lo>hi = bad-range lo>hi
 binarySearch lo .lo check | equal refl =
   case check lo of λ
