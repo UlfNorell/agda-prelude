@@ -15,6 +15,9 @@ R = StateT (Nat × List (Term × Nat)) Maybe
 fail : ∀ {A} → R A
 fail = lift nothing
 
+_catch_ : ∀ {A} → R A → R A → R A
+m catch h = stateT (λ s → maybe (runStateT h s) just (runStateT m s))
+
 runR : ∀ {A} → R A → Maybe (A × List Term)
 runR r =
   second (reverse ∘ map fst ∘ snd) <$>
@@ -77,8 +80,8 @@ termToExp t = runR (termToEqR t)
 termToHyps : Term → Maybe (List (Exp × Exp) × List Term)
 termToHyps t = runR (termToHypsR t)
 
--- termToCExp : Term → CExp  -- cannot fail
--- termToCExp t = {!!}
+termToEq : Term → Maybe ((Exp × Exp) × List Term)
+termToEq t = runR (termToEqR t)
 
 buildEnv : List Nat → Env
 buildEnv []        i      = 0
