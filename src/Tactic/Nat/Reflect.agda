@@ -52,15 +52,9 @@ termToExpR (`suc a) = ⟨suc⟩ <$> termToExpR a
 termToExpR (lit (nat n)) = pure (lit n)
 termToExpR unknown  = fail
 termToExpR t =
-  -- BUG: Complains about no instance for Eq Term
-  -- gets (flip lookup t ∘ snd) >>=
-  -- λ { nothing  → fresh t
-  --   ; (just i) → pure (var i) }
-  gets snd >>= λ ts →
-  case lookup ts t of λ
-  { nothing  → fresh t
-  ; (just i) → pure (var i)
-  }
+  gets (flip lookup t ∘ snd) >>=
+  λ { nothing  → fresh t
+    ; (just i) → pure (var i) }
 
 private
   lower : Nat → Term → R Term
