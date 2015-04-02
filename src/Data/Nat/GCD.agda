@@ -7,12 +7,11 @@ open import Data.Nat.Properties
 open import Data.Nat.DivMod
 open import Data.Nat.Divide
 open import Tactic.Nat
-open import Prelude.Equality.Unsafe
 
 --- GCD ---
 
 data GCD (a b : Nat) : Set where
-  gcd-res : ∀ d → d Divides a → d Divides b → 
+  gcd-res : ∀ d → d Divides a → d Divides b →
               (∀ k → k Divides a → k Divides b → k Divides d) →
               GCD a b
 

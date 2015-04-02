@@ -2,7 +2,6 @@
 module Tactic.Nat.Reflect where
 
 open import Prelude
-open import Prelude.Equality.Unsafe
 open import Builtin.Reflection
 open import Tactic.Reflection.Quote
 open import Tactic.Reflection.DeBruijn

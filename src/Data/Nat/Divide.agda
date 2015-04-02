@@ -6,7 +6,6 @@ open import Control.WellFounded
 open import Data.Nat.Properties
 open import Data.Nat.DivMod
 open import Tactic.Nat
-open import Prelude.Equality.Unsafe
 
 --- Divides predicate ---
 

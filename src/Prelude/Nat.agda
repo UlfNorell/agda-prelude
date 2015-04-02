@@ -6,7 +6,7 @@ open import Prelude.Empty
 open import Prelude.Bool
 open import Prelude.Decidable
 open import Prelude.Equality
-open import Prelude.Equality.Unsafe
+open import Prelude.Equality.Unsafe using (eraseEquality)
 open import Prelude.Function
 open import Prelude.Ord
 

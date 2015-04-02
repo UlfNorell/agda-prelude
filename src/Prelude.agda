@@ -27,5 +27,7 @@ open import Prelude.Ord         public
 
 open import Prelude.IO          public
 
+open import Prelude.Equality.Unsafe public using (eraseEquality)
+
 infixr 5 _::_
 pattern _::_ x xs = x ∷ xs

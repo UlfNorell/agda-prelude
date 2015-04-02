@@ -2,7 +2,6 @@
 module Data.Nat.Properties where
 
 open import Prelude
-open import Prelude.Equality.Unsafe using (eraseEquality)
 open import Data.Nat.Properties.Core public
 open import Tactic.Nat
 
@@ -59,7 +58,7 @@ sub-underflow a ._ (diff! k) =
   cong (a -_) (add-commute k a)
   ⟨≡⟩ sub-add-r a a k
   ⟨≡⟩ cong (_- k) (cancel-sub a)
-  ⟨≡⟩ sub-0-l k 
+  ⟨≡⟩ sub-0-l k
 
 sub-leq : ∀ a b → a - b [≤] a
 sub-leq a b with compare a b

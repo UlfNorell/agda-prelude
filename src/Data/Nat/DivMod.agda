@@ -2,7 +2,6 @@
 module Data.Nat.DivMod where
 
 open import Prelude
-open import Prelude.Equality.Unsafe using (eraseEquality)
 open import Control.WellFounded
 open import Tactic.Nat
 open import Tactic.Nat.Reflect

@@ -2,7 +2,6 @@
 module Tactic.Nat.Cong where
 
 open import Prelude
-open import Prelude.Equality.Unsafe using (eraseEquality)
 open import Builtin.Reflection
 open import Tactic.Reflection.Quote
 
