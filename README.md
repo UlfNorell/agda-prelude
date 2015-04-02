@@ -1,8 +1,15 @@
-This is a programming library for Agda. This means that it contains almost no
-proofs and it is not afraid to turn off the termination checker if it gets in
-the way. If you are looking to formalize mathematics, this library is not for
-you, but if you want to write programs in Agda this might just be what you are
-looking for.
+This is an alternative to the Agda standard library (and incompatible with the
+same) that focuses more on programming and type checking time performance.
 
-Note that this library is not compatible with the Agda standard library at
-https://github.com/agda/agda-stdlib.
+Notable features:
+
+- Makes heavy use of instance arguments.
+
+- Efficient decision procedures for natural number arithmetic (Tactic.Nat).
+
+- Evidence-producing and efficient gcd and primality testing (Data.Nat.GCD and
+  Data.Nat.Prime).
+
+This is very much work in progress, so expect major changes. In particular the
+proof-side of things is very much unstructured.
+
