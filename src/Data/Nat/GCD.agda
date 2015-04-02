@@ -11,8 +11,8 @@ open import Tactic.Nat
 --- GCD ---
 
 data GCD (a b : Nat) : Set where
-  gcd-res : ∀ d → d Divides a → d Divides b →
-              (∀ k → k Divides a → k Divides b → k Divides d) →
+  gcd-res : ∀ d (d|a : d Divides a) (d|b : d Divides b)
+              (g : ∀ k → k Divides a → k Divides b → k Divides d) →
               GCD a b
 
 get-gcd : ∀ {a b} → GCD a b → Nat
@@ -35,6 +35,8 @@ private
   erase-prf (gcd-res d d|a d|b gr) = gcd-res d d|a d|b $ λ k k|a k|b → fast-divides (gr k k|a k|b)
 
 gcd : ∀ a b → GCD a b
+gcd 0 b = gcd-res b (factor! 0) divides-refl (λ _ _ k|b → k|b)
+gcd 1 b = gcd-res 1 divides-refl (factor b auto) (λ _ k|1 _ → k|1)
 gcd a b = erase-prf (gcd-cert-acc a b (wfNat b))
 
 gcd! : Nat → Nat → Nat
@@ -65,3 +67,7 @@ gcd-mul-r a b = gcd-unique b (a * b) b divides-refl (divides-mul-r a divides-ref
 
 gcd-zero : ∀ n → gcd! 0 n ≡ n
 gcd-zero n = gcd-unique 0 n n (factor! 0) divides-refl (λ _ _ k|n → k|n)
+
+gcd-commute : ∀ a b → gcd! a b ≡ gcd! b a
+gcd-commute a b with gcd b a
+gcd-commute a b | gcd-res d d|b d|a g = gcd-unique a b d d|a d|b (λ k → flip (g k))
