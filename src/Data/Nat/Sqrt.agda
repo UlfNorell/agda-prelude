@@ -1,24 +1,24 @@
 
 module Data.Nat.Sqrt where
 
-open import Prelude
+open import Prelude hiding (_<?_)
 open import Data.Nat.Properties
 open import Tactic.Nat
 open import Data.Nat.BinarySearch
 
 data Sqrt n : Set where
-  root : ∀ r → r ^ 2 [≤] n → n [<] suc r ^ 2 → Sqrt n
+  root : ∀ r → r ^ 2 ≤ n → n < suc r ^ 2 → Sqrt n
 
 getSqrt : ∀ {n} → Sqrt n → Nat
 getSqrt (root r _ _) = r
 
-infix 4 _<?_
-
-_<?_ : (a b : Nat) → Dec (a [<] b)
-a <?  b with compare a b
-a <?  b | less    a<b = yes a<b
-a <? .a | equal  refl = no (λ a<a → less-antirefl a<a refl)
-a <?  b | greater a>b = no (λ a<b → less-antisym a>b a<b)
+private
+  infix 4 _<?_
+  _<?_ : (a b : Nat) → Dec (a < b)
+  a <?  b with compare a b
+  a <?  b | less    a<b = yes a<b
+  a <? .a | equal  refl = no (λ a<a → less-antirefl a<a refl)
+  a <?  b | greater a>b = no (λ a<b → less-antisym a>b a<b)
 
 sqrt : ∀ n → Sqrt n
 sqrt n with binarySearch 0 n (λ r → n <? r ^ 2)
@@ -32,11 +32,11 @@ sqrt n | bad-range (diff _ ())
 sqrt! : Nat → Nat
 sqrt! n = getSqrt (sqrt n)
 
-sqrt-below : ∀ n → sqrt! n ^ 2 [≤] n
+sqrt-below : ∀ n → sqrt! n ^ 2 ≤ n
 sqrt-below n with sqrt n
 ... | root _ lo _ = lo
 
-sqrt-above : ∀ n → suc (sqrt! n) ^ 2 [>] n
+sqrt-above : ∀ n → suc (sqrt! n) ^ 2 > n
 sqrt-above n with sqrt n
 ... | root _ _ hi = hi
 
@@ -46,7 +46,7 @@ private
         LessNat (suc n) r → ⊥
   lem n ._ a eq (diff! c) = 0≠suc (c * (4 + c + n * 2) + n * (3 + n) + a) (follows-from eq)
 
-sqrt-less : ∀ n → n [>] 2 → suc (sqrt! n) [<] n
+sqrt-less : ∀ n → n > 2 → suc (sqrt! n) < n
 sqrt-less 0 (diff k ())
 sqrt-less 1 (diff k eq) = ⊥-elim $ 0≠suc (k + 1) (follows-from eq)
 sqrt-less 2 (diff k eq) = ⊥-elim $ 0≠suc k (follows-from eq)

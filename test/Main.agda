@@ -25,6 +25,7 @@ open import Tactic.Nat.Induction
 open import Data.Nat.DivMod
 open import Data.Nat.Divide
 open import Data.Nat.GCD
+open import Data.Nat.Prime
 
 Hello = printf "%c%s" 'H' "ello"
 World = printf "%6s" "World"

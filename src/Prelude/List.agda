@@ -129,7 +129,7 @@ instance
 
 data LessList {a} {A : Set a} {{OrdA : Ord A}} : List A → List A → Set a where
   nil<cons : ∀ {x xs} → LessList [] (x ∷ xs)
-  head<    : ∀ {x y xs ys} → LessThan x y → LessList (x ∷ xs) (y ∷ ys)
+  head<    : ∀ {x y xs ys} → x < y → LessList (x ∷ xs) (y ∷ ys)
   tail<    : ∀ {x xs ys} → LessList xs ys → LessList (x ∷ xs) (x ∷ ys)
 
 private
@@ -148,7 +148,7 @@ private
 
 instance
   OrdList : ∀ {a} {A : Set a} {{OrdA : Ord A}} → Ord (List A)
-  OrdList = record { LessThan = LessList ; compare = compareList }
+  OrdList = defaultOrd compareList
 
 --- Functor ---
 

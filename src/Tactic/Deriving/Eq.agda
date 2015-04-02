@@ -147,7 +147,7 @@ private
   unify s            t            with s == t
   unify s            t            | yes _ = positive []
   unify (var x [])   (var y [])   | no  _ =
-    if (x < y) -- In var-var case, instantiate the one that is bound the closest to us.
+    if (x <? y) -- In var-var case, instantiate the one that is bound the closest to us.
     then (positive ((x , var y []) ∷ []))
     else (positive ((y , var x []) ∷ []))
   unify (var x [])   t            | no  _ =
@@ -350,8 +350,8 @@ private
       args₂ = argsTel c₂
       #args₁ = length args₁
       #args₂ = length args₂
-      forced₁ = filter (λ i → #args₂ ≤ i) fs
-      forced₂ = filter (λ i → #args₂ > i) fs
+      forced₁ = filter (λ i → #args₂ ≤? i) fs
+      forced₂ = filter (λ i → #args₂ >? i) fs
       #forced₁ = length forced₁
       #forced₂ = length forced₂
 

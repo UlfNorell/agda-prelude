@@ -151,12 +151,23 @@ private
   ...             | yes p  = greater (diff (n - suc m) (eraseEquality (lemLessNatMinus m n p)))
   ...             | no np₂ = equal (eraseEquality (lemNoLessEqual n m np₁ np₂))
 
+private
+  nat-lt-to-leq : ∀ {x y} → LessNat x y → LessNat x (suc y)
+  nat-lt-to-leq (diff k eq) = diff (suc k) (cong suc eq)
+
+  nat-eq-to-leq : ∀ {x y} → x ≡ y → LessNat x (suc y)
+  nat-eq-to-leq eq = diff 0 (cong suc (sym eq))
+
 instance
   OrdNat : Ord Nat
-  OrdNat = record { LessThan = LessNat ; compare = compareNat }
+  OrdNat = record { _≤_ = λ a b → LessNat a (suc b)
+                  ; compare   = compareNat
+                  ; lt-to-leq = nat-lt-to-leq
+                  ; eq-to-leq = nat-eq-to-leq
+                  }
 
 min : Nat → Nat → Nat
-min n m = if n < m then n else m
+min n m = if n <? m then n else m
 
 max : Nat → Nat → Nat
-max n m = if n > m then n else m
+max n m = if n >? m then n else m

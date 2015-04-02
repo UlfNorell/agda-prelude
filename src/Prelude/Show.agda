@@ -118,7 +118,7 @@ instance
 private
   showMaybe : ∀ {a} {A : Set a} {{ShowA : Show A}} → Nat → Maybe A → ShowS
   showMaybe p nothing  = showString "nothing"
-  showMaybe p (just x) = showParen (p > 9) (showString "just " ∘ showsPrec 10 x)
+  showMaybe p (just x) = showParen (p >? 9) (showString "just " ∘ showsPrec 10 x)
 
 instance
   ShowMaybe : ∀ {a} {A : Set a} {{ShowA : Show A}} → Show (Maybe A)
@@ -129,8 +129,8 @@ instance
 private
   showEither : ∀ {a b} {A : Set a} {B : Set b} {{ShowA : Show A}} {{ShowB : Show B}} →
                Nat → Either A B → ShowS
-  showEither p (left  x) = showParen (p > 9) $ showString "left " ∘ showsPrec 10 x
-  showEither p (right x) = showParen (p > 9) $ showString "right " ∘ showsPrec 10 x
+  showEither p (left  x) = showParen (p >? 9) $ showString "left " ∘ showsPrec 10 x
+  showEither p (right x) = showParen (p >? 9) $ showString "right " ∘ showsPrec 10 x
 
 instance
   ShowEither : ∀ {a b} {A : Set a} {B : Set b} {{ShowA : Show A}} {{ShowB : Show B}} → Show (Either A B)
@@ -141,7 +141,7 @@ instance
 private
   showPair : ∀ {a b} {A : Set a} {B : A → Set b} {{ShowA : Show A}} {{ShowB : ∀ {x} → Show (B x)}} →
                Nat → Σ A B → ShowS
-  showPair p (x , y) = showParen (p > 1) $ showsPrec 2 x ∘ showString ", " ∘ showsPrec 1 y
+  showPair p (x , y) = showParen (p >? 1) $ showsPrec 2 x ∘ showString ", " ∘ showsPrec 1 y
 
 instance
   ShowSigma : ∀ {a b} {A : Set a} {B : A → Set b} {{ShowA : Show A}} {{ShowB : ∀ {x} → Show (B x)}} → Show (Σ A B)

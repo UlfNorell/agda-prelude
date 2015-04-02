@@ -24,7 +24,7 @@ private
     gcd-res d (divides-add (divides-mul-r q d|b) d|r) d|b
             (λ k k|a k|b → gr k k|b (divides-sub-l k|a (divides-mul-r q k|b)))
 
-  gcd-cert-acc : ∀ a b → Acc LessThan b → GCD a b
+  gcd-cert-acc : ∀ a b → Acc _<_ b → GCD a b
   gcd-cert-acc a zero _ = gcd-res a (factor! 1) (factor! 0) (λ k k|a _ → k|a)
   gcd-cert-acc a (suc b) (acc wf) =
     case a divmod suc b of λ

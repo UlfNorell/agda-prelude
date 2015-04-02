@@ -52,9 +52,9 @@ private
 
   strTerm : Str Term
   strTerm lo n (var x args) =
-    if      x < lo     then var x <$> strArgs lo n args
-    else if x < lo + n then nothing
-    else                    var (x - n) <$> strArgs lo n args
+    if      x <? lo     then var x <$> strArgs lo n args
+    else if x <? lo + n then nothing
+    else                     var (x - n) <$> strArgs lo n args
   strTerm lo n (con c args)  = con c <$> strArgs lo n args
   strTerm lo n (def f args)  = def f <$> strArgs lo n args
   strTerm lo n (lam v t)     = lam v <$> strAbsTerm lo n t
@@ -102,8 +102,8 @@ private
 
   wk : Wk Term
   wk lo k (var x args) =
-    if x < lo then var x       (wkArgs lo k args)
-    else           var (x + k) (wkArgs lo k args)
+    if x <? lo then var x       (wkArgs lo k args)
+    else            var (x + k) (wkArgs lo k args)
   wk lo k (con c args)  = con c (wkArgs lo k args)
   wk lo k (def f args)  = def f (wkArgs lo k args)
   wk lo k (lam v t)     = lam v (wkAbsTerm lo k t)

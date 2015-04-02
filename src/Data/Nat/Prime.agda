@@ -13,14 +13,14 @@ Coprime : Nat → Nat → Set
 Coprime a b = gcd! a b ≡ 1
 
 data Prime n : Set where
-  prime : n [>] 1 → (∀ k → k Divides n → Either (k ≡ 1) (k ≡ n)) → Prime n
+  prime : n > 1 → (∀ k → k Divides n → Either (k ≡ 1) (k ≡ n)) → Prime n
 
 private
-  lem : (a b : Nat) → b [>] 1 → suc a [<] suc a * b
+  lem : (a b : Nat) → b > 1 → suc a < suc a * b
   lem a .(suc (k + 1)) (diff! k) = diff (a + k + a * k) auto
 
 data Composite n : Set where
-  composite : ∀ a b → a [>] 1 → b [>] 1 → a * b ≡ n → Composite n
+  composite : ∀ a b → a > 1 → b > 1 → a * b ≡ n → Composite n
 
 pattern composite! a b 1<a 1<b = composite a b 1<a 1<b refl
 
@@ -45,18 +45,18 @@ private
   less-inv a≮b | greater a>b = less-suc a>b
 
 data _∈[_,_] (n a b : Nat) : Set where
-  in-range : a [≤] n → n [≤] b → n ∈[ a , b ]
+  in-range : a ≤ n → n ≤ b → n ∈[ a , b ]
 
-empty-range : ∀ {n a b} → a [>] b → ¬ (n ∈[ a , b ])
+empty-range : ∀ {n a b} → a > b → ¬ (n ∈[ a , b ])
 empty-range a>b (in-range a≤n n≤b) = less-not-geq a>b (a≤n ⟨≤⟩ n≤b)
 
-below-range : ∀ {n a b} → n [<] a → ¬ (n ∈[ a , b ])
+below-range : ∀ {n a b} → n < a → ¬ (n ∈[ a , b ])
 below-range n<a (in-range a≤n _) = less-not-geq n<a a≤n
 
-range-lower-bound : ∀ {n a b} → n ∈[ a , b ] → a [≤] n
+range-lower-bound : ∀ {n a b} → n ∈[ a , b ] → a ≤ n
 range-lower-bound (in-range a<n _) = a<n
 
-range-upper-bound : ∀ {n a b} → n ∈[ a , b ] → n [≤] b
+range-upper-bound : ∀ {n a b} → n ∈[ a , b ] → n ≤ b
 range-upper-bound (in-range _ n<b) = n<b
 
 singleton-range : ∀ {n a} → n ∈[ a , a ] → a ≡ n
@@ -68,10 +68,10 @@ suc-range-r (in-range a<n n<b) = in-range a<n (less-suc n<b)
 suc-range-l : ∀ {n a b} → n ∈[ suc a , b ] → n ∈[ a , b ]
 suc-range-l (in-range a<n n<b) = in-range (less-suc-l a<n) n<b
 
-in-range-l :  ∀ {a b} → a [≤] b → a ∈[ a , b ]
+in-range-l :  ∀ {a b} → a ≤ b → a ∈[ a , b ]
 in-range-l a<b = in-range (diff! 0) a<b
 
-in-range-r :  ∀ {a b} → a [≤] b → b ∈[ a , b ]
+in-range-r :  ∀ {a b} → a ≤ b → b ∈[ a , b ]
 in-range-r a<b = in-range a<b (diff! 0)
 
 non-zero-range : ∀ {n a b} → n ∈[ suc a , b ] → NonZero n
@@ -80,10 +80,10 @@ non-zero-range {suc _} _ = _
 
 data _∈[_,_]? k a b : Set where
   inside : k ∈[ a , b ] → k ∈[ a , b ]?
-  below  : k [<] a → k ∈[ a , b ]?
-  above  : k [>] b → k ∈[ a , b ]?
+  below  : k < a → k ∈[ a , b ]?
+  above  : k > b → k ∈[ a , b ]?
 
-cmp-leq : ∀ a b → Either (a [<] b) (b [≤] a)
+cmp-leq : ∀ a b → Either (a < b) (b ≤ a)
 cmp-leq a b with compare a b
 cmp-leq a b | less    a<b = left a<b
 cmp-leq a b | equal   a=b = right (diff 0 (cong suc a=b))
@@ -152,12 +152,12 @@ findInRange a  b check | greater gt     = none (λ k k∈ab _ → empty-range gt
 --- Reducing the required search space to 2..√a ---
 
 private
-  lem-less : ∀ {n r d q} → r ^ 2 [≥] n →
-        q * d ≡ n → r [<] d → suc r [≤] q → ⊥
+  lem-less : ∀ {n r d q} → r ^ 2 ≥ n →
+        q * d ≡ n → r < d → suc r ≤ q → ⊥
   lem-less (diff k eq) refl (diff j refl) (diff! i) =
     0≠suc 0 (use eq $ tactic simpl | λ eq → ⊥-elim (0≠suc _ eq))
 
-  non-zero-less : ∀ {a} {{_ : NonZero a}} → 0 [<] a
+  non-zero-less : ∀ {a} {{_ : NonZero a}} → 0 < a
   non-zero-less {0} {{}}
   non-zero-less {suc a} = diff a auto
 
@@ -165,19 +165,19 @@ private
   div-unique q {a} {b} eq = quot-unique (qr (a div b) (a mod b) (mod-less b a) (divmod-sound b a))
                                         (qr q 0 non-zero-less (follows-from eq))
 
-  divide-smaller : ∀ n r d {{_ : NonZero d}} → n [≤] r ^ 2 → d Divides n → d [>] r → n div d [≤] r
+  divide-smaller : ∀ n r d {{_ : NonZero d}} → n ≤ r ^ 2 → d Divides n → d > r → n div d ≤ r
   divide-smaller n r d n<r² (factor q eq) d>r =
     let n/d=q : n div d ≡ q
         n/d=q = div-unique q eq
     in less-raa (lem-less n<r² (cong (_* d) n/d=q ⟨≡⟩ eq) d>r)
 
-  divide-bigger : ∀ n k {{_ : NonZero k}} → k [<] n → k Divides n → n div k [≥] 2
+  divide-bigger : ∀ n k {{_ : NonZero k}} → k < n → k Divides n → n div k ≥ 2
   divide-bigger ._ k (diff! k₁) (factor zero eq) = ⊥-elim (0≠suc (k₁ + k) eq)
   divide-bigger n  k k<n (factor 1 eq) = ⊥-elim (less-antirefl k<n eq)
   divide-bigger n  k k<n (factor (suc (suc q)) eq) =
-    transport (2 [≤]_) (sym $ div-unique (2 + q) eq) (diff q auto)
+    transport (2 ≤_) (sym $ div-unique (2 + q) eq) (diff q auto)
 
-  up-to-root : ∀ r n → r [≤] n → r ^ 2 [≥] suc n → FindInRange 2 r (_Divides suc n) → FindInRange 2 n (_Divides suc n)
+  up-to-root : ∀ r n → r ≤ n → r ^ 2 ≥ suc n → FindInRange 2 r (_Divides suc n) → FindInRange 2 n (_Divides suc n)
   up-to-root r n r<n r²>n (none k∤sn) =
     none λ k k∈2n k|sn → erase-⊥ $
     case in-range? k 2 r of λ
@@ -186,9 +186,9 @@ private
     ; (above  k>r)  →
       let k≠0 : NonZero k
           k≠0 = non-zero-range k∈2n
-          hi : suc n div k [≤] r
+          hi : suc n div k ≤ r
           hi = divide-smaller (suc n) r k r²>n k|sn k>r
-          lo : suc n div k [≥] 2
+          lo : suc n div k ≥ 2
           lo = divide-bigger (suc n) k (range-upper-bound k∈2n) k|sn
       in k∤sn (suc n div k) (in-range lo hi) (factor k (follows-from (div-divides k|sn)))
     }
@@ -221,19 +221,20 @@ private
   two-is-prime 2 k|2 | k≤2 = right refl
   two-is-prime (suc (suc (suc k))) k|2 | diff k₁ eq = ⊥-elim $ 0≠suc (k₁ + k) (follows-from eq)
 
-  isPrimeAux : ∀ n → Dec (n [>] 2) → Prime? n
+  isPrimeAux : ∀ n → Comparison _<_ 2 n → Prime? n
   isPrimeAux 0 _ = tiny (diff! 1)
   isPrimeAux 1 _ = tiny (diff! 0)
   isPrimeAux 2 _ = yes (prime (diff! 0) two-is-prime)
-  isPrimeAux (suc (suc (suc n))) (no n≯2) = ⊥-elim $ n≯2 (diff n auto)
-  isPrimeAux (suc n) (yes n>2) with sqrt (suc n) | sqrt-less _ n>2
+  isPrimeAux (suc (suc (suc n))) (greater (diff k eq)) = ⊥-elim (0≠suc (k + suc n) (follows-from eq))
+  isPrimeAux (suc (suc (suc _))) (equal ())
+  isPrimeAux (suc n) (less n>2) with sqrt (suc n) | sqrt-less _ n>2
   ... | root r r²<n sr²>n | r<n with up-to-root (suc r) n r<n (less-suc sr²>n) $ findInRange 2 (suc r) (λ k → k divides? suc n)
   ...   | none p = yes (prime (suc-monotoneʳ (less-suc n>2)) (is-1-or-n p))
   ...   | here d (in-range 2≤d d≤n) (factor q eq) =
     no (composite d q (suc-monotoneʳ 2≤d) (lem₂ q eq d≤n) (follows-from eq))
 
 isPrime : ∀ n → Prime? n
-isPrime n = isPrimeAux n (2 <? n)
+isPrime n = isPrimeAux n (compare 2 n)
 
 isPrime! : Nat → Bool
 isPrime! n with isPrime n

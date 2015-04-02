@@ -8,20 +8,20 @@ open import Control.WellFounded
 open import Data.Nat.DivMod
 
 data SearchResult! {a} (P : Nat → Set a) (lo hi : Nat) : Set a where
-  here : ∀ k (!pk : ¬ P k) (psk : P (suc k)) (lo≤k : lo [≤] k) (k<hi : k [<] hi) → SearchResult! P lo hi
+  here : ∀ k (!pk : ¬ P k) (psk : P (suc k)) (lo≤k : lo ≤ k) (k<hi : k < hi) → SearchResult! P lo hi
 
 data SearchResult {a} (P : Nat → Set a) (lo hi : Nat) : Set a where
-  here      : ∀ k (!pk : ¬ P k) (psk : P (suc k)) (lo≤k : lo [≤] k) (k<hi : k [<] hi) → SearchResult P lo hi
+  here      : ∀ k (!pk : ¬ P k) (psk : P (suc k)) (lo≤k : lo ≤ k) (k<hi : k < hi) → SearchResult P lo hi
   below     : P lo → SearchResult P lo hi
   none      : ¬ P hi → SearchResult P lo hi
-  bad-range : lo [>] hi → SearchResult P lo hi
+  bad-range : lo > hi → SearchResult P lo hi
 
 infixr 0 _⟨=⟩_
-_⟨=⟩_ : ∀ {a b c} → a ≡ b → b [≤] c → a [≤] c
+_⟨=⟩_ : ∀ {a b c} → a ≡ b → b ≤ c → a ≤ c
 a=b ⟨=⟩ b≤c = diff 0 (cong suc (sym a=b)) ⟨≤⟩ b≤c
 
 private
-  lem-half : ∀ n → suc n div 2 [<] suc n
+  lem-half : ∀ n → suc n div 2 < suc n
   lem-half n with suc n div 2 | suc n mod 2 | divmod-sound 2 (suc n)
   lem-half n | zero  | r | eq = diff n auto
   lem-half n | suc q | r | eq = diff (q + r) (follows-from (sym eq))
@@ -32,7 +32,7 @@ private
   lem-half-nonzero n | suc q | r  | _    | _         = _
 
   lem-upper : ∀ {lo hi d} d′ {{_ : NonZero d′}} →
-              hi ≡ suc (d + lo) → hi - (d′ + lo) [≤] d
+              hi ≡ suc (d + lo) → hi - (d′ + lo) ≤ d
   lem-upper zero {{}}
   lem-upper {a} {._} {d} (suc d′) refl =
     cong (λ z → d + a - z) (add-commute d′ a)
@@ -40,7 +40,7 @@ private
     ⟨=⟩ cong (_- d′) (cancel-add-sub d a)
     ⟨=⟩ sub-leq d d′
 
-  search : ∀ {a} {P : Nat → Set a} lo hi d → hi ≡ d + lo → Acc _[<]_ d →
+  search : ∀ {a} {P : Nat → Set a} lo hi d → hi ≡ d + lo → Acc _<_ d →
              (∀ n → Dec (P n)) →
              ¬ P lo → P hi → SearchResult! P lo hi
   search lo .lo 0 refl wf check !plo phi = ⊥-elim (!plo phi)
@@ -49,21 +49,21 @@ private
     let d = suc d₀
         d′ = suc d div 2
         m = d′ + lo
-        d′<d : d′ [<] suc d
+        d′<d : d′ < suc d
         d′<d = lem-half d in
     case check m of λ
      { (yes pm) →
          case search lo m d′ refl (wf _ d′<d) check !plo pm of λ
          { (here k !pk psk lo≤k k<m) → here k !pk psk lo≤k $
-                   (k<m ⟨<⟩ transport (λ z → d′ + lo [<] z) (sym eq)
+                   (k<m ⟨<⟩ transport (λ z → d′ + lo < z) (sym eq)
                              (plus-monotone-l lo d′<d))
          }
      ; (no !pm) →
-         let m≤hi : m [≤] hi
+         let m≤hi : m ≤ hi
              m≤hi = plus-monotone-l lo d′<d ⟨≤⟩ diff 1 (cong suc eq)
              d′≠0 : NonZero d′
              d′≠0 = lem-half-nonzero d₀
-             hi-m≤d : hi - m [≤] d
+             hi-m≤d : hi - m ≤ d
              hi-m≤d = lem-upper d′ eq
              eq : hi ≡ hi - m + m
              eq = eraseEquality (sym (sub-less m≤hi))

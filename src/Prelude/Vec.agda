@@ -70,7 +70,7 @@ instance
 --- Ord ---
 
 data LessVec {a} {A : Set a} {{OrdA : Ord A}} : ∀ {n} → Vec A n → Vec A n → Set a where
-  head< : ∀ {x y n} {xs ys : Vec A n} → LessThan x y  → LessVec (x ∷ xs) (y ∷ ys)
+  head< : ∀ {x y n} {xs ys : Vec A n} → x < y → LessVec (x ∷ xs) (y ∷ ys)
   tail< : ∀ {x n} {xs ys : Vec A n}   → LessVec xs ys → LessVec (x ∷ xs) (x ∷ ys)
 
 private
@@ -86,7 +86,7 @@ private
 
 instance
   OrdVec : ∀ {a} {A : Set a} {{OrdA : Ord A}} {n} → Ord (Vec A n)
-  OrdVec = record { LessThan = LessVec ; compare = compareVec }
+  OrdVec = defaultOrd compareVec
 
 --- Functor instances ---
 

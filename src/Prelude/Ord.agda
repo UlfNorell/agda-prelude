@@ -23,33 +23,51 @@ isGreater (equal   _) = false
 isGreater (greater _) = true
 
 record Ord {a} (A : Set a) : Set (lsuc a) where
+  infix 4 _<_ _≤_
   field
-    LessThan : A → A → Set a
-    compare  : ∀ x y → Comparison LessThan x y
+    _<_ : A → A → Set a
+    _≤_ : A → A → Set a
+    compare   : ∀ x y → Comparison _<_ x y
+    eq-to-leq : ∀ {x y} → x ≡ y → x ≤ y
+    lt-to-leq : ∀ {x y} → x < y → x ≤ y
 
 open Ord {{...}} public
 
-_[<]_ : ∀ {a} {A : Set a} {{_ : Ord A}} → A → A → Set a
-a [<] b = LessThan a b
+_>_ : ∀ {a} {A : Set a} {{_ : Ord A}} → A → A → Set a
+a > b = b < a
 
-_[>]_ : ∀ {a} {A : Set a} {{_ : Ord A}} → A → A → Set a
-a [>] b = b [<] a
+_≥_ : ∀ {a} {A : Set a} {{_ : Ord A}} → A → A → Set a
+a ≥ b = b ≤ a
 
-infix 4 _<_ _>_ _≤_ _≥_ _[<]_ _[>]_
+infix 4 _>_ _≥_ _<?_ _≤?_ _>?_ _≥?_
 
-_<_ : ∀ {a} {A : Set a} {{OrdA : Ord A}} → A → A → Bool
-x < y = isLess (compare x y)
+_<?_ : ∀ {a} {A : Set a} {{OrdA : Ord A}} → A → A → Bool
+x <? y = isLess (compare x y)
 
-_>_ : ∀ {a} {A : Set a} {{OrdA : Ord A}} → A → A → Bool
-_>_ = flip _<_
+_>?_ : ∀ {a} {A : Set a} {{OrdA : Ord A}} → A → A → Bool
+_>?_ = flip _<?_
 
-_≤_ : ∀ {a} {A : Set a} {{OrdA : Ord A}} → A → A → Bool
-x ≤ y = not (y < x)
+_≤?_ : ∀ {a} {A : Set a} {{OrdA : Ord A}} → A → A → Bool
+x ≤? y = not (y <? x)
 
-_≥_ : ∀ {a} {A : Set a} {{OrdA : Ord A}} → A → A → Bool
-x ≥ y = not (x < y)
+_≥?_ : ∀ {a} {A : Set a} {{OrdA : Ord A}} → A → A → Bool
+x ≥? y = not (x <? y)
 
 --- Instances ---
+
+-- Default implementation of _≤_ --
+
+data LessEq {a} {A : Set a} (_<_ : A → A → Set a) (x y : A) : Set a where
+  less  : x < y → LessEq _<_ x y
+  equal : x ≡ y → LessEq _<_ x y
+
+defaultOrd : ∀ {a} {A : Set a} {_<_ : A → A → Set a} → (∀ x y → Comparison _<_ x y) → Ord A
+defaultOrd {_<_ = _<_} compare =
+  record { _≤_ = LessEq _<_
+         ; compare   = compare
+         ; eq-to-leq = equal
+         ; lt-to-leq = less
+         }
 
 -- Generic instance by injection --
 
@@ -63,9 +81,10 @@ mapComparison _   g (greater p) = greater (g p)
 
 OrdBy : ∀ {a} {A B : Set a} {{OrdA : Ord A}} {f : B → A} →
           (∀ {x y} → f x ≡ f y → x ≡ y) → Ord B
-OrdBy {f = f} inj = record { LessThan = LessThan on f
-                           ; compare  = λ x y → mapComparison inj id (compare (f x) (f y))
-                           }
+OrdBy {f = f} inj = defaultOrd λ x y → mapComparison inj id (compare (f x) (f y))
+  -- record { LessThan = LessThan on f
+  --                          ; compare  = λ x y → mapComparison inj id (compare (f x) (f y))
+  --                          }
 
 -- Bool --
 
@@ -80,4 +99,4 @@ private
   compareBool true true   = equal refl
 
 OrdBool : Ord Bool
-OrdBool = record { LessThan = LessBool ; compare = compareBool }
+OrdBool = defaultOrd compareBool

@@ -22,21 +22,21 @@ private
         lem = cong (λ z → z - b) auto
     in lem ⟨≡⟩ lemPlusMinus (suc a) b
 
-  lemModAux : ∀ k m n j → LessThan j n → modAux k m n j ≡ modAux 0 m (n - suc j) m
+  lemModAux : ∀ k m n j → j < n → modAux k m n j ≡ modAux 0 m (n - suc j) m
   lemModAux k m zero j (diff _ ())
   lemModAux k m (suc n) zero lt = refl
   lemModAux k m (suc n) (suc j) (diff d eq) =
     lemModAux (suc k) m n j
     $ diff d $ follows-from eq
 
-  lemDivAux : ∀ k m n j → LessThan j n → divAux k m n j ≡ divAux (suc k) m (n - suc j) m
+  lemDivAux : ∀ k m n j → j < n → divAux k m n j ≡ divAux (suc k) m (n - suc j) m
   lemDivAux k m zero j (diff _ ())
   lemDivAux k m (suc n) zero lt = refl
   lemDivAux k m (suc n) (suc j) (diff d eq) =
     lemDivAux k m n j
     $ diff d $ follows-from eq
 
-  modLessAux : ∀ k m n j → LessThan (k + j) (suc m) → LessThan (modAux k m n j) (suc m)
+  modLessAux : ∀ k m n j → k + j < suc m → modAux k m n j < suc m
   modLessAux k m zero j (diff d lt) =
     diff (j + d) $ lt ⟨≡⟩ auto
   modLessAux k m (suc n) zero _ =
@@ -48,20 +48,20 @@ private
   LessThan′ : Nat → Nat → Set
   LessThan′ a b = b ≡ b - suc a + suc a
 
-  toPrimed : ∀ {a b} → LessThan a b → LessThan′ a b
+  toPrimed : ∀ {a b} → a < b → LessThan′ a b
   toPrimed {a = a} (diff! k) rewrite lemPlusMinus k a = auto
 
-  modLessAux′ : ∀ k m n j → LessThan (k + j) (suc m) → LessThan′ (modAux k m n j) (suc m)
+  modLessAux′ : ∀ k m n j → k + j < suc m → LessThan′ (modAux k m n j) (suc m)
   modLessAux′ k m n j lt = toPrimed (modLessAux k m n j lt)
 
-  modLess : ∀ a b → LessThan (a mod suc b) (suc b)
+  modLess : ∀ a b → a mod suc b < suc b
   modLess a b = diff (b - a mod suc b) $ eraseEquality $
                 follows-from (modLessAux′ 0 b a b (diff 0 auto))
 
   0≠1 : ∀ {a} {A : Set a} → 0 ≡ 1 → A
   0≠1 ()
 
-  notLess1 : ∀ {a n} {A : Set a} → LessThan (suc n) 1 → A
+  notLess1 : ∀ {a n} {A : Set a} → suc n < 1 → A
   notLess1 (diff k eq) = 0≠1 (use eq tactic simpl | λ ())
 
   lessSuc-inj : ∀ {a b} → LessNat (suc a) (suc b) → LessNat a b
@@ -77,7 +77,7 @@ private
   modAuxGt k (suc a) b  zero   lt = notLess1 lt
   modAuxGt k (suc a) b (suc j) lt = follows-from (modAuxGt (suc k) a b j (lessSuc-inj lt))
 
-  divmodAux : ∀ k a b → Acc LessThan a → divAux k b a b * suc b + modAux 0 b a b ≡ k * suc b + a
+  divmodAux : ∀ k a b → Acc _<_ a → divAux k b a b * suc b + modAux 0 b a b ≡ k * suc b + a
   divmodAux k a b wf with compare b a
   ... | greater (diff j p)
         rewrite divAuxGt k a b b (diff (suc j) (cong suc p))
@@ -98,7 +98,7 @@ private
 --- Public definitions ---
 
 data DivMod a b : Set where
-  qr : ∀ q r → LessThan r b → q * b + r ≡ a → DivMod a b
+  qr : ∀ q r → r < b → q * b + r ≡ a → DivMod a b
 
 quot : ∀ {a b} → DivMod a b → Nat
 quot (qr q _ _ _) = q
@@ -106,7 +106,7 @@ quot (qr q _ _ _) = q
 rem : ∀ {a b} → DivMod a b → Nat
 rem (qr _ r _ _) = r
 
-rem-less : ∀ {a b} (d : DivMod a b) → LessThan (rem d) b
+rem-less : ∀ {a b} (d : DivMod a b) → rem d < b
 rem-less (qr _ _ lt _) = lt
 
 quot-rem-sound : ∀ {a b} (d : DivMod a b) → quot d * b + rem d ≡ a
@@ -119,7 +119,7 @@ divMod (suc b) a = qr (a div suc b) (a mod suc b) (modLess a b) (divmod-spec a b
 
 --- Properties ---
 
-mod-less : ∀ b {{_ : NonZero b}} a → LessThan (a mod b) b
+mod-less : ∀ b {{_ : NonZero b}} a → a mod b < b
 mod-less zero {{}} _
 mod-less (suc b) a = rem-less (a divmod suc b)
 
@@ -128,7 +128,7 @@ divmod-sound zero {{}} _
 divmod-sound (suc b) a = quot-rem-sound (a divmod suc b)
 
 private
-  divmod-unique′ : ∀ b q₁ q₂ r₁ r₂ → LessThan r₁ b → LessThan r₂ b → q₁ * b + r₁ ≡ q₂ * b + r₂ → q₁ ≡ q₂ × r₁ ≡ r₂
+  divmod-unique′ : ∀ b q₁ q₂ r₁ r₂ → r₁ < b → r₂ < b → q₁ * b + r₁ ≡ q₂ * b + r₂ → q₁ ≡ q₂ × r₁ ≡ r₂
   divmod-unique′ b zero zero r₁ r₂ lt₁ lt₂ eq = refl , eq
   divmod-unique′ b zero (suc q₂) .(q₂ * b + b + r₂) r₂ (diff k eq) lt₂ refl =
     ⊥-elim (0≠suc (k + q₂ * b + r₂) (follows-from eq))
@@ -165,5 +165,5 @@ instance
   ShowDivMod : ∀ {a b} → Show (DivMod a b)
   ShowDivMod {a} {b} =
     record { showsPrec = λ { p (qr q r _ _) →
-      showParen (p > 0) $ shows a ∘ showString " == "
-                        ∘ shows q ∘ showString " * " ∘ shows b ∘ showString " + " ∘ shows r } }
+      showParen (p >? 0) $ shows a ∘ showString " == "
+                         ∘ shows q ∘ showString " * " ∘ shows b ∘ showString " + " ∘ shows r } }

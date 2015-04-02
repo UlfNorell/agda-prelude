@@ -90,8 +90,8 @@ private
   padRight = pad (flip _&_)
 
   hexDigit : Char → Nat → String
-  hexDigit a n = if n < 10 then packString [ natToChar (n + charToNat '0') ]
-                           else packString [ natToChar (n - 10 + charToNat a) ]
+  hexDigit a n = if n <? 10 then packString [ natToChar (n + charToNat '0') ]
+                            else packString [ natToChar (n - 10 + charToNat a) ]
 
   {-# TERMINATING #-}
   showHex′ : Char → Nat → String

@@ -67,7 +67,7 @@ divides-trans (factor! q) (factor! q′) = factor (q′ * q) auto
 divides-zero : ∀ {a} → 0 Divides a → a ≡ 0
 divides-zero (factor! q) = auto
 
-divides-less : ∀ {a b} → NonZero b → a Divides b → a [≤] b
+divides-less : ∀ {a b} → NonZero b → a Divides b → a ≤ b
 divides-less () (factor! 0)
 divides-less _  (factor! (suc q)) = transport (LessNat _) auto (less-mul-r (suc q))
 
