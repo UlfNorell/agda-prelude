@@ -152,6 +152,9 @@ mutual
 unEl : Type → Term
 unEl (el _ v) = v
 
+absurd-lam : Term
+absurd-lam = pat-lam (absurd-clause (vArg absurd ∷ []) ∷ []) []
+
 {-# BUILTIN AGDASORT            Sort    #-}
 {-# BUILTIN AGDATYPE            Type    #-}
 {-# BUILTIN AGDATERM            Term    #-}
