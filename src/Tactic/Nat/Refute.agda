@@ -19,7 +19,8 @@ data Impossible : Set where
 invalidEquation : ⊤
 invalidEquation = _
 
-refutation : ∀ {a} {A : Set a} eq ρ → ¬ CancelEq eq ρ → ExpEq eq ρ → A
+refutation : ∀ {a} {A : Set a} {Atom : Set} {{_ : Eq Atom}} {{_ : Ord Atom}} eq (ρ : Env Atom) →
+               ¬ CancelEq eq ρ → ExpEq eq ρ → A
 refutation exp ρ !eq eq = ⊥-elim (!eq (complicateEq exp ρ eq))
 
 refute-tactic : Term → Term

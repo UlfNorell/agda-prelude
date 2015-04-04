@@ -36,17 +36,17 @@ pattern _`*_ x y = def (quote _*_) (vArg x ∷ vArg y ∷ [])
 pattern `0       = `zero
 pattern `1       = `suc `0
 
-fresh : Term → R Exp
+fresh : Term → R (Exp Var)
 fresh t =
   get >>= uncurry′ λ i Γ →
    var i <$ put (suc i , (t , i) ∷ Γ)
 
-⟨suc⟩ : Exp → Exp
+⟨suc⟩ : ∀ {X} → Exp X → Exp X
 ⟨suc⟩ (lit n) = lit (suc n)
 ⟨suc⟩ (lit n ⟨+⟩ e) = lit (suc n) ⟨+⟩ e
 ⟨suc⟩ e = lit 1 ⟨+⟩ e
 
-termToExpR : Term → R Exp
+termToExpR : Term → R (Exp Var)
 termToExpR (a `+ b) = _⟨+⟩_ <$> termToExpR a <*> termToExpR b
 termToExpR (a `* b) = _⟨*⟩_ <$> termToExpR a <*> termToExpR b
 termToExpR `0       = pure (lit 0)
@@ -63,24 +63,24 @@ private
   lower 0 = pure
   lower i = lift ∘ strengthen i
 
-termToEqR : Term → R (Exp × Exp)
+termToEqR : Term → R (Exp Var × Exp Var)
 termToEqR (lhs `≡ rhs) = _,_ <$> termToExpR lhs <*> termToExpR rhs
 termToEqR _ = fail
 
-termToHypsR′ : Nat → Term → R (List (Exp × Exp))
+termToHypsR′ : Nat → Term → R (List (Exp Var × Exp Var))
 termToHypsR′ i (hyp `-> a) = _∷_ <$> (termToEqR =<< lower i hyp) <*> termToHypsR′ (suc i) a
 termToHypsR′ i a = [_] <$> (termToEqR =<< lower i a)
 
-termToHypsR : Term → R (List (Exp × Exp))
+termToHypsR : Term → R (List (Exp Var × Exp Var))
 termToHypsR = termToHypsR′ 0
 
-termToHyps : Term → Maybe (List (Exp × Exp) × List Term)
+termToHyps : Term → Maybe (List (Exp Var × Exp Var) × List Term)
 termToHyps t = runR (termToHypsR t)
 
-termToEq : Term → Maybe ((Exp × Exp) × List Term)
+termToEq : Term → Maybe ((Exp Var × Exp Var) × List Term)
 termToEq t = runR (termToEqR t)
 
-buildEnv : List Nat → Env
+buildEnv : List Nat → Env Var
 buildEnv []        i      = 0
 buildEnv (x ∷ xs)  zero   = x
 buildEnv (x ∷ xs) (suc i) = buildEnv xs i
@@ -99,10 +99,10 @@ implicitArg = arg (arg-info hidden relevant)
 instanceArg = arg (arg-info instance′ relevant)
 
 instance
-  QuotableExp : Quotable Exp
-  QuotableExp = record { ` = quoteExp }
+  QuotableExp : {Atom : Set} {{_ : Quotable Atom}} → Quotable (Exp Atom)
+  QuotableExp {Atom} = record { ` = quoteExp }
     where
-      quoteExp : Exp → Term
+      quoteExp : Exp Atom → Term
       quoteExp (var x) = con (quote Exp.var) (vArg (` x) ∷ [])
       quoteExp (lit n) = con (quote Exp.lit) (vArg (` n) ∷ [])
       quoteExp (e ⟨+⟩ e₁) = con (quote _⟨+⟩_) (map defaultArg $ quoteExp e ∷ quoteExp e₁ ∷ [])

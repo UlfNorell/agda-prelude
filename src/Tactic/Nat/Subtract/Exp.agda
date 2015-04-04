@@ -13,14 +13,14 @@ data SubExp : Set where
   lit : (n : Nat) → SubExp
   _⟨+⟩_ _⟨-⟩_ _⟨*⟩_ : (a b : SubExp) → SubExp
 
-⟦_⟧se : SubExp → Env → Nat
+⟦_⟧se : SubExp → Env Var → Nat
 ⟦ var x ⟧se    ρ = ρ x
 ⟦ lit n ⟧se    ρ = n
 ⟦ e₁ ⟨+⟩ e₂ ⟧se ρ = ⟦ e₁ ⟧se ρ + ⟦ e₂ ⟧se ρ
 ⟦ e₁ ⟨-⟩ e₂ ⟧se ρ = ⟦ e₁ ⟧se ρ - ⟦ e₂ ⟧se ρ
 ⟦ e₁ ⟨*⟩ e₂ ⟧se ρ = ⟦ e₁ ⟧se ρ * ⟦ e₂ ⟧se ρ
 
-_-nf_ : NF → NF → Maybe NF
+_-nf_ : ∀ {Atom} {{_ : Ord Atom}} → NF Atom → NF Atom → Maybe (NF Atom)
 a -nf b =
   case cancel a b of λ
   { (x  , []) → just x
@@ -28,7 +28,7 @@ a -nf b =
   ; (_  ,  _) → nothing }
 
 -- Only succeeds if all subtractions cancel out.
-normSub : SubExp → Maybe NF
+normSub : SubExp → Maybe (NF Var)
 normSub (var x) = just [ 1 , [ x ] ]
 normSub (lit 0) = just []
 normSub (lit n) = just [ n , [] ]

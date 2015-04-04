@@ -16,34 +16,35 @@ open import Tactic.Nat.Simpl.Lemmas
 use : ∀ {a b} {A : Set a} {B : Set b} → A → (A → B) → B
 use x f = f x
 
-ExpEq : Exp × Exp → Env → Set
-ExpEq (e₁ , e₂) ρ = ⟦ e₁ ⟧e ρ ≡ ⟦ e₂ ⟧e ρ
+module _ {Atom : Set} {{_ : Eq Atom}} {{_ : Ord Atom}} where
+  ExpEq : Exp Atom × Exp Atom → Env Atom → Set
+  ExpEq (e₁ , e₂) ρ = ⟦ e₁ ⟧e ρ ≡ ⟦ e₂ ⟧e ρ
 
-CancelEq : Exp × Exp → Env → Set
-CancelEq (e₁ , e₂) ρ = NFEqS (cancel (norm e₁) (norm e₂)) ρ
+  CancelEq : Exp Atom × Exp Atom → Env Atom → Set
+  CancelEq (e₁ , e₂) ρ = NFEqS (cancel (norm e₁) (norm e₂)) ρ
 
-⟦_⟧h : List (Exp × Exp) → Env → Set
-⟦ [] ⟧h ρ = ⊥
-⟦ h ∷ [] ⟧h ρ = ExpEq h ρ
-⟦ h ∷ g  ⟧h ρ = ExpEq h ρ → ⟦ g ⟧h ρ
+  ⟦_⟧h : List (Exp Atom × Exp Atom) → Env Atom → Set
+  ⟦ [] ⟧h ρ = ⊥
+  ⟦ h ∷ [] ⟧h ρ = ExpEq h ρ
+  ⟦ h ∷ g  ⟧h ρ = ExpEq h ρ → ⟦ g ⟧h ρ
 
-⟦_⟧hs : List (Exp × Exp) → Env → Set
-⟦ [] ⟧hs ρ = ⊥
-⟦ h ∷ [] ⟧hs ρ = CancelEq h ρ
-⟦ h ∷ g  ⟧hs ρ = CancelEq h ρ → ⟦ g ⟧hs ρ
+  ⟦_⟧hs : List (Exp Atom × Exp Atom) → Env Atom → Set
+  ⟦ [] ⟧hs ρ = ⊥
+  ⟦ h ∷ [] ⟧hs ρ = CancelEq h ρ
+  ⟦ h ∷ g  ⟧hs ρ = CancelEq h ρ → ⟦ g ⟧hs ρ
 
-simplifyEq : ∀ eq ρ → CancelEq eq ρ → ExpEq eq ρ
-simplifyEq (e₁ , e₂) ρ H = liftNFEq e₁ e₂ ρ (cancel-sound (norm e₁) (norm e₂) ρ H)
+  simplifyEq : ∀ eq (ρ : Env Atom) → CancelEq eq ρ → ExpEq eq ρ
+  simplifyEq (e₁ , e₂) ρ H = liftNFEq e₁ e₂ ρ (cancel-sound (norm e₁) (norm e₂) ρ H)
 
-complicateEq : ∀ eq ρ → ExpEq eq ρ → CancelEq eq ρ
-complicateEq (e₁ , e₂) ρ H =
-  cancel-complete (norm e₁) (norm e₂) ρ
-  (unliftNFEq e₁ e₂ ρ H)
+  complicateEq : ∀ eq ρ → ExpEq eq ρ → CancelEq eq ρ
+  complicateEq (e₁ , e₂) ρ H =
+    cancel-complete (norm e₁) (norm e₂) ρ
+    (unliftNFEq e₁ e₂ ρ H)
 
-simplifyH : ∀ goal ρ → ⟦ goal ⟧hs ρ → ⟦ goal ⟧h ρ
-simplifyH []            ρ ()
-simplifyH (h ∷ [])     ρ H = simplifyEq h ρ H
-simplifyH (h ∷ h₂ ∷ g) ρ H = λ H₁ → simplifyH (h₂ ∷ g) ρ $ H (complicateEq h ρ H₁)
+  simplifyH : ∀ goal ρ → ⟦ goal ⟧hs ρ → ⟦ goal ⟧h ρ
+  simplifyH []            ρ ()
+  simplifyH (h ∷ [])     ρ H = simplifyEq h ρ H
+  simplifyH (h ∷ h₂ ∷ g) ρ H = λ H₁ → simplifyH (h₂ ∷ g) ρ $ H (complicateEq h ρ H₁)
 
 simplify-tactic : Term → Term
 simplify-tactic t =

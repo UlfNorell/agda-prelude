@@ -13,24 +13,25 @@ open import Tactic.Nat.Auto.Lemmas
 
 open Tactic.Nat.Reflect public using (cantProve; invalidGoal)
 
-liftNFEq : ∀ e₁ e₂ ρ → ⟦ norm e₁ ⟧n ρ ≡ ⟦ norm e₂ ⟧n ρ → ⟦ e₁ ⟧e ρ ≡ ⟦ e₂ ⟧e ρ
-liftNFEq e₁ e₂ ρ H = eraseEquality $
-  ⟦ e₁      ⟧e ρ ≡⟨ sound e₁ ρ ⟩
-  ⟦ norm e₁ ⟧n ρ ≡⟨ H ⟩
-  ⟦ norm e₂ ⟧n ρ ≡⟨ sound e₂ ρ ⟩ʳ
-  ⟦ e₂      ⟧e ρ ∎
+module _ {Atom : Set} {{_ : Eq Atom}} {{_ : Ord Atom}} where
+  liftNFEq : ∀ (e₁ : Exp Atom) e₂ ρ → ⟦ norm e₁ ⟧n ρ ≡ ⟦ norm e₂ ⟧n ρ → ⟦ e₁ ⟧e ρ ≡ ⟦ e₂ ⟧e ρ
+  liftNFEq e₁ e₂ ρ H = eraseEquality $
+    ⟦ e₁      ⟧e ρ ≡⟨ sound e₁ ρ ⟩
+    ⟦ norm e₁ ⟧n ρ ≡⟨ H ⟩
+    ⟦ norm e₂ ⟧n ρ ≡⟨ sound e₂ ρ ⟩ʳ
+    ⟦ e₂      ⟧e ρ ∎
 
-unliftNFEq : ∀ e₁ e₂ ρ → ⟦ e₁ ⟧e ρ ≡ ⟦ e₂ ⟧e ρ → ⟦ norm e₁ ⟧n ρ ≡ ⟦ norm e₂ ⟧n ρ
-unliftNFEq e₁ e₂ ρ H =
-  ⟦ norm e₁ ⟧n ρ ≡⟨ sound e₁ ρ ⟩ʳ
-  ⟦ e₁      ⟧e ρ ≡⟨ H ⟩
-  ⟦ e₂      ⟧e ρ ≡⟨ sound e₂ ρ ⟩
-  ⟦ norm e₂ ⟧n ρ ∎
+  unliftNFEq : ∀ (e₁ : Exp Atom) e₂ ρ → ⟦ e₁ ⟧e ρ ≡ ⟦ e₂ ⟧e ρ → ⟦ norm e₁ ⟧n ρ ≡ ⟦ norm e₂ ⟧n ρ
+  unliftNFEq e₁ e₂ ρ H =
+    ⟦ norm e₁ ⟧n ρ ≡⟨ sound e₁ ρ ⟩ʳ
+    ⟦ e₁      ⟧e ρ ≡⟨ H ⟩
+    ⟦ e₂      ⟧e ρ ≡⟨ sound e₂ ρ ⟩
+    ⟦ norm e₂ ⟧n ρ ∎
 
-auto-proof : ∀ e₁ e₂ ρ → Maybe (⟦ e₁ ⟧e ρ ≡ ⟦ e₂ ⟧e ρ)
-auto-proof e₁ e₂ ρ with norm e₁ == norm e₂
-auto-proof e₁ e₂ ρ    | no  _    = nothing
-auto-proof e₁ e₂ ρ    | yes nfeq = just (liftNFEq e₁ e₂ ρ (cong (λ n → ⟦ n ⟧n ρ) nfeq))
+  auto-proof : ∀ e₁ e₂ ρ → Maybe (⟦ e₁ ⟧e ρ ≡ ⟦ e₂ ⟧e ρ)
+  auto-proof e₁ e₂ ρ with norm e₁ == norm e₂
+  auto-proof e₁ e₂ ρ    | no  _    = nothing
+  auto-proof e₁ e₂ ρ    | yes nfeq = just (liftNFEq e₁ e₂ ρ (cong (λ n → ⟦ n ⟧n ρ) nfeq))
 
 auto-tactic : Term → Term
 auto-tactic t =

@@ -5,17 +5,17 @@ open import Prelude
 
 Var = Nat
 
-Env : Set
-Env = Var → Nat
+Env : Set → Set
+Env Atom = Atom → Nat
 
 infixl 6 _⟨+⟩_
 infixl 7 _⟨*⟩_
-data Exp : Set where
-  var : Var → Exp
-  lit : Nat → Exp
-  _⟨+⟩_ _⟨*⟩_ : Exp → Exp → Exp
+data Exp (Atom : Set) : Set where
+  var : (x : Atom) → Exp Atom
+  lit : (n : Nat) → Exp Atom
+  _⟨+⟩_ _⟨*⟩_ : (e e₁ : Exp Atom) → Exp Atom
 
-⟦_⟧e : Exp → Env → Nat
+⟦_⟧e : ∀ {Atom} → Exp Atom → Env Atom → Nat
 ⟦ var x ⟧e   ρ = ρ x
 ⟦ lit n ⟧e   ρ = n
 ⟦ e₁ ⟨+⟩ e₂ ⟧e ρ = ⟦ e₁ ⟧e ρ + ⟦ e₂ ⟧e ρ

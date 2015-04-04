@@ -25,7 +25,7 @@ private
   lem-zero-sub  zero   ._ (suc c) refl = refl
   lem-zero-sub (suc a) ._  c      refl = lem-zero-sub a _ c refl
 
-SoundSub : ∀ e (ρ : Env) → Set
+SoundSub : ∀ e (ρ : Env Var) → Set
 SoundSub e ρ with normSub e
 ... | nothing = ⊤
 ... | just nf = ⟦ e ⟧se ρ ≡ ⟦ nf ⟧n ρ

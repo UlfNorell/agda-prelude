@@ -20,7 +20,7 @@ open import Tactic.Nat.Subtract.Exp
 open import Tactic.Nat.Subtract.Reflect
 open import Tactic.Nat.Subtract.Lemmas
 
-NormEq : Maybe NF → Maybe NF → Env → Set
+NormEq : Maybe (NF Var) → Maybe (NF Var) → Env Var → Set
 NormEq nothing _ _ = ⊥
 NormEq _ nothing _ = ⊥
 NormEq (just n) (just n₁) ρ = ⟦ n ⟧n ρ ≡ ⟦ n₁ ⟧n ρ

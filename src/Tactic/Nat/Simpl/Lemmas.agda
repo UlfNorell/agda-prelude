@@ -10,12 +10,6 @@ open import Data.Nat.Properties.Core
 open import Data.List.Properties
 open import Tactic.Nat.Auto.Lemmas
 
-NFEqS : NF × NF → Env → Set
-NFEqS (nf₁ , nf₂) ρ = ⟦ nf₁ ⟧ns ρ ≡ ⟦ nf₂ ⟧ns ρ
-
-NFEq : NF × NF → Env → Set
-NFEq (nf₁ , nf₂) ρ = ⟦ nf₁ ⟧n ρ ≡ ⟦ nf₂ ⟧n ρ
-
 product1-sound : ∀ xs → product1 xs ≡ product xs
 product1-sound [] = refl
 product1-sound (x ∷ xs)
@@ -24,33 +18,10 @@ product1-sound (x ∷ xs)
         | foldl-foldr _*_ 1 mul-assoc (λ _ → refl) mul-1-r xs
         = refl
 
-ts-sound : ∀ x ρ → ⟦ x ⟧ts ρ ≡ ⟦ x ⟧t ρ
-ts-sound (0 , x) ρ = mul-0-r (product1 (map ρ x))
-ts-sound (1 , x) ρ = product1-sound (map ρ x)
-ts-sound (suc (suc i) , x) ρ
-  rewrite sym (product1-sound (map ρ x))
-        = auto
-
 map-eq : ∀ {c b} {A : Set c} {B : Set b} (f g : A → B) →
            (∀ x → f x ≡ g x) → ∀ xs → map f xs ≡ map g xs
 map-eq f g f=g [] = refl
 map-eq f g f=g (x ∷ xs) rewrite f=g x | map-eq f g f=g xs = refl
-
-private
-  et  = flip ⟦_⟧t
-  ets = flip ⟦_⟧ts
-  plus-nf = λ a ρ xs → a + ⟦ xs ⟧n ρ
-
-ns-sound : ∀ nf ρ → ⟦ nf ⟧ns ρ ≡ ⟦ nf ⟧n ρ
-ns-sound [] ρ = refl
-ns-sound (x ∷ nf) ρ
-  rewrite sym (foldl-map-fusion _+_ (ets ρ) (ets ρ x) nf)
-        | ts-sound x ρ
-        | map-eq (ets ρ) (et ρ) (flip ts-sound ρ) nf
-        | sym (foldl-foldr _+_ 0 add-assoc (λ _ → refl) add-0-r (map (et ρ) nf))
-        | sym (foldl-assoc _+_ add-assoc (et ρ x) 0 (map (et ρ) nf))
-        | add-0-r (et ρ x)
-        = refl
 
 fst-*** : ∀ {a b} {A₁ A₂ : Set a} {B₁ B₂ : Set b}
             (f : A₁ → B₁) (g : A₂ → B₂) (p : A₁ × A₂) →
@@ -69,108 +40,144 @@ private
   shuffle₁ : ∀ a b c → a + (b + c) ≡ b + (a + c)
   shuffle₁ a b c = auto
 
-private
-  lem-sound : ∀ a b ρ f g (xs : NF × NF) →
-          a + ⟦ fst ((f *** g) xs) ⟧n ρ ≡ b + ⟦ snd ((f *** g) xs) ⟧n ρ →
-          a + ⟦ f (fst xs) ⟧n ρ         ≡ b + ⟦ g (snd xs) ⟧n ρ
-  lem-sound a b ρ f g xs H =
-    cong (plus-nf a ρ) (fst-*** f g xs)
-    ʳ⟨≡⟩ H
-     ⟨≡⟩ cong (plus-nf b ρ) (snd-*** f g xs)
-
-cancel-sound′ : ∀ a b nf₁ nf₂ ρ →
-                  a + ⟦ fst (cancel nf₁ nf₂) ⟧n ρ ≡ b + ⟦ snd (cancel nf₁ nf₂) ⟧n ρ →
-                  a + ⟦ nf₁ ⟧n ρ ≡ b + ⟦ nf₂ ⟧n ρ
-cancel-sound′ a b [] []        ρ H = H
-cancel-sound′ a b [] (x ∷ nf₂) ρ H = H
-cancel-sound′ a b (x ∷ nf₁) [] ρ H = H
-cancel-sound′ a b ((i , x) ∷ nf₁) ((j , y) ∷ nf₂) ρ H
-  with compare x y
-... | less _ = add-assoc a _ _ ⟨≡⟩ cancel-sound′ (a + et ρ (i , x)) b nf₁ ((j , y) ∷ nf₂) ρ
-                 (add-assoc a _ _ ʳ⟨≡⟩ lem-sound a b ρ (_∷_ (i , x)) id (cancel nf₁ ((j , y) ∷ nf₂)) H)
-... | greater _ =
-        cancel-sound′ a (b + et ρ (j , y)) ((i , x) ∷ nf₁) nf₂ ρ
-          (lem-sound a b ρ id (_∷_ (j , y)) (cancel ((i , x) ∷ nf₁) nf₂) H ⟨≡⟩ add-assoc b _ _)
-        ⟨≡⟩ʳ add-assoc b _ _
-cancel-sound′ a b ((i , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl
-  with compare i j
-cancel-sound′ a b ((i , x) ∷ nf₁) ((.(suc k + i) , .x) ∷ nf₂) ρ H | equal refl | less (diff! k) =
-  shuffle₁ a (et ρ (i , x)) _
-  ⟨≡⟩ cong (et ρ (i , x) +_) (cancel-sound′ a (b + et ρ (suc k , x)) nf₁ nf₂ ρ
-        (lem-sound a b ρ id (_∷_ (suc k , x)) (cancel nf₁ nf₂) H ⟨≡⟩ add-assoc b _ _))
-  ⟨≡⟩ auto
-cancel-sound′ a b ((.(suc k + j) , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl | greater (diff! k) =
-  sym (shuffle₁ b (et ρ (j , x)) _
-       ⟨≡⟩ cong (et ρ (j , x) +_) (sym (cancel-sound′ (a + et ρ (suc k , x)) b nf₁ nf₂ ρ
-             (add-assoc a _ _ ʳ⟨≡⟩ lem-sound a b ρ (_∷_ (suc k , x)) id (cancel nf₁ nf₂) H)))
-       ⟨≡⟩ auto)
-cancel-sound′ a b ((i , x) ∷ nf₁) ((.i , .x) ∷ nf₂) ρ H | equal refl | equal refl =
-  shuffle₁ a (et ρ (i , x)) _
-  ⟨≡⟩ cong (et ρ (i , x) +_) (cancel-sound′ a b nf₁ nf₂ ρ H)
-  ⟨≡⟩ shuffle₁ (et ρ (i , x)) b _
-
-cancel-sound : ∀ nf₁ nf₂ ρ → NFEqS (cancel nf₁ nf₂) ρ → NFEq (nf₁ , nf₂) ρ
-cancel-sound nf₁ nf₂ ρ H rewrite cong (λ p → NFEqS p ρ) (eta (cancel nf₁ nf₂)) =
-  (cancel-sound′ 0 0 nf₁ nf₂ ρ
-    (ns-sound (fst (cancel nf₁ nf₂)) ρ
-       ʳ⟨≡⟩ H ⟨≡⟩
-     ns-sound (snd (cancel nf₁ nf₂)) ρ))
-
-private
-  prod : Env → List Nat → Nat
-  prod ρ x = product (map ρ x)
-
-private
-  lem-complete : ∀ a b ρ f g (xs : NF × NF) →
-          a + ⟦ f (fst xs) ⟧n ρ         ≡ b + ⟦ g (snd xs) ⟧n ρ →
-          a + ⟦ fst ((f *** g) xs) ⟧n ρ ≡ b + ⟦ snd ((f *** g) xs) ⟧n ρ
-  lem-complete a b ρ f g xs H =
-    cong (plus-nf a ρ) (fst-*** f g xs)
-     ⟨≡⟩  H
-     ⟨≡⟩ʳ cong (plus-nf b ρ) (snd-*** f g xs)
-
   arith₁ : ∀ b k i x y → b + ((k + i) * x + x + y) ≡ i * x + (b + (k * x + x) + y)
   arith₁ b k i x y = auto
 
-cancel-complete′ : ∀ a b nf₁ nf₂ ρ →
-                     a + ⟦ nf₁ ⟧n ρ ≡ b + ⟦ nf₂ ⟧n ρ →
-                     a + ⟦ fst (cancel nf₁ nf₂) ⟧n ρ ≡ b + ⟦ snd (cancel nf₁ nf₂) ⟧n ρ
-cancel-complete′ a b [] [] ρ H = H
-cancel-complete′ a b [] (x ∷ nf₂) ρ H = H
-cancel-complete′ a b (x ∷ nf₁) [] ρ H = H
-cancel-complete′ a b ((i , x) ∷ nf₁) ((j , y) ∷ nf₂) ρ H with compare x y
-... | less lt =
-  lem-complete a b ρ (_∷_ (i , x)) id (cancel nf₁ ((j , y) ∷ nf₂))
-    (add-assoc a _ _
-     ⟨≡⟩ cancel-complete′ (a + et ρ (i , x)) b nf₁ ((j , y) ∷ nf₂) ρ
-           (add-assoc a _ _ ʳ⟨≡⟩ H))
-... | greater _ =
-  lem-complete a b ρ id (_∷_ (j , y)) (cancel ((i , x) ∷ nf₁) nf₂)
-    (cancel-complete′ a (b + et ρ (j , y)) ((i , x) ∷ nf₁) nf₂ ρ
-      (H ⟨≡⟩ add-assoc b _ _)
-     ⟨≡⟩ʳ add-assoc b _ _)
-cancel-complete′ a b ((i , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl with compare i j
-cancel-complete′ a b ((i , x) ∷ nf₁) ((.(suc (k + i)) , .x) ∷ nf₂) ρ H | equal refl | less (diff! k) =
-  lem-complete a b ρ id (_∷_ (suc k , x)) (cancel nf₁ nf₂)
-    (cancel-complete′ a (b + suc k * prod ρ x) nf₁ nf₂ ρ
-      (add-inj₂ (i * prod ρ x) _ _
-        (shuffle₁ (i * prod ρ x) a _
-          ⟨≡⟩ H ⟨≡⟩ arith₁ b k i _ _))
-    ⟨≡⟩ʳ add-assoc b _ _)
-cancel-complete′ a b ((.(suc (k + j)) , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl | greater (diff! k) =
-  lem-complete a b ρ (_∷_ (suc k , x)) id (cancel nf₁ nf₂)
-    (add-assoc a _ _ ⟨≡⟩
-     cancel-complete′ (a + suc k * prod ρ x) b nf₁ nf₂ ρ
-       (add-inj₂ (j * prod ρ x) _ _
-         (sym (shuffle₁ (j * prod ρ x) b _ ⟨≡⟩ʳ
-               arith₁ a k j _ _ ʳ⟨≡⟩ H))))
-cancel-complete′ a b ((i , x) ∷ nf₁) ((.i , .x) ∷ nf₂) ρ H | equal refl | equal refl =
-  cancel-complete′ a b nf₁ nf₂ ρ
-    (add-inj₂ (i * prod ρ x) _ _
-      (shuffle₁ a (i * prod ρ x) _ ʳ⟨≡⟩ H ⟨≡⟩ shuffle₁ b (i * prod ρ x) _))
+module _ {Atom : Set} {{_ : Ord Atom}} where
 
-cancel-complete : ∀ nf₁ nf₂ ρ → NFEq (nf₁ , nf₂) ρ → NFEqS (cancel nf₁ nf₂) ρ
-cancel-complete nf₁ nf₂ ρ H rewrite cong (λ p → NFEqS p ρ) (eta (cancel nf₁ nf₂)) =
-       ns-sound (fst (cancel nf₁ nf₂)) ρ
-  ⟨≡⟩  cancel-complete′ 0 0 nf₁ nf₂ ρ H
-  ⟨≡⟩ʳ ns-sound (snd (cancel nf₁ nf₂)) ρ
+  NFEqS : NF Atom × NF Atom → Env Atom → Set
+  NFEqS (nf₁ , nf₂) ρ = ⟦ nf₁ ⟧ns ρ ≡ ⟦ nf₂ ⟧ns ρ
+
+  NFEq : NF Atom × NF Atom → Env Atom → Set
+  NFEq (nf₁ , nf₂) ρ = ⟦ nf₁ ⟧n ρ ≡ ⟦ nf₂ ⟧n ρ
+
+  ts-sound : ∀ x (ρ : Env Atom) → ⟦ x ⟧ts ρ ≡ ⟦ x ⟧t ρ
+  ts-sound (0 , x) ρ = mul-0-r (product1 (map ρ x))
+  ts-sound (1 , x) ρ = product1-sound (map ρ x)
+  ts-sound (suc (suc i) , x) ρ
+    rewrite sym (product1-sound (map ρ x))
+          = auto
+
+  private
+    et : Env Atom → Nat × Tm Atom → Nat
+    et  = flip ⟦_⟧t
+
+    ets : Env Atom → Nat × Tm Atom → Nat
+    ets = flip ⟦_⟧ts
+
+    plus-nf : Nat → Env Atom → NF Atom → Nat
+    plus-nf = λ a ρ xs → a + ⟦ xs ⟧n ρ
+
+  ns-sound : ∀ nf (ρ : Env Atom) → ⟦ nf ⟧ns ρ ≡ ⟦ nf ⟧n ρ
+  ns-sound [] ρ = refl
+  ns-sound (x ∷ nf) ρ
+    rewrite sym (foldl-map-fusion _+_ (ets ρ) (ets ρ x) nf)
+          | ts-sound x ρ
+          | map-eq (ets ρ) (et ρ) (flip ts-sound ρ) nf
+          | sym (foldl-foldr _+_ 0 add-assoc (λ _ → refl) add-0-r (map (et ρ) nf))
+          | sym (foldl-assoc _+_ add-assoc (et ρ x) 0 (map (et ρ) nf))
+          | add-0-r (et ρ x)
+          = refl
+
+  private
+    lem-sound : ∀ a b ρ f g (xs : NF Atom × NF Atom) →
+            a + ⟦ fst ((f *** g) xs) ⟧n ρ ≡ b + ⟦ snd ((f *** g) xs) ⟧n ρ →
+            a + ⟦ f (fst xs) ⟧n ρ         ≡ b + ⟦ g (snd xs) ⟧n ρ
+    lem-sound a b ρ f g xs H =
+      cong (plus-nf a ρ) (fst-*** f g xs)
+      ʳ⟨≡⟩ H
+       ⟨≡⟩ cong (plus-nf b ρ) (snd-*** f g xs)
+
+  cancel-sound′ : ∀ a b nf₁ nf₂ (ρ : Env Atom) →
+                    a + ⟦ fst (cancel nf₁ nf₂) ⟧n ρ ≡ b + ⟦ snd (cancel nf₁ nf₂) ⟧n ρ →
+                    a + ⟦ nf₁ ⟧n ρ ≡ b + ⟦ nf₂ ⟧n ρ
+  cancel-sound′ a b [] []        ρ H = H
+  cancel-sound′ a b [] (x ∷ nf₂) ρ H = H
+  cancel-sound′ a b (x ∷ nf₁) [] ρ H = H
+  cancel-sound′ a b ((i , x) ∷ nf₁) ((j , y) ∷ nf₂) ρ H
+    with compare x y
+  ... | less _ = add-assoc a _ _ ⟨≡⟩ cancel-sound′ (a + et ρ (i , x)) b nf₁ ((j , y) ∷ nf₂) ρ
+                   (add-assoc a _ _ ʳ⟨≡⟩ lem-sound a b ρ (_∷_ (i , x)) id (cancel nf₁ ((j , y) ∷ nf₂)) H)
+  ... | greater _ =
+          cancel-sound′ a (b + et ρ (j , y)) ((i , x) ∷ nf₁) nf₂ ρ
+            (lem-sound a b ρ id (_∷_ (j , y)) (cancel ((i , x) ∷ nf₁) nf₂) H ⟨≡⟩ add-assoc b _ _)
+          ⟨≡⟩ʳ add-assoc b _ _
+  cancel-sound′ a b ((i , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl
+    with compare i j
+  cancel-sound′ a b ((i , x) ∷ nf₁) ((.(suc k + i) , .x) ∷ nf₂) ρ H | equal refl | less (diff! k) =
+    shuffle₁ a (et ρ (i , x)) _
+    ⟨≡⟩ cong (et ρ (i , x) +_) (cancel-sound′ a (b + et ρ (suc k , x)) nf₁ nf₂ ρ
+          (lem-sound a b ρ id (_∷_ (suc k , x)) (cancel nf₁ nf₂) H ⟨≡⟩ add-assoc b _ _))
+    ⟨≡⟩ auto
+  cancel-sound′ a b ((.(suc k + j) , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl | greater (diff! k) =
+    sym (shuffle₁ b (et ρ (j , x)) _
+         ⟨≡⟩ cong (et ρ (j , x) +_) (sym (cancel-sound′ (a + et ρ (suc k , x)) b nf₁ nf₂ ρ
+               (add-assoc a _ _ ʳ⟨≡⟩ lem-sound a b ρ (_∷_ (suc k , x)) id (cancel nf₁ nf₂) H)))
+         ⟨≡⟩ auto)
+  cancel-sound′ a b ((i , x) ∷ nf₁) ((.i , .x) ∷ nf₂) ρ H | equal refl | equal refl =
+    shuffle₁ a (et ρ (i , x)) _
+    ⟨≡⟩ cong (et ρ (i , x) +_) (cancel-sound′ a b nf₁ nf₂ ρ H)
+    ⟨≡⟩ shuffle₁ (et ρ (i , x)) b _
+
+  cancel-sound : ∀ nf₁ nf₂ ρ → NFEqS (cancel nf₁ nf₂) ρ → NFEq (nf₁ , nf₂) ρ
+  cancel-sound nf₁ nf₂ ρ H rewrite cong (λ p → NFEqS p ρ) (eta (cancel nf₁ nf₂)) =
+    (cancel-sound′ 0 0 nf₁ nf₂ ρ
+      (ns-sound (fst (cancel nf₁ nf₂)) ρ
+         ʳ⟨≡⟩ H ⟨≡⟩
+       ns-sound (snd (cancel nf₁ nf₂)) ρ))
+
+  private
+    prod : Env Atom → List Atom → Nat
+    prod ρ x = product (map ρ x)
+
+  private
+    lem-complete : ∀ a b ρ f g (xs : NF Atom × NF Atom) →
+            a + ⟦ f (fst xs) ⟧n ρ         ≡ b + ⟦ g (snd xs) ⟧n ρ →
+            a + ⟦ fst ((f *** g) xs) ⟧n ρ ≡ b + ⟦ snd ((f *** g) xs) ⟧n ρ
+    lem-complete a b ρ f g xs H =
+      cong (plus-nf a ρ) (fst-*** f g xs)
+       ⟨≡⟩  H
+       ⟨≡⟩ʳ cong (plus-nf b ρ) (snd-*** f g xs)
+
+  cancel-complete′ : ∀ a b nf₁ nf₂ (ρ : Env Atom) →
+                       a + ⟦ nf₁ ⟧n ρ ≡ b + ⟦ nf₂ ⟧n ρ →
+                       a + ⟦ fst (cancel nf₁ nf₂) ⟧n ρ ≡ b + ⟦ snd (cancel nf₁ nf₂) ⟧n ρ
+  cancel-complete′ a b [] [] ρ H = H
+  cancel-complete′ a b [] (x ∷ nf₂) ρ H = H
+  cancel-complete′ a b (x ∷ nf₁) [] ρ H = H
+  cancel-complete′ a b ((i , x) ∷ nf₁) ((j , y) ∷ nf₂) ρ H with compare x y
+  ... | less lt =
+    lem-complete a b ρ (_∷_ (i , x)) id (cancel nf₁ ((j , y) ∷ nf₂))
+      (add-assoc a _ _
+       ⟨≡⟩ cancel-complete′ (a + et ρ (i , x)) b nf₁ ((j , y) ∷ nf₂) ρ
+             (add-assoc a _ _ ʳ⟨≡⟩ H))
+  ... | greater _ =
+    lem-complete a b ρ id (_∷_ (j , y)) (cancel ((i , x) ∷ nf₁) nf₂)
+      (cancel-complete′ a (b + et ρ (j , y)) ((i , x) ∷ nf₁) nf₂ ρ
+        (H ⟨≡⟩ add-assoc b _ _)
+       ⟨≡⟩ʳ add-assoc b _ _)
+  cancel-complete′ a b ((i , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl with compare i j
+  cancel-complete′ a b ((i , x) ∷ nf₁) ((.(suc (k + i)) , .x) ∷ nf₂) ρ H | equal refl | less (diff! k) =
+    lem-complete a b ρ id (_∷_ (suc k , x)) (cancel nf₁ nf₂)
+      (cancel-complete′ a (b + suc k * prod ρ x) nf₁ nf₂ ρ
+        (add-inj₂ (i * prod ρ x) _ _
+          (shuffle₁ (i * prod ρ x) a _
+            ⟨≡⟩ H ⟨≡⟩ arith₁ b k i _ _))
+      ⟨≡⟩ʳ add-assoc b _ _)
+  cancel-complete′ a b ((.(suc (k + j)) , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl | greater (diff! k) =
+    lem-complete a b ρ (_∷_ (suc k , x)) id (cancel nf₁ nf₂)
+      (add-assoc a _ _ ⟨≡⟩
+       cancel-complete′ (a + suc k * prod ρ x) b nf₁ nf₂ ρ
+         (add-inj₂ (j * prod ρ x) _ _
+           (sym (shuffle₁ (j * prod ρ x) b _ ⟨≡⟩ʳ
+                 arith₁ a k j _ _ ʳ⟨≡⟩ H))))
+  cancel-complete′ a b ((i , x) ∷ nf₁) ((.i , .x) ∷ nf₂) ρ H | equal refl | equal refl =
+    cancel-complete′ a b nf₁ nf₂ ρ
+      (add-inj₂ (i * prod ρ x) _ _
+        (shuffle₁ a (i * prod ρ x) _ ʳ⟨≡⟩ H ⟨≡⟩ shuffle₁ b (i * prod ρ x) _))
+
+  cancel-complete : ∀ nf₁ nf₂ ρ → NFEq (nf₁ , nf₂) ρ → NFEqS (cancel nf₁ nf₂) ρ
+  cancel-complete nf₁ nf₂ ρ H rewrite cong (λ p → NFEqS p ρ) (eta (cancel nf₁ nf₂)) =
+         ns-sound (fst (cancel nf₁ nf₂)) ρ
+    ⟨≡⟩  cancel-complete′ 0 0 nf₁ nf₂ ρ H
+    ⟨≡⟩ʳ ns-sound (snd (cancel nf₁ nf₂)) ρ
