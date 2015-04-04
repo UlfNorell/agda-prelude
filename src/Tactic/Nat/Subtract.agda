@@ -20,28 +20,14 @@ open import Tactic.Nat.Subtract.Exp
 open import Tactic.Nat.Subtract.Reflect
 open import Tactic.Nat.Subtract.Lemmas
 
-NormEq : Maybe (NF Var) → Maybe (NF Var) → Env Var → Set
-NormEq nothing _ _ = ⊥
-NormEq _ nothing _ = ⊥
-NormEq (just n) (just n₁) ρ = ⟦ n ⟧n ρ ≡ ⟦ n₁ ⟧n ρ
-
 private
-  liftSubNFEq′ : ∀ e₁ e₂ ρ → NormEq (normSub e₁) (normSub e₂) ρ → ⟦ e₁ ⟧se ρ ≡ ⟦ e₂ ⟧se ρ
-  liftSubNFEq′ e₁ e₂ ρ nfEq with normSub e₁ | normSub e₂ | sound-sub e₁ ρ | sound-sub e₂ ρ
-  ... | nothing | _       | sound₁ | sound₂ = ⊥-elim nfEq
-  ... | just _  | nothing | sound₁ | sound₂ = ⊥-elim nfEq
-  ... | just n₁ | just n₂ | sound₁ | sound₂ = sound₁ ⟨≡⟩ nfEq ⟨≡⟩ʳ sound₂
-
-liftSubNFEq : ∀ e₁ e₂ ρ → NormEq (normSub e₁) (normSub e₂) ρ → ⟦ e₁ ⟧se ρ ≡ ⟦ e₂ ⟧se ρ
-liftSubNFEq e₁ e₂ ρ normEq = eraseEquality $ liftSubNFEq′ e₁ e₂ ρ normEq
+  liftNFSubEq : ∀ e₁ e₂ ρ → ⟦ normSub e₁ ⟧sn ρ ≡ ⟦ normSub e₂ ⟧sn ρ → ⟦ e₁ ⟧se ρ ≡ ⟦ e₂ ⟧se ρ
+  liftNFSubEq e₁ e₂ ρ eq = eraseEquality $ sound-sub e₁ ρ ⟨≡⟩ eq ⟨≡⟩ʳ sound-sub e₂ ρ
 
 autosub-proof : ∀ e₁ e₂ ρ → Maybe (⟦ e₁ ⟧se ρ ≡ ⟦ e₂ ⟧se ρ)
-autosub-proof e₁ e₂ ρ with normSub e₁ | normSub e₂ | liftSubNFEq e₁ e₂
-autosub-proof e₁ e₂ ρ | nothing | _       | _  = nothing
-autosub-proof e₁ e₂ ρ | _       | nothing | _  = nothing
-autosub-proof e₁ e₂ ρ | just n  | just n₁ | liftEq with n == n₁
-autosub-proof e₁ e₂ ρ | just n  | just n₁ | liftEq | no _ = nothing
-autosub-proof e₁ e₂ ρ | just n  | just n₁ | liftEq | yes nfeq = just (liftEq ρ (cong (λ n → ⟦ n ⟧n ρ) nfeq))
+autosub-proof e₁ e₂ ρ with normSub e₁ == normSub e₂
+autosub-proof e₁ e₂ ρ | no _   = nothing
+autosub-proof e₁ e₂ ρ | yes eq = just (liftNFSubEq e₁ e₂ ρ (cong (λ n → ⟦ n ⟧sn ρ) eq))
 
 autosub-tactic : Term → Term
 autosub-tactic t =
@@ -58,6 +44,10 @@ autosub-tactic t =
         ∷ []
     }
 
+
 macro
   autosub : Term
   autosub = on-goal (quote autosub-tactic)
+
+test : ∀ a b → 0 - (a + b) ≡ 0 - a - b
+test a b = autosub

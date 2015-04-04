@@ -49,5 +49,5 @@ instance
       quoteSubExp (var x) = con (quote SubExp.var) (vArg (` x) ∷ [])
       quoteSubExp (lit n) = con (quote SubExp.lit) (vArg (` n) ∷ [])
       quoteSubExp (e ⟨+⟩ e₁) = con (quote SubExp._⟨+⟩_) (map defaultArg $ quoteSubExp e ∷ quoteSubExp e₁ ∷ [])
-      quoteSubExp (e ⟨-⟩ e₁) = con (quote _⟨-⟩_)        (map defaultArg $ quoteSubExp e ∷ quoteSubExp e₁ ∷ [])
+      quoteSubExp (e ⟨-⟩ e₁) = con (quote SubExp._⟨-⟩_) (map defaultArg $ quoteSubExp e ∷ quoteSubExp e₁ ∷ [])
       quoteSubExp (e ⟨*⟩ e₁) = con (quote SubExp._⟨*⟩_) (map defaultArg $ quoteSubExp e ∷ quoteSubExp e₁ ∷ [])

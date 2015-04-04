@@ -12,20 +12,10 @@ sub-add-r  a       zero   c = refl
 sub-add-r  zero    b      c = autosub
 sub-add-r (suc a) (suc b) c = sub-add-r a b c
 
-sub-cancel-r : ∀ a b c → a + c - (b + c) ≡ a - b
-sub-cancel-r a b c =
-  a + c - (b + c)
-    ≡⟨ cong ((a + c) -_) (add-commute b c) ⟩
-  a + c - (c + b)
-    ≡⟨ sub-add-r (a + c) c b ⟩
-  a + c - c - b
-    ≡⟨ cong (_- b) autosub ⟩
-  a - b ∎
-
 sub-mul-distr-l : ∀ a b c → (a - b) * c ≡ a * c - b * c
 sub-mul-distr-l zero b c = autosub
 sub-mul-distr-l (suc a) zero c = refl
-sub-mul-distr-l (suc a) (suc b) c = sub-mul-distr-l a b c ⟨≡⟩ʳ sub-cancel-r (a * c) (b * c) c
+sub-mul-distr-l (suc a) (suc b) c = sub-mul-distr-l a b c ⟨≡⟩ autosub
 
 sub-less : ∀ {a b} → a ≤ b → b - a + a ≡ b
 sub-less {zero} _ = auto
@@ -110,15 +100,15 @@ leq-add-r : ∀ {a} b → a ≤ a + b
 leq-add-r {a} b = diff b auto
 
 private
-  less-mul-r′ : ∀ {a b : Nat} → NonZero b → a ≤ a * b
-  less-mul-r′ {b = zero} ()
-  less-mul-r′ {zero}  nz = diff! 0
-  less-mul-r′ {suc a} {suc b} _ =
+  less-mul-r′ : ∀ a b → NonZero b → a ≤ a * b
+  less-mul-r′ _ zero ()
+  less-mul-r′ zero _ nz = diff! 0
+  less-mul-r′ (suc a) (suc b) _ =
     let H : a ≤ a * suc b + b
-        H = less-mul-r′ {a} {suc b} _ ⟨≤⟩ leq-add-r b
+        H = less-mul-r′ a (suc b) _ ⟨≤⟩ leq-add-r b
     in suc-monotone (transport (_<_ a) auto H)
 
 less-mul-r : ∀ {a} b {{_ : NonZero b}} → a ≤ a * b
-less-mul-r b = fast-diff (less-mul-r′ {b = b} it)
+less-mul-r b = fast-diff (less-mul-r′ _ b it)
 
 
