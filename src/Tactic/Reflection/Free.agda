@@ -49,7 +49,7 @@ private
   freeTerm n (sort s) = freeSort n s
   freeTerm n (quote-goal (abs _ t)) = freeTerm (suc n) t
   freeTerm n (quote-term t) = freeTerm n t
-  freeTerm n (unquote-term t) = freeTerm n t
+  freeTerm n (unquote-term t args) = freeTerm n t ∪ freeArgs n args
   freeTerm n quote-context = ∅
   freeTerm n (lit l) = ∅
   freeTerm n unknown = ∅
