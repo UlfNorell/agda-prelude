@@ -4,7 +4,7 @@ module Tactic.Nat.Auto.Lemmas where
 open import Prelude
 open import Tactic.Nat.NF
 open import Tactic.Nat.Exp
-open import Tactic.Nat.Bag
+open import Data.Bag
 open import Data.Nat.Properties.Core
 
 map++ : ∀ {a b} {A : Set a} {B : Set b} (f : A → B) (xs ys : List A) →

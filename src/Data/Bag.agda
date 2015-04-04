@@ -1,5 +1,5 @@
 
-module Tactic.Nat.Bag where
+module Data.Bag where
 
 open import Prelude
 

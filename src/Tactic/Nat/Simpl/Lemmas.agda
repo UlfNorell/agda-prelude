@@ -4,7 +4,7 @@ module Tactic.Nat.Simpl.Lemmas where
 open import Prelude
 open import Tactic.Nat.NF
 open import Tactic.Nat.Exp
-open import Tactic.Nat.Bag
+open import Data.Bag
 open import Tactic.Nat.Auto
 open import Data.Nat.Properties.Core
 open import Data.List.Properties

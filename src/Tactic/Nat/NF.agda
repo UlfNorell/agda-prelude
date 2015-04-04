@@ -3,7 +3,7 @@ module Tactic.Nat.NF where
 
 open import Prelude
 open import Tactic.Nat.Exp
-open import Tactic.Nat.Bag
+open import Data.Bag
 
 Tm = List Var
 NF   = List (Nat × Tm)
