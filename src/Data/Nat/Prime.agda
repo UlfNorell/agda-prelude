@@ -132,16 +132,10 @@ private
   not-found-in-range a b (suc d) eq check prf k (in-range a<k k<b) pk | no !pa | none       | rec =
     not-first !pa (rec refl) k (in-range a<k k<b) pk
 
-  data Inspect {a} {A : Set a} (x : A) : Set a where
-    _is≡_ : ∀ y → x ≡ y → Inspect x
-
-  inspect : ∀ {a} {A : Set a} (x : A) → Inspect x
-  inspect x = x is≡ refl
-
   find : ∀ {ℓ} {P : Nat → Set ℓ} a b d → d + a ≡ suc b → (∀ k → Dec (P k)) → FindInRange a b P
   find a b d eq check with inspect (find! a b d eq check)
-  ... | here k r pk is≡ _ = here k r pk
-  ... | none is≡ prf      = none (not-found-in-range a b d eq check prf)
+  ... | here k r pk with≡ _ = here k r pk
+  ... | none with≡ prf      = none (not-found-in-range a b d eq check prf)
 
 findInRange : ∀ {ℓ} {P : Nat → Set ℓ} a b → (∀ k → Dec (P k)) → FindInRange a b P
 findInRange a  b check with compare a b
