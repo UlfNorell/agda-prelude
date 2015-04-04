@@ -8,9 +8,9 @@ open import Prelude.Bool
 open import Prelude.Function
 
 data Comparison {a} {A : Set a} (_<_ : A → A → Set a) (x y : A) : Set a where
-  less    : x < y → Comparison _<_ x y
-  equal   : x ≡ y → Comparison _<_ x y
-  greater : y < x → Comparison _<_ x y
+  less    : (lt : x < y) → Comparison _<_ x y
+  equal   : (eq : x ≡ y) → Comparison _<_ x y
+  greater : (gt : y < x) → Comparison _<_ x y
 
 isLess : ∀ {a} {A : Set a} {R : A → A → Set a} {x y} → Comparison R x y → Bool
 isLess (less    _) = true
@@ -71,20 +71,23 @@ defaultOrd {_<_ = _<_} compare =
 
 -- Generic instance by injection --
 
-mapComparison : ∀ {a b} {A : Set a} {B : Set b} {LessA : A → A → Set a} {LessB : B → B → Set b}
+mapComparison : ∀ {a b} {A : Set a} {B : Set b} {S : A → A → Set a} {T : B → B → Set b} {f : A → B} → 
+                (∀ {x y} → S x y → T (f x) (f y)) → ∀ {x y} → Comparison S x y → Comparison T (f x) (f y)
+mapComparison f (less lt)    = less (f lt)
+mapComparison f (equal refl) = equal refl
+mapComparison f (greater gt) = greater (f gt)
+
+injectComparison : ∀ {a b} {A : Set a} {B : Set b} {LessA : A → A → Set a} {LessB : B → B → Set b}
                   {f : B → A} → (∀ {x y} → f x ≡ f y → x ≡ y) →
                   (∀ {x y} → LessA (f x) (f y) → LessB x y) →
                   ∀ {x y} → Comparison LessA (f x) (f y) → Comparison LessB x y
-mapComparison _   g (less    p) = less (g p)
-mapComparison inj g (equal   p) = equal (inj p)
-mapComparison _   g (greater p) = greater (g p)
+injectComparison _   g (less    p) = less (g p)
+injectComparison inj g (equal   p) = equal (inj p)
+injectComparison _   g (greater p) = greater (g p)
 
 OrdBy : ∀ {a} {A B : Set a} {{OrdA : Ord A}} {f : B → A} →
           (∀ {x y} → f x ≡ f y → x ≡ y) → Ord B
-OrdBy {f = f} inj = defaultOrd λ x y → mapComparison inj id (compare (f x) (f y))
-  -- record { LessThan = LessThan on f
-  --                          ; compare  = λ x y → mapComparison inj id (compare (f x) (f y))
-  --                          }
+OrdBy {f = f} inj = defaultOrd λ x y → injectComparison inj id (compare (f x) (f y))
 
 -- Bool --
 
