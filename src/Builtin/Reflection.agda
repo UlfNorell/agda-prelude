@@ -16,7 +16,9 @@ postulate Name : Set
 {-# BUILTIN QNAME Name #-}
 
 private
-  primitive primQNameEquality : Name → Name → Bool
+  primitive
+    primQNameEquality : Name → Name → Bool
+    primQNameLess : Name → Name → Bool
 
 -- Eq instance --
 
@@ -29,6 +31,21 @@ private
 instance
   EqName : Eq Name
   EqName = record { _==_ = eqName }
+
+data LessName (x y : Name) : Set where
+  less-name : primQNameLess x y ≡ true → LessName x y
+
+private
+  cmpName : ∀ x y → Comparison LessName x y
+  cmpName x y with inspect (primQNameLess x y)
+  ... | true  with≡ eq = less (less-name eq)
+  ... | false with≡ _  with inspect (primQNameLess y x)
+  ...   | true with≡ eq = greater (less-name eq)
+  ...   | false with≡ _ = equal unsafeEqual
+
+instance
+  OrdName : Ord Name
+  OrdName = defaultOrd cmpName
 
 ------------------------------------------------------------------------
 -- Terms
