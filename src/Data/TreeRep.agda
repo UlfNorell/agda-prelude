@@ -15,6 +15,8 @@ data TreeRep : Set where
   leaf : Leaf → TreeRep
   node : Nat → List (TreeRep) → TreeRep
 
+--- Eq instance ---
+
 private
   leaf-char-inj : ∀ {x y} → Leaf.char x ≡ char y → x ≡ y
   leaf-char-inj refl = refl
@@ -77,6 +79,75 @@ instance
   EqTree : Eq TreeRep
   EqTree = record { _==_ = eq-tree }
 
+--- Ord instance ---
+
+data LessLeaf : Leaf → Leaf → Set where
+  char         : ∀ {x y} → x < y → LessLeaf (char x) (char y)
+  string       : ∀ {x y} → x < y → LessLeaf (string x) (string y)
+  float        : ∀ {x y} → x < y → LessLeaf (float x) (float y)
+  name         : ∀ {x y} → x < y → LessLeaf (name x) (name y)
+  char<string  : ∀ {x y} → LessLeaf (char x) (string y) 
+  char<float   : ∀ {x y} → LessLeaf (char x) (float y) 
+  char<name    : ∀ {x y} → LessLeaf (char x) (name y)
+  string<float : ∀ {x y} → LessLeaf (string x) (float y)
+  string<name  : ∀ {x y} → LessLeaf (string x) (name y)
+  float<name   : ∀ {x y} → LessLeaf (float x) (name y)
+
+private
+  cmp-leaf : (a b : Leaf) → Comparison LessLeaf a b
+  cmp-leaf (char x) (char x₁) = mapComparison char (compare x x₁)
+  cmp-leaf (string x) (string x₁) = mapComparison string (compare x x₁)
+  cmp-leaf (float x) (float x₁) = mapComparison float (compare x x₁)
+  cmp-leaf (name x) (name x₁) = mapComparison name (compare x x₁)
+  cmp-leaf (char x) (string x₁) = less char<string
+  cmp-leaf (char x) (float x₁) = less char<float
+  cmp-leaf (char x) (name x₁) = less char<name
+  cmp-leaf (string x) (char x₁) = greater char<string
+  cmp-leaf (string x) (float x₁) = less string<float
+  cmp-leaf (string x) (name x₁) = less string<name
+  cmp-leaf (float x) (char x₁) = greater char<float
+  cmp-leaf (float x) (string x₁) = greater string<float
+  cmp-leaf (float x) (name x₁) = less float<name
+  cmp-leaf (name x) (char x₁) = greater char<name
+  cmp-leaf (name x) (string x₁) = greater string<name
+  cmp-leaf (name x) (float x₁) = greater float<name
+
+instance
+  OrdLeaf : Ord Leaf
+  OrdLeaf = defaultOrd cmp-leaf
+
+data LessTree : TreeRep → TreeRep → Set where
+  leaf      : ∀ {x y} → x < y → LessTree (leaf x) (leaf y)
+  leaf<node : ∀ {x y ys} → LessTree (leaf x) (node y ys)
+  tag<      : ∀ {x y xs ys} → x < y → LessTree (node x xs) (node y ys)
+  children< : ∀ {x xs ys} → LessList LessTree xs ys → LessTree (node x xs) (node x ys)
+
+private
+  cmp-tree  : ∀ x y → Comparison LessTree x y
+  cmp-trees : ∀ xs ys → Comparison (LessList LessTree) xs ys
+
+  cmp-tree (leaf x) (leaf y) = mapComparison leaf (compare x y)
+  cmp-tree (leaf _) (node _ _) = less leaf<node
+  cmp-tree (node _ _) (leaf _) = greater leaf<node
+  cmp-tree (node x xs) (node  y ys)  with compare x y
+  cmp-tree (node x xs) (node  y ys)  | less    x<y = less (tag< x<y)
+  cmp-tree (node x xs) (node  y ys)  | greater x>y = greater (tag< x>y)
+  cmp-tree (node x xs) (node .x ys)  | equal refl with cmp-trees xs ys
+  cmp-tree (node x xs) (node .x ys)  | equal refl | less    lt = less (children< lt)
+  cmp-tree (node x xs) (node .x .xs) | equal refl | equal refl = equal refl
+  cmp-tree (node x xs) (node .x ys)  | equal refl | greater gt = greater (children< gt)
+
+  cmp-trees [] [] = equal refl
+  cmp-trees []       (x ∷ ys) = less nil<cons
+  cmp-trees (x ∷ xs) []       = greater nil<cons
+  cmp-trees (x ∷ xs) (y ∷ ys) = compareCons (cmp-tree x y) (cmp-trees xs ys)
+
+instance
+  OrdTree : Ord TreeRep
+  OrdTree = defaultOrd cmp-tree
+
+--- Encoding types as trees ---
+
 record TreeEncoding {a} (A : Set a) : Set a where
   field
     treeEncode : A → TreeRep
@@ -99,41 +170,51 @@ module _ {a} {A : Set a} {{_ : TreeEncoding A}} where
   EqByTreeEncoding : Eq A
   EqByTreeEncoding = record { _==_ = decTreeEq }
 
+  data LessEncoding (x y : A) : Set a where
+    less-enc : treeEncode x < treeEncode y → LessEncoding x y
+
+  OrdByTreeEncoding : Ord A
+  OrdByTreeEncoding = defaultOrd λ x y → injectComparison (encode-injective _ _) less-enc $
+                                          (compare on treeEncode) x y
+
 --- Example ---
 
-private
-  data TestData : Set where
-    cA : TestData → TestData
-    cB : TestData → TestData → TestData
-    cC : TestData
-    cD : TestData → TestData → TestData
+-- private
+--   data TestData : Set where
+--     cA : TestData → TestData
+--     cB : TestData → TestData → TestData
+--     cC : TestData
+--     cD : TestData → TestData → TestData
 
-  private
-    encodeTest : TestData → TreeRep
-    encodeTest (cA x)   = node 0 (encodeTest x ∷ [])
-    encodeTest (cB x y) = node 1 (encodeTest x ∷ encodeTest y ∷ [])
-    encodeTest cC       = node 2 []
-    encodeTest (cD x y) = node 3 (encodeTest x ∷ encodeTest y ∷ [])
+--   private
+--     encodeTest : TestData → TreeRep
+--     encodeTest (cA x)   = node 0 (encodeTest x ∷ [])
+--     encodeTest (cB x y) = node 1 (encodeTest x ∷ encodeTest y ∷ [])
+--     encodeTest cC       = node 2 []
+--     encodeTest (cD x y) = node 3 (encodeTest x ∷ encodeTest y ∷ [])
 
-    decodeTest : TreeRep → Maybe TestData
-    decodeTest (leaf _) = nothing
-    decodeTest (node 0 (x ∷ []))     = cA <$> decodeTest x
-    decodeTest (node 1 (x ∷ y ∷ [])) = cB <$> decodeTest x <*> decodeTest y
-    decodeTest (node 2 [])           = just cC
-    decodeTest (node 3 (x ∷ y ∷ [])) = cD <$> decodeTest x <*> decodeTest y 
-    decodeTest _ = nothing
+--     decodeTest : TreeRep → Maybe TestData
+--     decodeTest (leaf _) = nothing
+--     decodeTest (node 0 (x ∷ []))     = cA <$> decodeTest x
+--     decodeTest (node 1 (x ∷ y ∷ [])) = cB <$> decodeTest x <*> decodeTest y
+--     decodeTest (node 2 [])           = just cC
+--     decodeTest (node 3 (x ∷ y ∷ [])) = cD <$> decodeTest x <*> decodeTest y 
+--     decodeTest _ = nothing
 
-    embeddingTest : ∀ x → decodeTest (encodeTest x) ≡ just x
-    embeddingTest (cA x)   = cA =$= embeddingTest x
-    embeddingTest (cB x y) = cB =$= embeddingTest x =*= embeddingTest y
-    embeddingTest cC       = refl
-    embeddingTest (cD x y) = cD =$= embeddingTest x =*= embeddingTest y
+--     embeddingTest : ∀ x → decodeTest (encodeTest x) ≡ just x
+--     embeddingTest (cA x)   = cA =$= embeddingTest x
+--     embeddingTest (cB x y) = cB =$= embeddingTest x =*= embeddingTest y
+--     embeddingTest cC       = refl
+--     embeddingTest (cD x y) = cD =$= embeddingTest x =*= embeddingTest y
 
-  instance
-    EncodeTest : TreeEncoding TestData
-    EncodeTest = record { treeEncode      = encodeTest
-                        ; treeDecode      = decodeTest
-                        ; isTreeEmbedding = embeddingTest }
+--   instance
+--     EncodeTest : TreeEncoding TestData
+--     EncodeTest = record { treeEncode      = encodeTest
+--                         ; treeDecode      = decodeTest
+--                         ; isTreeEmbedding = embeddingTest }
 
-    EqTest : Eq TestData
-    EqTest = EqByTreeEncoding
+--     EqTest : Eq TestData
+--     EqTest = EqByTreeEncoding
+
+--     OrdTest : Ord TestData
+--     OrdTest = OrdByTreeEncoding
