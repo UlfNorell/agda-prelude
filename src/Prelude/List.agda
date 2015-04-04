@@ -127,28 +127,32 @@ instance
 
 --- Ord ---
 
-data LessList {a} {A : Set a} {{OrdA : Ord A}} : List A → List A → Set a where
-  nil<cons : ∀ {x xs} → LessList [] (x ∷ xs)
-  head<    : ∀ {x y xs ys} → x < y → LessList (x ∷ xs) (y ∷ ys)
-  tail<    : ∀ {x xs ys} → LessList xs ys → LessList (x ∷ xs) (x ∷ ys)
+data LessList {a} {A : Set a} (_<_ : A → A → Set a) : List A → List A → Set a where
+  nil<cons : ∀ {x xs} → LessList _<_ [] (x ∷ xs)
+  head<    : ∀ {x y xs ys} → x < y → LessList _<_ (x ∷ xs) (y ∷ ys)
+  tail<    : ∀ {x xs ys} → LessList _<_ xs ys → LessList _<_ (x ∷ xs) (x ∷ ys)
 
-private
-  compareList : ∀ {a} {A : Set a} {{OrdA : Ord A}} (xs ys : List A) →
-                Comparison LessList xs ys
-  compareList [] [] = equal refl
-  compareList [] (x ∷ ys) = less nil<cons
-  compareList (x ∷ xs) [] = greater nil<cons
-  compareList (x ∷ xs) (y ∷ ys) with compare x y
-  compareList (x ∷ xs) (y ∷ ys)   | less x<y    = less (head< x<y)
-  compareList (x ∷ xs) (y ∷ ys)   | greater x>y = greater (head< x>y)
-  compareList (x ∷ xs) (.x ∷ ys)  | equal refl  with compareList xs ys
-  compareList (x ∷ xs) (.x ∷ ys)  | equal refl | less xs<ys     = less (tail< xs<ys)
-  compareList (x ∷ xs) (.x ∷ .xs) | equal refl | equal refl     = equal refl
-  compareList (x ∷ xs) (.x ∷ ys)  | equal refl | greater xs>ys  = greater (tail< xs>ys)
+compareCons : ∀ {a} {A : Set a} {_<_ : A → A → Set a}
+                {x : A} {xs : List A} {y : A} {ys : List A} →
+                Comparison _<_ x y →
+                Comparison (LessList _<_) xs ys →
+                Comparison (LessList _<_) (x ∷ xs) (y ∷ ys)
+compareCons (less lt)    _            = less (head< lt)
+compareCons (greater gt) _            = greater (head< gt)
+compareCons (equal refl) (less lt)    = less (tail< lt)
+compareCons (equal refl) (greater gt) = greater (tail< gt)
+compareCons (equal refl) (equal refl) = equal refl
+
+compareList : ∀ {a} {A : Set a} {_<_ : A → A → Set a} (cmp : ∀ x y → Comparison _<_ x y) (xs ys : List A) →
+              Comparison (LessList _<_) xs ys
+compareList cmp [] [] = equal refl
+compareList cmp [] (x ∷ ys) = less nil<cons
+compareList cmp (x ∷ xs) [] = greater nil<cons
+compareList cmp (x ∷ xs) (y ∷ ys) = compareCons (cmp x y) (compareList cmp xs ys)
 
 instance
   OrdList : ∀ {a} {A : Set a} {{OrdA : Ord A}} → Ord (List A)
-  OrdList = defaultOrd compareList
+  OrdList = defaultOrd (compareList compare)
 
 --- Functor ---
 
