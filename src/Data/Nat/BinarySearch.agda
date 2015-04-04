@@ -38,7 +38,7 @@ private
   lem-upper {a} {._} {d} (suc d′) refl =
     cong (λ z → d + a - z) (add-commute d′ a)
     ⟨=⟩ sub-add-r (d + a) a d′
-    ⟨=⟩ cong (_- d′) (cancel-add-sub d a)
+    ⟨=⟩ cong (_- d′) autosub
     ⟨=⟩ sub-leq d d′
 
   search : ∀ {a} {P : Nat → Set a} lo hi d → hi ≡ d + lo → Acc _<_ d →

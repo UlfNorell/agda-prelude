@@ -34,9 +34,7 @@ divides-sub-l {b = b} {d} (factor q₁ eq) (factor! q) = factor (q₁ - q) $
   q₁ * d - q * d
     ≡⟨ cong (_- (q * d)) eq ⟩
   q * d + b - q * d
-    ≡⟨ cong (_- (q * d)) (add-commute (q * d) b) ⟩
-  b + q * d - q * d
-    ≡⟨ cancel-add-sub b (q * d) ⟩
+    ≡⟨ autosub ⟩
   b ∎
 
 divides-sub-r : ∀ {a b d} → d Divides (a + b) → d Divides b → d Divides a

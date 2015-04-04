@@ -7,56 +7,38 @@ open import Tactic.Nat
 
 --- Subtraction ---
 
-cancel-sub : ∀ b → b - b ≡ 0
-cancel-sub zero    = refl
-cancel-sub (suc b) = cancel-sub b
-
-cancel-add-sub : ∀ a b → a + b - b ≡ a
-cancel-add-sub zero b = cancel-sub b
-cancel-add-sub (suc a) zero = auto
-cancel-add-sub (suc a) (suc b) =
-  -- Want cong tactic for this!
-  let lem : a + suc b - b ≡ suc a + b - b
-      lem = cong (λ z → z - b) auto
-  in lem ⟨≡⟩ cancel-add-sub (suc a) b
-
-sub-0-l : ∀ n → 0 - n ≡ 0
-sub-0-l zero = refl
-sub-0-l (suc n) = refl
-
 sub-add-r : ∀ a b c → a - (b + c) ≡ a - b - c
-sub-add-r a zero c = refl
-sub-add-r zero b c rewrite sub-0-l (b + c) | sub-0-l b | sub-0-l c = refl
+sub-add-r  a       zero   c = refl
+sub-add-r  zero    b      c = autosub
 sub-add-r (suc a) (suc b) c = sub-add-r a b c
 
+sub-cancel-r : ∀ a b c → a + c - (b + c) ≡ a - b
+sub-cancel-r a b c =
+  a + c - (b + c)
+    ≡⟨ cong ((a + c) -_) (add-commute b c) ⟩
+  a + c - (c + b)
+    ≡⟨ sub-add-r (a + c) c b ⟩
+  a + c - c - b
+    ≡⟨ cong (_- b) autosub ⟩
+  a - b ∎
+
 sub-mul-distr-l : ∀ a b c → (a - b) * c ≡ a * c - b * c
-sub-mul-distr-l zero b c rewrite sub-0-l b | sub-0-l (b * c) = refl
+sub-mul-distr-l zero b c = autosub
 sub-mul-distr-l (suc a) zero c = refl
-sub-mul-distr-l (suc a) (suc b) c rewrite sub-mul-distr-l a b c =
-  a * c - b * c
-    ≡⟨ cong (_- (b * c)) (cancel-add-sub _ c) ⟩ʳ
-  a * c + c - c - b * c
-    ≡⟨ sub-add-r (a * c + c) c (b * c) ⟩ʳ
-  a * c + c - (c + b * c)
-    ≡⟨ cong ((a * c + c) -_) (add-commute c (b * c)) ⟩
-  a * c + c - (b * c + c) ∎
+sub-mul-distr-l (suc a) (suc b) c = sub-mul-distr-l a b c ⟨≡⟩ʳ sub-cancel-r (a * c) (b * c) c
 
 sub-less : ∀ {a b} → a ≤ b → b - a + a ≡ b
 sub-less {zero} _ = auto
-sub-less {suc a} (diff! k) = cong (_+ suc a) (cancel-add-sub k (suc a)) ⟨≡⟩ auto
+sub-less {suc a} (diff! k) = autosub
 
 sub-underflow : ∀ a b → a ≤ b → a - b ≡ 0
-sub-underflow a ._ (diff! k) =
-  cong (a -_) (add-commute k a)
-  ⟨≡⟩ sub-add-r a a k
-  ⟨≡⟩ cong (_- k) (cancel-sub a)
-  ⟨≡⟩ sub-0-l k
+sub-underflow a ._ (diff! k) = autosub
 
 sub-leq : ∀ a b → a - b ≤ a
 sub-leq a b with compare a b
-sub-leq a ._ | less    (diff! k) = diff a (follows-from (sym (sub-underflow a (suc (k + a)) (diff! (suc k)))))
-sub-leq a .a | equal    refl     = diff a (follows-from (sym (cancel-sub a)))
-sub-leq ._ b | greater (diff! k) = diff b (follows-from (sym (cancel-add-sub (suc k) b)))
+sub-leq a ._ | less    (diff! k) = diff a autosub
+sub-leq a .a | equal    refl     = diff a autosub
+sub-leq ._ b | greater (diff! k) = diff b autosub
 
 --- LessNat ---
 
