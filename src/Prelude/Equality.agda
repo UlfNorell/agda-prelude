@@ -20,7 +20,7 @@ open Eq {{...}} public
 sym : ∀ {a} {A : Set a} {x y : A} → x ≡ y → y ≡ x
 sym refl = refl
 
-infixr 0 trans _⟨≡⟩ʳ_ _ʳ⟨≡⟩_
+infixr 0 trans _⟨≡⟩ʳ_ _ʳ⟨≡⟩_ _ʳ⟨≡⟩ʳ_
 syntax trans p q = p ⟨≡⟩ q
 
 trans : ∀ {a} {A : Set a} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
@@ -32,8 +32,16 @@ refl ⟨≡⟩ʳ refl = refl
 _ʳ⟨≡⟩_ : ∀ {a} {A : Set a} {x y z : A} → y ≡ x → y ≡ z → x ≡ z
 refl ʳ⟨≡⟩ refl = refl
 
+_ʳ⟨≡⟩ʳ_ : ∀ {a} {A : Set a} {x y z : A} → y ≡ x → z ≡ y → x ≡ z
+refl ʳ⟨≡⟩ʳ refl = refl
+
+infixl 4 cong _*≡_
+syntax cong f eq = f $≡ eq
 cong : ∀ {a b} {A : Set a} {B : Set b} (f : A → B) {x y} → x ≡ y → f x ≡ f y
 cong f refl = refl
+
+_*≡_ : ∀ {a b} {A : Set a} {B : Set b} {f g : A → B} {x y} → f ≡ g → x ≡ y → f x ≡ g y
+refl *≡ refl = refl
 
 cong₂ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} (f : A → B → C) {x₁ x₂ y₁ y₂} →
         x₁ ≡ x₂ → y₁ ≡ y₂ → f x₁ y₁ ≡ f x₂ y₂
