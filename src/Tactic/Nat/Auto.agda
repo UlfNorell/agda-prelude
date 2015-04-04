@@ -34,7 +34,7 @@ auto-proof e₁ e₂ ρ    | yes nfeq = just (liftNFEq e₁ e₂ ρ (cong (λ n 
 
 auto-tactic : Term → Term
 auto-tactic t =
-  case termToExp t of
+  case termToEq t of
   λ { nothing → failedProof (quote invalidGoal) t
     ; (just ((e₁ , e₂) , Γ)) →
       def (quote getProof)

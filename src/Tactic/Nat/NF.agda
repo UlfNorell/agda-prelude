@@ -42,9 +42,6 @@ norm (lit n) = [ n , [] ]
 norm (e ⟨+⟩ e₁) = norm e +nf norm e₁
 norm (e ⟨*⟩ e₁) = norm e *nf norm e₁
 
-e₁ = var 0 ⟨*⟩ var 1 ⟨+⟩ var 1 ⟨+⟩ var 1
-e₂ = var 1 ⟨*⟩ (lit 2 ⟨+⟩ var 0)
-
 product1 : List Nat → Nat
 product1 [] = 1
 product1 (x ∷ xs) = foldl (λ n x → n * x) x xs

@@ -74,9 +74,6 @@ termToHypsR′ i a = [_] <$> (termToEqR =<< lower i a)
 termToHypsR : Term → R (List (Exp × Exp))
 termToHypsR = termToHypsR′ 0
 
-termToExp : Term → Maybe ((Exp × Exp) × List Term)
-termToExp t = runR (termToEqR t)
-
 termToHyps : Term → Maybe (List (Exp × Exp) × List Term)
 termToHyps t = runR (termToHypsR t)
 
