@@ -119,7 +119,7 @@ plus-monotone-r : ∀ a {b c} → b < c → a + b < a + c
 plus-monotone-r a (diff k eq) = diff k (follows-from eq)
 
 leq-antisym : {a b : Nat} → a ≤ b → b ≤ a → a ≡ b
-leq-antisym (diff! k) (diff k₁ eq) = use eq $ tactic simpl | λ eq → sym $ plus-zero-r k₁ k (sym eq)
+leq-antisym (diff! k) (diff k₁ eq) = simplify eq to eq′ $ sym $ plus-zero-r k₁ k (sym eq′)
 
 leq-add-l : ∀ a {b} → b ≤ a + b
 leq-add-l a {b} = diff! a

@@ -32,21 +32,21 @@ CancelEq (e₁ , e₂) ρ = NFEqS (cancel (norm e₁) (norm e₂)) ρ
 ⟦ h ∷ [] ⟧hs ρ = CancelEq h ρ
 ⟦ h ∷ g  ⟧hs ρ = CancelEq h ρ → ⟦ g ⟧hs ρ
 
-simplify : ∀ eq ρ → CancelEq eq ρ → ExpEq eq ρ
-simplify (e₁ , e₂) ρ H = liftNFEq e₁ e₂ ρ (cancel-sound (norm e₁) (norm e₂) ρ H)
+simplifyEq : ∀ eq ρ → CancelEq eq ρ → ExpEq eq ρ
+simplifyEq (e₁ , e₂) ρ H = liftNFEq e₁ e₂ ρ (cancel-sound (norm e₁) (norm e₂) ρ H)
 
-complicate : ∀ eq ρ → ExpEq eq ρ → CancelEq eq ρ
-complicate (e₁ , e₂) ρ H =
+complicateEq : ∀ eq ρ → ExpEq eq ρ → CancelEq eq ρ
+complicateEq (e₁ , e₂) ρ H =
   cancel-complete (norm e₁) (norm e₂) ρ
   (unliftNFEq e₁ e₂ ρ H)
 
 simplifyH : ∀ goal ρ → ⟦ goal ⟧hs ρ → ⟦ goal ⟧h ρ
 simplifyH []            ρ ()
-simplifyH (h ∷ [])     ρ H = simplify h ρ H
-simplifyH (h ∷ h₂ ∷ g) ρ H = λ H₁ → simplifyH (h₂ ∷ g) ρ $ H (complicate h ρ H₁)
+simplifyH (h ∷ [])     ρ H = simplifyEq h ρ H
+simplifyH (h ∷ h₂ ∷ g) ρ H = λ H₁ → simplifyH (h₂ ∷ g) ρ $ H (complicateEq h ρ H₁)
 
-simpl : List (Arg Type) → Term → Term
-simpl _ t =
+simplify-tactic : Term → Term
+simplify-tactic t =
   case termToHyps t of
   λ { nothing → failedProof (quote invalidGoal) t
     ; (just (goal , Γ)) →
@@ -55,6 +55,8 @@ simpl _ t =
                             ∷ [])
     }
 
+simpl : List (Arg Type) → Term → Term
+simpl _ = simplify-tactic
 
 assumed-tactic : Term → Term
 assumed-tactic t =
@@ -67,10 +69,27 @@ assumed-tactic t =
                             ∷ [])
     }
 
+on-type-of-term : Name → Term → Term
+on-type-of-term tac t =
+  def (quote use)
+    $ vArg t
+    ∷ vArg (on-goal tac)
+    ∷ []
+
 macro
   follows-from : Term → Term
-  follows-from t =
+  follows-from = on-type-of-term (quote assumed-tactic)
+
+  simplify : Term → Term
+  simplify t =
     def (quote use)
       $ vArg t
-      ∷ vArg (on-goal (quote assumed-tactic))
+      ∷ vArg (quote-goal $ abs "g" $
+                unquote-term (def (quote simplify-tactic) (vArg (var 0 []) ∷ []))
+                             (vArg (var 1 []) ∷ []))
       ∷ []
+
+infixr -100 apply-tactic
+syntax apply-tactic (λ _ → tac) (λ x → goal) = tac to x $ goal
+apply-tactic : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → A → B
+apply-tactic f x = f x

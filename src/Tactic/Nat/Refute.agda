@@ -20,7 +20,7 @@ invalidEquation : ⊤
 invalidEquation = _
 
 refutation : ∀ {a} {A : Set a} eq ρ → ¬ CancelEq eq ρ → ExpEq eq ρ → A
-refutation exp ρ !eq eq = ⊥-elim (!eq (complicate exp ρ eq))
+refutation exp ρ !eq eq = ⊥-elim (!eq (complicateEq exp ρ eq))
 
 refute-tactic : Term → Term
 refute-tactic (pi (vArg (el _ a)) _) =
