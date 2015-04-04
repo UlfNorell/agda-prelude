@@ -63,7 +63,7 @@ private
   strTerm lo n (lit l)       = just (lit l)
   strTerm lo n (quote-goal t)   = quote-goal <$> strAbsTerm lo n t
   strTerm lo n (quote-term t)   = quote-term <$> strTerm lo n t
-  strTerm lo n (unquote-term t) = unquote-term <$> strTerm lo n t
+  strTerm lo n (unquote-term t args) = unquote-term <$> strTerm lo n t <*> strArgs lo n args
   strTerm lo n quote-context    = just quote-context
   strTerm lo n (pat-lam _ _) = just unknown -- todo
   strTerm lo n unknown       = just unknown
@@ -112,7 +112,7 @@ private
   wk lo k (lit l)       = lit l
   wk lo k (quote-goal t)    = quote-goal (wkAbsTerm lo k t)
   wk lo k (quote-term t)    = quote-term (wk lo k t)
-  wk lo k (unquote-term t)  = unquote-term (wk lo k t)
+  wk lo k (unquote-term t args) = unquote-term (wk lo k t) (wkArgs lo k args)
   wk lo k quote-context     = quote-context
   wk lo k (pat-lam cs args) = pat-lam (wkClauses lo k cs) (wkArgs lo k args)
   wk lo k unknown       = unknown

@@ -126,7 +126,7 @@ mutual
     quote-goal    : (t : Abs Term) → Term
     quote-term    : (t : Term) → Term
     quote-context : Term
-    unquote-term  : (t : Term) → Term
+    unquote-term  : (t : Term) (args : List (Arg Term)) → Term
     unknown       : Term
 
   data Type : Set where
@@ -336,6 +336,12 @@ quote-term-inj refl = refl
 
 unquote-term-inj : ∀ {x y} → unquote-term x ≡ unquote-term y → x ≡ y
 unquote-term-inj refl = refl
+
+unquote-term-inj₁ : ∀ {x y z w} → unquote-term x z ≡ unquote-term y w → x ≡ y
+unquote-term-inj₁ refl = refl
+
+unquote-term-inj₂ : ∀ {x y z w} → unquote-term x z ≡ unquote-term y w → z ≡ w
+unquote-term-inj₂ refl = refl
 
 set-inj : ∀ {x y} → set x ≡ set y → x ≡ y
 set-inj refl = refl

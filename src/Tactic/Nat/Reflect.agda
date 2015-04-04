@@ -129,7 +129,7 @@ stripImplicit (lit l) = lit l
 stripImplicit (quote-goal t) = quote-goal (stripImplicitAbsTerm t)
 stripImplicit (quote-term t) = quote-term (stripImplicit t)
 stripImplicit quote-context  = quote-context
-stripImplicit (unquote-term t) = unquote-term (stripImplicit t)
+stripImplicit (unquote-term t args) = unquote-term (stripImplicit t) (stripImplicitArgs args)
 stripImplicit (pat-lam cs args) = pat-lam cs (stripImplicitArgs args)
 stripImplicit unknown = unknown
 
