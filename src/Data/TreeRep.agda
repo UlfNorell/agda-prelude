@@ -149,6 +149,7 @@ instance
 --- Encoding types as trees ---
 
 record TreeEncoding {a} (A : Set a) : Set a where
+  constructor treeEncoding
   field
     treeEncode : A → TreeRep
     treeDecode : TreeRep → Maybe A
@@ -176,6 +177,50 @@ module _ {a} {A : Set a} {{_ : TreeEncoding A}} where
   OrdByTreeEncoding : Ord A
   OrdByTreeEncoding = defaultOrd λ x y → injectComparison (encode-injective _ _) less-enc $
                                           (compare on treeEncode) x y
+
+--- Encodings for standard types ---
+
+instance
+  EncodeNat : TreeEncoding Nat
+  EncodeNat = treeEncoding enc dec (λ _ → refl)
+    where
+      enc : Nat → TreeRep
+      enc n = node n []
+
+      dec : TreeRep → Maybe Nat
+      dec (node n _) = just n
+      dec (leaf _) = nothing
+
+  EncodeBool : TreeEncoding Bool
+  EncodeBool = treeEncoding enc dec emb
+    where
+      enc : Bool → TreeRep
+      enc false = node 0 []
+      enc true = node 1 []
+
+      dec : TreeRep → Maybe Bool
+      dec (node 0 _) = just false
+      dec _          = just true
+
+      emb : ∀ b → dec (enc b) ≡ just b
+      emb false = refl
+      emb true  = refl
+
+  EncodeMaybe : ∀ {a} {A : Set a} {{_ : TreeEncoding A}} → TreeEncoding (Maybe A)
+  EncodeMaybe {A = A} = treeEncoding enc dec emb
+    where
+      enc : Maybe A → TreeRep
+      enc nothing  = node 0 []
+      enc (just x) = node 1 [ treeEncode x ]
+
+      dec : TreeRep → Maybe (Maybe A)
+      dec (node 0 _)       = just nothing
+      dec (node _ (x ∷ _)) = just <$> treeDecode x
+      dec _                = nothing
+
+      emb : ∀ x → dec (enc x) ≡ just x
+      emb nothing  = refl
+      emb (just x) = just =$= isTreeEmbedding x
 
 --- Example ---
 
