@@ -9,16 +9,16 @@ open import Tactic.Nat
 
 sub-less : ∀ {a b} → a ≤ b → b - a + a ≡ b
 sub-less {zero} _ = auto
-sub-less {suc a} (diff! k) = autosub
+sub-less {suc a} (diff! k) = auto
 
 sub-underflow : ∀ a b → a ≤ b → a - b ≡ 0
-sub-underflow a ._ (diff! k) = autosub
+sub-underflow a ._ (diff! k) = auto
 
 sub-leq : ∀ a b → a - b ≤ a
 sub-leq a b with compare a b
-sub-leq a ._ | less    (diff! k) = diff a autosub
-sub-leq a .a | equal    refl     = diff a autosub
-sub-leq ._ b | greater (diff! k) = diff b autosub
+sub-leq a ._ | less    (diff! k) = diff a auto
+sub-leq a .a | equal    refl     = diff a auto
+sub-leq ._ b | greater (diff! k) = diff b auto
 
 --- LessNat ---
 
@@ -81,7 +81,7 @@ plus-monotone-r : ∀ a {b c} → b < c → a + b < a + c
 plus-monotone-r a (diff k eq) = diff k (follows-from eq)
 
 leq-antisym : {a b : Nat} → a ≤ b → b ≤ a → a ≡ b
-leq-antisym (diff! k) (diff k₁ eq) = simplify eq to eq′ $ sym $ plus-zero-r k₁ k (sym eq′)
+leq-antisym (diff! k) (diff k₁ eq) = simplify eq to eq′ => sym $ plus-zero-r k₁ k (sym eq′)
 
 leq-add-l : ∀ a {b} → b ≤ a + b
 leq-add-l a {b} = diff! a

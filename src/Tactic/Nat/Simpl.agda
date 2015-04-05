@@ -13,9 +13,6 @@ open import Tactic.Nat.Auto
 open import Tactic.Nat.Auto.Lemmas
 open import Tactic.Nat.Simpl.Lemmas
 
-use : ∀ {a b} {A : Set a} {B : Set b} → A → (A → B) → B
-use x f = f x
-
 module _ {Atom : Set} {{_ : Eq Atom}} {{_ : Ord Atom}} where
   ExpEq : Exp Atom × Exp Atom → Env Atom → Set
   ExpEq (e₁ , e₂) ρ = ⟦ e₁ ⟧e ρ ≡ ⟦ e₂ ⟧e ρ
@@ -56,9 +53,6 @@ simplify-tactic t =
                             ∷ [])
     }
 
-simpl : List (Arg Type) → Term → Term
-simpl _ = simplify-tactic
-
 assumed-tactic : Term → Term
 assumed-tactic t =
   case termToHyps t of
@@ -70,27 +64,9 @@ assumed-tactic t =
                             ∷ [])
     }
 
-on-type-of-term : Name → Term → Term
-on-type-of-term tac t =
-  def (quote use)
-    $ vArg t
-    ∷ vArg (on-goal tac)
-    ∷ []
-
 macro
   follows-from : Term → Term
   follows-from = on-type-of-term (quote assumed-tactic)
 
   simplify : Term → Term
-  simplify t =
-    def (quote use)
-      $ vArg t
-      ∷ vArg (quote-goal $ abs "g" $
-                unquote-term (def (quote simplify-tactic) (vArg (var 0 []) ∷ []))
-                             (vArg (var 1 []) ∷ []))
-      ∷ []
-
-infixr -100 apply-tactic
-syntax apply-tactic (λ _ → tac) (λ x → goal) = tac to x $ goal
-apply-tactic : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → A → B
-apply-tactic f x = f x
+  simplify = rewrite-argument-tactic (quote simplify-tactic)

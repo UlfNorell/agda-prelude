@@ -4,7 +4,8 @@ module Tactic.Nat.Subtract.Reflect where
 open import Prelude
 open import Builtin.Reflection
 open import Control.Monad.State
-open import  Tactic.Reflection.Quote
+open import Tactic.Reflection.Quote
+open import Tactic.Reflection.DeBruijn
 
 open import Tactic.Nat.Reflect
 open import Tactic.Nat.Subtract.Exp
@@ -40,6 +41,21 @@ termToSubEqR _ = fail
 
 termToSubEq : Term → Maybe ((SubExp × SubExp) × List Term)
 termToSubEq t = runR (termToSubEqR t)
+
+private
+  lower : Nat → Term → R Term
+  lower 0 = pure
+  lower i = lift ∘ strengthen i
+
+termToSubHypsR′ : Nat → Term → R (List (SubExp × SubExp))
+termToSubHypsR′ i (hyp `-> a) = _∷_ <$> (termToSubEqR =<< lower i hyp) <*> termToSubHypsR′ (suc i) a
+termToSubHypsR′ i a = [_] <$> (termToSubEqR =<< lower i a)
+
+termToSubHypsR : Term → R (List (SubExp × SubExp))
+termToSubHypsR = termToSubHypsR′ 0
+
+termToSubHyps : Term → Maybe (List (SubExp × SubExp) × List Term)
+termToSubHyps t = runR (termToSubHypsR t)
 
 instance
   QuotableSubExp : Quotable SubExp

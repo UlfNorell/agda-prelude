@@ -35,7 +35,7 @@ private
   lem-upper : ∀ {lo hi d} d′ {{_ : NonZero d′}} →
               hi ≡ suc (d + lo) → hi - (d′ + lo) ≤ d
   lem-upper zero {{}}
-  lem-upper {a} {._} {d} (suc d′) refl = autosub ⟨=⟩ sub-leq d d′
+  lem-upper {a} {._} {d} (suc d′) refl = auto ⟨=⟩ sub-leq d d′
 
   search : ∀ {a} {P : Nat → Set a} lo hi d → hi ≡ d + lo → Acc _<_ d →
              (∀ n → Dec (P n)) →

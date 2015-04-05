@@ -122,3 +122,16 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
     ⟦ norm e ⟧n ρ * ⟦ norm e₁ ⟧n ρ
       ≡⟨ ⟨*⟩-sound (norm e) (norm e₁) ρ ⟩ʳ
     ⟦ norm e *nf norm e₁ ⟧n ρ ∎
+
+  module _ (ρ₁ ρ₂ : Env Atom) (eq : ∀ x → ρ₁ x ≡ ρ₂ x) where
+    private
+      lem-eval-env-a : ∀ a → product (map ρ₁ a) ≡ product (map ρ₂ a)
+      lem-eval-env-a []       = refl
+      lem-eval-env-a (x ∷ xs) = _*_ $≡ eq x *≡ lem-eval-env-a xs
+
+      lem-eval-env-t : ∀ t → ⟦ t ⟧t ρ₁ ≡ ⟦ t ⟧t ρ₂ 
+      lem-eval-env-t (k , a) = _*_ k $≡ lem-eval-env-a a
+
+    lem-eval-env : ∀ n → ⟦ n ⟧n ρ₁ ≡ ⟦ n ⟧n ρ₂
+    lem-eval-env [] = refl
+    lem-eval-env (x ∷ n) = _+_ $≡ lem-eval-env-t x *≡ lem-eval-env n

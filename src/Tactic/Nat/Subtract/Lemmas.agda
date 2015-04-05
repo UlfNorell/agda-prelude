@@ -53,16 +53,48 @@ private
     auto ⟨≡⟩ sub-mul-distr-l b c a
          ⟨≡⟩ cong₂ _-_ (mul-commute b a) (mul-commute c a)
 
-atomEnv : Env Var → Env SubAtom
-atomEnv ρ x = ⟦ x ⟧sa ρ
+-- The evaluator that doesn't generate x * 1 + 0 is the same as the
+-- one that does.
 
-lem-sub-eval-t : ∀ t ρ → ⟦ t ⟧st ρ ≡ product (map (atomEnv ρ) t)
-lem-sub-eval-t [] ρ = refl
-lem-sub-eval-t (x ∷ t) ρ = (⟦ x ⟧sa ρ *_) $≡ lem-sub-eval-t t ρ
+lem-simp-eval : ∀ n ρ → ⟦ n ⟧sns ρ ≡ ⟦ n ⟧sn ρ
+
+private
+  lem-simp-eval-t : ∀ t ρ → ⟦ t ⟧sts ρ ≡ ⟦ t ⟧st ρ
+  lem-simp-eval-a : ∀ a ρ → ⟦ a ⟧sas ρ ≡ ⟦ a ⟧sa ρ
+
+  lem-simp-eval-a (var x) ρ = refl
+  lem-simp-eval-a (a ⟨-⟩ b) ρ = _-_ $≡ lem-simp-eval a ρ *≡ lem-simp-eval b ρ
+
+  lem-simp-eval-t []          ρ = refl
+  lem-simp-eval-t (x ∷ [])    ρ = lem-simp-eval-a x ρ ⟨≡⟩ auto
+  lem-simp-eval-t (x ∷ y ∷ t) ρ = _*_ $≡ lem-simp-eval-a x ρ *≡ lem-simp-eval-t (y ∷ t) ρ
+
+lem-simp-eval []                 ρ = refl
+lem-simp-eval ((k , t) ∷ [])     ρ = _*_ k $≡ lem-simp-eval-t t ρ ⟨≡⟩ auto
+lem-simp-eval ((k , t) ∷ t₁ ∷ n) ρ = _+_ $≡ (_*_ k $≡ lem-simp-eval-t t ρ)
+                                         *≡ lem-simp-eval (t₁ ∷ n) ρ
+
+-- The evaluation that the termination checker lets us write is the
+-- same as the one we want to write.
+
+private
+  lem-sub-eval-t : ∀ t ρ → ⟦ t ⟧st ρ ≡ product (map (atomEnv ρ) t)
+  lem-sub-eval-t [] ρ = refl
+  lem-sub-eval-t (x ∷ t) ρ = (⟦ x ⟧sa ρ *_) $≡ lem-sub-eval-t t ρ
 
 lem-sub-eval   : ∀ n ρ → ⟦ n ⟧sn ρ ≡ ⟦ n ⟧n (atomEnv ρ)
 lem-sub-eval []            ρ = refl
 lem-sub-eval ((k , t) ∷ n) ρ = _+_ $≡ (_*_ k $≡ lem-sub-eval-t t ρ) *≡ lem-sub-eval n ρ
+
+private
+  lem-env : ∀ ρ x → atomEnvS ρ x ≡ atomEnv ρ x
+  lem-env ρ (var x) = refl
+  lem-env ρ (a ⟨-⟩ b) = _-_ $≡ lem-simp-eval a ρ *≡ lem-simp-eval b ρ
+
+-- Combining the above equalities.
+
+lem-sub-eval-simp : ∀ n ρ → ⟦ n ⟧sn ρ ≡ ⟦ n ⟧n (atomEnvS ρ)
+lem-sub-eval-simp n ρ = lem-sub-eval n ρ ⟨≡⟩ʳ lem-eval-env (atomEnvS ρ) (atomEnv ρ) (lem-env ρ) n
 
 ⟨-⟩-sound′ : ∀ a b ρ → ⟦ a -nf′ b ⟧n (atomEnv ρ) ≡ ⟦ a ⟧n (atomEnv ρ) - ⟦ b ⟧n (atomEnv ρ)
 ⟨-⟩-sound′ a b ρ with cancel a b | λ i j → cancel-complete′ i j a b (atomEnv ρ)
@@ -104,8 +136,8 @@ lem-sub-eval ((k , t) ∷ n) ρ = _+_ $≡ (_*_ k $≡ lem-sub-eval-t t ρ) *≡
 ⟨*⟩-sound′ a  b  ρ | no with is-subtraction b
 ⟨*⟩-sound′ a  ._ ρ | no | b ⟨-⟩ c =
   let eval x = ⟦ x ⟧n (atomEnv ρ) in
-  ⟨-⟩-sound (a *nf b) (a *nf c) ρ ⟨≡⟩
-  _-_ $≡ ⟨*⟩-sound a b (atomEnv ρ) *≡ ⟨*⟩-sound a c (atomEnv ρ) ⟨≡⟩
+  ⟨-⟩-sound (a *nf b) (a *nf′ c) ρ ⟨≡⟩
+  _-_ $≡ ⟨*⟩-sound a b (atomEnv ρ) *≡ ⟨*⟩-sound′ a c ρ ⟨≡⟩
   sub-mul-distr-r (eval a) (eval b) (eval c) ʳ⟨≡⟩
   (eval a *_) $≡ (_-_ $≡ lem-sub-eval b ρ *≡ lem-sub-eval c ρ) ʳ⟨≡⟩
   auto

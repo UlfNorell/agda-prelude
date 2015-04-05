@@ -44,6 +44,27 @@ data SubAtom where
 ⟦ []           ⟧sn ρ = 0
 ⟦ (k , ts) ∷ n ⟧sn ρ = k * ⟦ ts ⟧st ρ + ⟦ n ⟧sn ρ
 
+⟦_⟧sns : SubNF → Env Var → Nat
+⟦_⟧sts : Tm SubAtom → Env Var → Nat
+⟦_⟧sas : SubAtom → Env Var → Nat
+
+⟦ var x ⟧sas ρ = ρ x
+⟦ a ⟨-⟩ b ⟧sas ρ = ⟦ a ⟧sns ρ - ⟦ b ⟧sns ρ
+
+⟦ []     ⟧sts ρ = 1
+⟦ t ∷ [] ⟧sts ρ = ⟦ t ⟧sas ρ
+⟦ t ∷ ts ⟧sts ρ = ⟦ t ⟧sas ρ * ⟦ ts ⟧sts ρ
+
+⟦ []            ⟧sns ρ = 0
+⟦ (k , ts) ∷ [] ⟧sns ρ = k * ⟦ ts ⟧sts ρ
+⟦ (k , ts) ∷ n  ⟧sns ρ = k * ⟦ ts ⟧sts ρ + ⟦ n ⟧sns ρ
+
+atomEnv : Env Var → Env SubAtom
+atomEnv ρ x = ⟦ x ⟧sa ρ
+
+atomEnvS : Env Var → Env SubAtom
+atomEnvS ρ x = ⟦ x ⟧sas ρ
+
 instance
   EncodeSubAtom : TreeEncoding SubAtom
   EncodeSubAtom = treeEncoding enc dec emb
@@ -127,7 +148,7 @@ _*nf′_ : SubNF → SubNF → SubNF
 a *nf′ b with is-subtraction a
 ._ *nf′ c  | a ⟨-⟩ b = a *nf′ c -nf b *nf′ c
 a  *nf′ b  | no with is-subtraction b
-a  *nf′ ._ | no | b ⟨-⟩ c = a *nf b -nf a *nf c
+a  *nf′ ._ | no | b ⟨-⟩ c = a *nf b -nf a *nf′ c
 a  *nf′ b  | no | no     = a *nf b
 
 normSub : SubExp → SubNF
