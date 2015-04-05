@@ -23,7 +23,7 @@ open import Tactic.Reflection public using (apply-tactic; apply-goal-tactic)
 -}
 
 private
-  auto-example : ∀ a b → (a + b) * (a - b) ≡ a ^ 2 - b ^ 2
+  auto-example : ∀ a b → (a - b) * (a + b) ≡ a ^ 2 - b ^ 2
   auto-example a b = auto
 
 {-

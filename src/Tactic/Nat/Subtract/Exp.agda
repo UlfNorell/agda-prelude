@@ -138,18 +138,38 @@ is-subtraction [ 1 , [ a ⟨-⟩ b ] ] = a ⟨-⟩ b
 is-subtraction a = no
 
 infixl 6 _-nf_
-infixl 7 _*nf′_
+infixl 7 _*nf₁_ _*tm_ _*ktm_ _*ktm′_
 _-nf_ : SubNF → SubNF → SubNF
 a  -nf b with is-subtraction a
 ._ -nf c | a ⟨-⟩ b = a -nf′ (b +nf c)
 a  -nf b | no     = a -nf′ b
 
-_*nf′_ : SubNF → SubNF → SubNF
-a *nf′ b with is-subtraction a
-._ *nf′ c  | a ⟨-⟩ b = a *nf′ c -nf b *nf′ c
-a  *nf′ b  | no with is-subtraction b
-a  *nf′ ._ | no | b ⟨-⟩ c = a *nf b -nf a *nf′ c
-a  *nf′ b  | no | no     = a *nf b
+data IsSubtractionTm : Nat × Tm SubAtom → Set where
+  _⟨-⟩_ : ∀ a b → IsSubtractionTm (1 , [ a ⟨-⟩ b ])
+  no   : ∀ {a} → IsSubtractionTm a
+
+is-subtraction-tm : ∀ a → IsSubtractionTm a
+is-subtraction-tm (1 , [ a ⟨-⟩ b ]) = a ⟨-⟩ b
+is-subtraction-tm a = no
+
+_*nf₁_ : SubNF → SubNF → SubNF
+_*ktm′_ : Nat × Tm SubAtom → SubNF → SubNF
+
+_*tm_ : Nat × Tm SubAtom → Nat × Tm SubAtom → SubNF
+s *tm t with is-subtraction-tm t
+s       *tm ._      | b ⟨-⟩ c = s *ktm′ b -nf s *ktm′ c
+(a , x) *tm (b , y) | no     = [ a * b , merge x y ]
+
+t *ktm′ [] = []
+t *ktm′ (x ∷ a) = t *tm x +nf t *ktm′ a
+
+_*ktm_ : Nat × Tm SubAtom → SubNF → SubNF
+t *ktm a with is-subtraction-tm t
+._ *ktm c | a ⟨-⟩ b = a *nf₁ c -nf b *nf₁ c
+t  *ktm a | no     = t *ktm′ a
+
+[]      *nf₁ b = []
+(t ∷ a) *nf₁ b = t *ktm b +nf (a *nf₁ b)
 
 normSub : SubExp → SubNF
 normSub (var x) = [ 1 , [ var x ] ]
@@ -157,4 +177,4 @@ normSub (lit 0) = []
 normSub (lit n) = [ n , [] ]
 normSub (e ⟨+⟩ e₁) = normSub e +nf normSub e₁
 normSub (e ⟨-⟩ e₁) = normSub e -nf normSub e₁
-normSub (e ⟨*⟩ e₁) = normSub e *nf′ normSub e₁
+normSub (e ⟨*⟩ e₁) = normSub e *nf₁ normSub e₁

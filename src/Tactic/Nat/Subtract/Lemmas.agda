@@ -124,24 +124,53 @@ lem-sub-eval-simp n ρ = lem-sub-eval n ρ ⟨≡⟩ʳ lem-eval-env (atomEnvS ρ
   (_- eval c) $≡ (_-_ $≡ lem-sub-eval a ρ *≡ lem-sub-eval b ρ) ʳ⟨≡⟩
   (_- eval c) $≡ auto
 
-⟨*⟩-sound′ : ∀ a b ρ → ⟦ a *nf′ b ⟧n (atomEnv ρ) ≡ ⟦ a ⟧n (atomEnv ρ) * ⟦ b ⟧n (atomEnv ρ)
-⟨*⟩-sound′ a  b  ρ with is-subtraction a
-⟨*⟩-sound′ ._ c  ρ | a ⟨-⟩ b =
-  let eval x = ⟦ x ⟧n (atomEnv ρ) in
-  ⟨-⟩-sound (a *nf′ c) (b *nf′ c) ρ ⟨≡⟩
-  _-_ $≡ ⟨*⟩-sound′ a c ρ *≡ ⟨*⟩-sound′ b c ρ ⟨≡⟩
-  sub-mul-distr-l (eval a) (eval b) (eval c) ʳ⟨≡⟩
-  (_* eval c) $≡ (_-_ $≡ lem-sub-eval a ρ *≡ lem-sub-eval b ρ) ʳ⟨≡⟩
-  auto
-⟨*⟩-sound′ a  b  ρ | no with is-subtraction b
-⟨*⟩-sound′ a  ._ ρ | no | b ⟨-⟩ c =
-  let eval x = ⟦ x ⟧n (atomEnv ρ) in
-  ⟨-⟩-sound (a *nf b) (a *nf′ c) ρ ⟨≡⟩
-  _-_ $≡ ⟨*⟩-sound a b (atomEnv ρ) *≡ ⟨*⟩-sound′ a c ρ ⟨≡⟩
-  sub-mul-distr-r (eval a) (eval b) (eval c) ʳ⟨≡⟩
-  (eval a *_) $≡ (_-_ $≡ lem-sub-eval b ρ *≡ lem-sub-eval c ρ) ʳ⟨≡⟩
-  auto
-⟨*⟩-sound′ a  b  ρ | no | no = ⟨*⟩-sound a b (atomEnv ρ)
+private
+  lem-mul-sound-kt′ : ∀ t b ρ → ⟦ t *ktm′ b ⟧n (atomEnv ρ) ≡ ⟦ map (mulTm t) b ⟧n (atomEnv ρ)
+
+  lem-mul-sound-t : ∀ t a ρ → ⟦ t *tm a ⟧n (atomEnv ρ) ≡ ⟦ mulTm t a ⟧t (atomEnv ρ)
+  lem-mul-sound-t t b  ρ with is-subtraction-tm b
+  lem-mul-sound-t (a , x) (b , y) ρ | no = auto
+  lem-mul-sound-t (a , x) ._      ρ | b ⟨-⟩ c =
+    let prod x = product (map (atomEnv ρ) x)
+        eval a = ⟦ a ⟧n (atomEnv ρ) in
+    ⟨-⟩-sound ((a , x) *ktm′ b) ((a , x) *ktm′ c) ρ ⟨≡⟩
+    _-_ $≡ lem-mul-sound-kt′ (a , x) b ρ *≡ lem-mul-sound-kt′ (a , x) c ρ ⟨≡⟩
+    _-_ $≡ mulTmDistr (a , x) b (atomEnv ρ) *≡ mulTmDistr (a , x) c (atomEnv ρ) ⟨≡⟩
+    sub-mul-distr-r (a * prod x) (eval b) (eval c) ʳ⟨≡⟩
+    _*_ (a * prod x) $≡ (_-_ $≡ lem-sub-eval b ρ *≡ lem-sub-eval c ρ) ʳ⟨≡⟩
+    auto ⟨≡⟩ʳ
+    _*_ (a * 1) $≡ map-merge x [ b ⟨-⟩ c ] (atomEnv ρ) 
+
+  lem-mul-sound-kt′ t [] ρ = refl
+  lem-mul-sound-kt′ t (x ∷ a) ρ =
+    ⟨+⟩-sound (t *tm x) (t *ktm′ a) (atomEnv ρ) ⟨≡⟩
+    _+_ $≡ lem-mul-sound-t t x ρ *≡ lem-mul-sound-kt′ t a ρ
+
+lem-mul-sound : ∀ a b ρ → ⟦ a *nf₁ b ⟧n (atomEnv ρ) ≡ ⟦ a *nf b ⟧n (atomEnv ρ)
+
+private
+  lem-mul-sound-kt : ∀ t b ρ → ⟦ t *ktm b ⟧n (atomEnv ρ) ≡ ⟦ map (mulTm t) b ⟧n (atomEnv ρ)
+  lem-mul-sound-kt t b ρ with is-subtraction-tm t
+  lem-mul-sound-kt t a  ρ | no = lem-mul-sound-kt′ t a ρ
+  lem-mul-sound-kt ._ c ρ | a ⟨-⟩ b =
+    let eval x = ⟦ x ⟧n (atomEnv ρ) in
+    ⟨-⟩-sound (a *nf₁ c) (b *nf₁ c) ρ ⟨≡⟩
+    _-_ $≡ lem-mul-sound a c ρ *≡ lem-mul-sound b c ρ ⟨≡⟩
+    _-_ $≡ ⟨*⟩-sound a c (atomEnv ρ) *≡ ⟨*⟩-sound b c (atomEnv ρ) ⟨≡⟩
+    sub-mul-distr-l (eval a) (eval b) (eval c) ʳ⟨≡⟩
+    (_* eval c) $≡ (_-_ $≡ lem-sub-eval a ρ *≡ lem-sub-eval b ρ) ʳ⟨≡⟩
+    auto ⟨≡⟩ʳ
+    mulTmDistr (1 , [ a ⟨-⟩ b ]) c (atomEnv ρ)
+
+lem-mul-sound [] b ρ = refl
+lem-mul-sound (t ∷ a) b ρ =
+  ⟨+⟩-sound (t *ktm b) (a *nf₁ b) (atomEnv ρ) ⟨≡⟩
+  _+_ $≡ (lem-mul-sound-kt t b ρ ⟨≡⟩ʳ sort-sound (map (mulTm t) b) (atomEnv ρ))
+      *≡ lem-mul-sound a b ρ ⟨≡⟩ʳ
+  ⟨+⟩-sound (sort (map (mulTm t) b)) (a *nf b) (atomEnv ρ)
+
+⟨*⟩-sound₁ : ∀ a b ρ → ⟦ a *nf₁ b ⟧n (atomEnv ρ) ≡ ⟦ a ⟧n (atomEnv ρ) * ⟦ b ⟧n (atomEnv ρ)
+⟨*⟩-sound₁ a b ρ = lem-mul-sound a b ρ ⟨≡⟩ ⟨*⟩-sound a b (atomEnv ρ)
 
 sound-sub : ∀ e ρ → ⟦ e ⟧se ρ ≡ ⟦ normSub e ⟧sn ρ
 sound-sub (var x) ρ = auto
@@ -155,7 +184,7 @@ sound-sub (e ⟨+⟩ e₁) ρ =
 sound-sub (e ⟨*⟩ e₁) ρ =
   cong₂ _*_ (sound-sub e  ρ ⟨≡⟩ lem-sub-eval (normSub e)  ρ)
             (sound-sub e₁ ρ ⟨≡⟩ lem-sub-eval (normSub e₁) ρ) ⟨≡⟩
-  ⟨*⟩-sound′ (normSub e) (normSub e₁) ρ ʳ⟨≡⟩ʳ
+  ⟨*⟩-sound₁ (normSub e) (normSub e₁) ρ ʳ⟨≡⟩ʳ
   lem-sub-eval (normSub (e ⟨*⟩ e₁)) ρ
 sound-sub (e ⟨-⟩ e₁) ρ =
   cong₂ _-_ (sound-sub e  ρ ⟨≡⟩ lem-sub-eval (normSub e)  ρ)
