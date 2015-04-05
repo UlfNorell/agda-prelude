@@ -101,18 +101,39 @@ instance
   OrdSubAtom : Ord SubAtom
   OrdSubAtom = OrdByTreeEncoding
 
-_-nf_ : SubNF → SubNF → SubNF
-a -nf b =
+_-nf′_ : SubNF → SubNF → SubNF
+a -nf′ b =
   case cancel a b of λ
   { (x  , []) → x
   ; ([] ,  _) → []
   ; (a′  , b′) → [ 1 , [ a′ ⟨-⟩ b′ ] ] }
 
+data IsSubtraction : SubNF → Set where
+  _⟨-⟩_ : ∀ a b → IsSubtraction [ 1 , [ a ⟨-⟩ b ] ]
+  no   : ∀ {a} → IsSubtraction a
+
+is-subtraction : ∀ a → IsSubtraction a
+is-subtraction [ 1 , [ a ⟨-⟩ b ] ] = a ⟨-⟩ b
+is-subtraction a = no
+
+infixl 6 _-nf_
+infixl 7 _*nf′_
+_-nf_ : SubNF → SubNF → SubNF
+a  -nf b with is-subtraction a
+._ -nf c | a ⟨-⟩ b = a -nf′ (b +nf c)
+a  -nf b | no     = a -nf′ b
+
+_*nf′_ : SubNF → SubNF → SubNF
+a *nf′ b with is-subtraction a
+._ *nf′ c  | a ⟨-⟩ b = a *nf′ c -nf b *nf′ c
+a  *nf′ b  | no with is-subtraction b
+a  *nf′ ._ | no | b ⟨-⟩ c = a *nf b -nf a *nf c
+a  *nf′ b  | no | no     = a *nf b
+
 normSub : SubExp → SubNF
 normSub (var x) = [ 1 , [ var x ] ]
 normSub (lit 0) = []
 normSub (lit n) = [ n , [] ]
-normSub (e ⟨+⟩ e₁) = normSub e +nf  normSub e₁
--- normSub ((e ⟨-⟩ e₁) ⟨-⟩ e₂) = normSub e -nf (normSub e₁ +nf normSub e₂)
+normSub (e ⟨+⟩ e₁) = normSub e +nf normSub e₁
 normSub (e ⟨-⟩ e₁) = normSub e -nf normSub e₁
-normSub (e ⟨*⟩ e₁) = normSub e *nf  normSub e₁
+normSub (e ⟨*⟩ e₁) = normSub e *nf′ normSub e₁

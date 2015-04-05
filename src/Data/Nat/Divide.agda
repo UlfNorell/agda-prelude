@@ -30,7 +30,7 @@ divides-mul-l b (factor! q) = factor (b * q) auto
 divides-sub-l : ∀ {a b d} → d Divides (a + b) → d Divides a → d Divides b
 divides-sub-l {b = b} {d} (factor q₁ eq) (factor! q) = factor (q₁ - q) $
   (q₁ - q) * d
-    ≡⟨ sub-mul-distr-l q₁ q d ⟩
+    ≡⟨ autosub ⟩
   q₁ * d - q * d
     ≡⟨ cong (_- (q * d)) eq ⟩
   q * d + b - q * d

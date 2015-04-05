@@ -16,6 +16,9 @@ product1 [] = 1
 product1 (x ∷ xs) = foldl (λ n x → n * x) x xs
 
 module _ {Atom : Set} {{_ : Ord Atom}} where
+  infixl 6 _+nf_
+  infixl 7 _*nf_
+
   _+nf_ : NF Atom → NF Atom → NF Atom
   _+nf_ a b = union a b
 

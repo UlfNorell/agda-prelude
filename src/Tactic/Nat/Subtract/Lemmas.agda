@@ -41,6 +41,18 @@ private
   lem-sub (suc a)  zero  ._  v refl = sym $ lem-sub-zero (suc a + v) v (suc a) auto
   lem-sub (suc a) (suc b) u  v eq   = lem-sub a b u v (suc-inj eq)
 
+  sub-mul-distr-l : ∀ a b c → (a - b) * c ≡ a * c - b * c
+  sub-mul-distr-l zero b c = (_* c) $≡ lem-zero-sub 0 b b refl ʳ⟨≡⟩ lem-zero-sub 0 (b * c) (b * c) refl
+  sub-mul-distr-l (suc a) zero c = refl
+  sub-mul-distr-l (suc a) (suc b) c =
+    sub-mul-distr-l a b c ⟨≡⟩
+    lem-sub (suc a * c) (suc b * c) (a * c) (b * c) auto
+
+  sub-mul-distr-r : ∀ a b c → a * (b - c) ≡ a * b - a * c
+  sub-mul-distr-r a b c =
+    auto ⟨≡⟩ sub-mul-distr-l b c a
+         ⟨≡⟩ cong₂ _-_ (mul-commute b a) (mul-commute c a)
+
 atomEnv : Env Var → Env SubAtom
 atomEnv ρ x = ⟦ x ⟧sa ρ
 
@@ -52,22 +64,52 @@ lem-sub-eval   : ∀ n ρ → ⟦ n ⟧sn ρ ≡ ⟦ n ⟧n (atomEnv ρ)
 lem-sub-eval []            ρ = refl
 lem-sub-eval ((k , t) ∷ n) ρ = _+_ $≡ (_*_ k $≡ lem-sub-eval-t t ρ) *≡ lem-sub-eval n ρ
 
-⟨-⟩-sound : ∀ a b ρ → ⟦ a -nf b ⟧n (atomEnv ρ) ≡ ⟦ a ⟧n (atomEnv ρ) - ⟦ b ⟧n (atomEnv ρ)
-⟨-⟩-sound a b ρ with cancel a b | λ i j → cancel-complete′ i j a b (atomEnv ρ)
-⟨-⟩-sound a b ρ | d      , []     | complete =
+⟨-⟩-sound′ : ∀ a b ρ → ⟦ a -nf′ b ⟧n (atomEnv ρ) ≡ ⟦ a ⟧n (atomEnv ρ) - ⟦ b ⟧n (atomEnv ρ)
+⟨-⟩-sound′ a b ρ with cancel a b | λ i j → cancel-complete′ i j a b (atomEnv ρ)
+⟨-⟩-sound′ a b ρ | d      , []     | complete =
   let u = ⟦ a ⟧n (atomEnv ρ)
       v = ⟦ b ⟧n (atomEnv ρ)
       k = ⟦ d ⟧n (atomEnv ρ) in
   lem-sub-zero u v k (complete v u auto ⟨≡⟩ auto)
-⟨-⟩-sound a b ρ | []     , d ∷ ds | complete =
+⟨-⟩-sound′ a b ρ | []     , d ∷ ds | complete =
   let u = ⟦ a      ⟧n (atomEnv ρ)
       v = ⟦ b      ⟧n (atomEnv ρ)
       k = ⟦ d ∷ ds ⟧n (atomEnv ρ) in
   lem-zero-sub u v k (auto ⟨≡⟩ complete v u auto)
-⟨-⟩-sound a b ρ | u ∷ us , v ∷ vs | complete =
+⟨-⟩-sound′ a b ρ | u ∷ us , v ∷ vs | complete =
   let eval = λ x → ⟦ x ⟧n (atomEnv ρ) in
   auto ⟨≡⟩ cong₂ _-_ (lem-sub-eval (u ∷ us) ρ) (lem-sub-eval (v ∷ vs) ρ) ⟨≡⟩
   lem-sub (eval a) (eval b) (eval (u ∷ us)) (eval (v ∷ vs)) (complete (eval b) (eval a) auto)
+
+⟨-⟩-sound : ∀ a b ρ → ⟦ a -nf b ⟧n (atomEnv ρ) ≡ ⟦ a ⟧n (atomEnv ρ) - ⟦ b ⟧n (atomEnv ρ)
+⟨-⟩-sound a b ρ with is-subtraction a
+⟨-⟩-sound a b ρ  | no     = ⟨-⟩-sound′ a b ρ
+⟨-⟩-sound ._ c ρ | a ⟨-⟩ b =
+  let eval = λ x → ⟦ x ⟧n (atomEnv ρ) in
+  ⟨-⟩-sound′ a (b +nf c) ρ ⟨≡⟩
+  (eval a -_) $≡ ⟨+⟩-sound b c (atomEnv ρ) ⟨≡⟩
+  sub-add-r (eval a) (eval b) (eval c) ⟨≡⟩
+  (_- eval c) $≡ (_-_ $≡ lem-sub-eval a ρ *≡ lem-sub-eval b ρ) ʳ⟨≡⟩
+  (_- eval c) $≡ auto
+
+⟨*⟩-sound′ : ∀ a b ρ → ⟦ a *nf′ b ⟧n (atomEnv ρ) ≡ ⟦ a ⟧n (atomEnv ρ) * ⟦ b ⟧n (atomEnv ρ)
+⟨*⟩-sound′ a  b  ρ with is-subtraction a
+⟨*⟩-sound′ ._ c  ρ | a ⟨-⟩ b =
+  let eval x = ⟦ x ⟧n (atomEnv ρ) in
+  ⟨-⟩-sound (a *nf′ c) (b *nf′ c) ρ ⟨≡⟩
+  _-_ $≡ ⟨*⟩-sound′ a c ρ *≡ ⟨*⟩-sound′ b c ρ ⟨≡⟩
+  sub-mul-distr-l (eval a) (eval b) (eval c) ʳ⟨≡⟩
+  (_* eval c) $≡ (_-_ $≡ lem-sub-eval a ρ *≡ lem-sub-eval b ρ) ʳ⟨≡⟩
+  auto
+⟨*⟩-sound′ a  b  ρ | no with is-subtraction b
+⟨*⟩-sound′ a  ._ ρ | no | b ⟨-⟩ c =
+  let eval x = ⟦ x ⟧n (atomEnv ρ) in
+  ⟨-⟩-sound (a *nf b) (a *nf c) ρ ⟨≡⟩
+  _-_ $≡ ⟨*⟩-sound a b (atomEnv ρ) *≡ ⟨*⟩-sound a c (atomEnv ρ) ⟨≡⟩
+  sub-mul-distr-r (eval a) (eval b) (eval c) ʳ⟨≡⟩
+  (eval a *_) $≡ (_-_ $≡ lem-sub-eval b ρ *≡ lem-sub-eval c ρ) ʳ⟨≡⟩
+  auto
+⟨*⟩-sound′ a  b  ρ | no | no = ⟨*⟩-sound a b (atomEnv ρ)
 
 sound-sub : ∀ e ρ → ⟦ e ⟧se ρ ≡ ⟦ normSub e ⟧sn ρ
 sound-sub (var x) ρ = auto
@@ -81,7 +123,7 @@ sound-sub (e ⟨+⟩ e₁) ρ =
 sound-sub (e ⟨*⟩ e₁) ρ =
   cong₂ _*_ (sound-sub e  ρ ⟨≡⟩ lem-sub-eval (normSub e)  ρ)
             (sound-sub e₁ ρ ⟨≡⟩ lem-sub-eval (normSub e₁) ρ) ⟨≡⟩
-  ⟨*⟩-sound (normSub e) (normSub e₁) (atomEnv ρ) ʳ⟨≡⟩ʳ
+  ⟨*⟩-sound′ (normSub e) (normSub e₁) ρ ʳ⟨≡⟩ʳ
   lem-sub-eval (normSub (e ⟨*⟩ e₁)) ρ
 sound-sub (e ⟨-⟩ e₁) ρ =
   cong₂ _-_ (sound-sub e  ρ ⟨≡⟩ lem-sub-eval (normSub e)  ρ)

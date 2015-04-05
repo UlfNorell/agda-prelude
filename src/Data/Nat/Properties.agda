@@ -7,16 +7,6 @@ open import Tactic.Nat
 
 --- Subtraction ---
 
-sub-add-r : ∀ a b c → a - (b + c) ≡ a - b - c
-sub-add-r  a       zero   c = refl
-sub-add-r  zero    b      c = autosub
-sub-add-r (suc a) (suc b) c = sub-add-r a b c
-
-sub-mul-distr-l : ∀ a b c → (a - b) * c ≡ a * c - b * c
-sub-mul-distr-l zero b c = autosub
-sub-mul-distr-l (suc a) zero c = refl
-sub-mul-distr-l (suc a) (suc b) c = sub-mul-distr-l a b c ⟨≡⟩ autosub
-
 sub-less : ∀ {a b} → a ≤ b → b - a + a ≡ b
 sub-less {zero} _ = auto
 sub-less {suc a} (diff! k) = autosub
