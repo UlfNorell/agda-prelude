@@ -107,6 +107,27 @@ assumedsub-tactic t =
           ∷ [])
     }
 
+data Impossible : Set where
+
+invalidEquation : ⊤
+invalidEquation = _
+
+refutationsub : ∀ {a} {A : Set a} eq ρ → ¬ CancelSubEq eq ρ → SubExpEq eq ρ → A
+refutationsub exp ρ !eq eq = ⊥-elim (!eq (complicateSubEq exp ρ eq))
+
+refutesub-tactic : Term → Term
+refutesub-tactic (pi (vArg (el _ a)) _) =
+  case termToSubEq a of λ
+  { nothing → failedProof (quote invalidEquation) a
+  ; (just (eq , Γ)) →
+    def (quote refutationsub)
+        $ vArg (` eq)
+        ∷ vArg (quotedEnv Γ)
+        ∷ vArg absurd-lam
+        ∷ []
+  }
+refutesub-tactic _ = def (quote Impossible) []
+
 macro
   autosub : Term
   autosub = on-goal (quote autosub-tactic)
@@ -119,3 +140,6 @@ macro
 
   simplify-goal : Term
   simplify-goal = rewrite-goal-tactic (quote simplifysub-tactic)
+
+  refutesub : Term → Term
+  refutesub = on-type-of-term (quote refutesub-tactic)

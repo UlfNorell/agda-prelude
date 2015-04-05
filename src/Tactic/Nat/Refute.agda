@@ -38,8 +38,4 @@ refute-tactic _ = def (quote Impossible) []
 
 macro
   refute : Term → Term
-  refute t =
-    def (quote use)
-      $ vArg t
-      ∷ vArg (on-goal (quote refute-tactic))
-      ∷ []
+  refute = on-type-of-term (quote refute-tactic)
