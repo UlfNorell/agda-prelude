@@ -2,8 +2,7 @@
 module Tactic.Nat.Induction where
 
 open import Prelude
-open import Tactic.Nat.Auto
-open import Tactic.Nat.Simpl
+open import Tactic.Nat.Subtract
 open import Tactic.Nat.Reflect
 open import Builtin.Reflection
 open import Tactic.Reflection.Quote
@@ -21,14 +20,10 @@ induction-tactic (pi a b) =
   let P = lam visible (unEl <$> b)
   in def (quote nat-induction)
          ( vArg P
-         ∷ vArg (on-goal (quote auto-tactic))
-         ∷ vArg (lam visible $ abs "_" $ on-goal (quote assumed-tactic))
+         ∷ vArg (on-goal (quote autosub-tactic))
+         ∷ vArg (lam visible $ abs "_" $ on-goal (quote assumedsub-tactic))
          ∷ [])
-induction-tactic t =
-  def (quote getProof)
-    $ vArg (con (quote nothing) [])
-    ∷ vArg (def (quote induction-goal-must-be-a-function-type) [])
-    ∷ []
+induction-tactic t = failedProof (quote induction-goal-must-be-a-function-type) t
 
 macro
   induction : Term
