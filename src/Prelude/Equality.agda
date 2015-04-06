@@ -24,13 +24,13 @@ infixr 0 trans _⟨≡⟩ʳ_ _ʳ⟨≡⟩_ _ʳ⟨≡⟩ʳ_
 syntax trans p q = p ⟨≡⟩ q
 
 trans : ∀ {a} {A : Set a} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
-trans refl refl = refl
+trans refl eq = eq
 
 _⟨≡⟩ʳ_ : ∀ {a} {A : Set a} {x y z : A} → x ≡ y → z ≡ y → x ≡ z
-refl ⟨≡⟩ʳ refl = refl
+eq ⟨≡⟩ʳ refl = eq
 
 _ʳ⟨≡⟩_ : ∀ {a} {A : Set a} {x y z : A} → y ≡ x → y ≡ z → x ≡ z
-refl ʳ⟨≡⟩ refl = refl
+refl ʳ⟨≡⟩ eq = eq
 
 _ʳ⟨≡⟩ʳ_ : ∀ {a} {A : Set a} {x y z : A} → y ≡ x → z ≡ y → x ≡ z
 refl ʳ⟨≡⟩ʳ refl = refl
