@@ -15,6 +15,11 @@ data SubExp : Set where
   lit : (n : Nat) → SubExp
   _⟨+⟩_ _⟨-⟩_ _⟨*⟩_ : (a b : SubExp) → SubExp
 
+infix 4 _:≡_ _:<_
+data Eqn : Set where
+  _:≡_ : (a b : SubExp) → Eqn
+  _:<_ : (a b : SubExp) → Eqn
+
 ⟦_⟧se : SubExp → Env Var → Nat
 ⟦ var x ⟧se    ρ = ρ x
 ⟦ lit n ⟧se    ρ = n

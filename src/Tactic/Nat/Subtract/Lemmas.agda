@@ -56,45 +56,51 @@ private
 -- The evaluator that doesn't generate x * 1 + 0 is the same as the
 -- one that does.
 
-lem-simp-eval : ∀ n ρ → ⟦ n ⟧sns ρ ≡ ⟦ n ⟧sn ρ
+lem-eval-sns-sn : ∀ n ρ → ⟦ n ⟧sns ρ ≡ ⟦ n ⟧sn ρ
 
 private
-  lem-simp-eval-t : ∀ t ρ → ⟦ t ⟧sts ρ ≡ ⟦ t ⟧st ρ
-  lem-simp-eval-a : ∀ a ρ → ⟦ a ⟧sas ρ ≡ ⟦ a ⟧sa ρ
+  lem-eval-sns-sn-t : ∀ t ρ → ⟦ t ⟧sts ρ ≡ ⟦ t ⟧st ρ
+  lem-eval-sns-sn-a : ∀ a ρ → ⟦ a ⟧sas ρ ≡ ⟦ a ⟧sa ρ
 
-  lem-simp-eval-a (var x) ρ = refl
-  lem-simp-eval-a (a ⟨-⟩ b) ρ = _-_ $≡ lem-simp-eval a ρ *≡ lem-simp-eval b ρ
+  lem-eval-sns-sn-a (var x) ρ = refl
+  lem-eval-sns-sn-a (a ⟨-⟩ b) ρ = _-_ $≡ lem-eval-sns-sn a ρ *≡ lem-eval-sns-sn b ρ
 
-  lem-simp-eval-t []          ρ = refl
-  lem-simp-eval-t (x ∷ [])    ρ = lem-simp-eval-a x ρ ⟨≡⟩ auto
-  lem-simp-eval-t (x ∷ y ∷ t) ρ = _*_ $≡ lem-simp-eval-a x ρ *≡ lem-simp-eval-t (y ∷ t) ρ
+  lem-eval-sns-sn-t []          ρ = refl
+  lem-eval-sns-sn-t (x ∷ [])    ρ = lem-eval-sns-sn-a x ρ ⟨≡⟩ auto
+  lem-eval-sns-sn-t (x ∷ y ∷ t) ρ = _*_ $≡ lem-eval-sns-sn-a x ρ *≡ lem-eval-sns-sn-t (y ∷ t) ρ
 
-lem-simp-eval []                 ρ = refl
-lem-simp-eval ((k , t) ∷ [])     ρ = _*_ k $≡ lem-simp-eval-t t ρ ⟨≡⟩ auto
-lem-simp-eval ((k , t) ∷ t₁ ∷ n) ρ = _+_ $≡ (_*_ k $≡ lem-simp-eval-t t ρ)
-                                         *≡ lem-simp-eval (t₁ ∷ n) ρ
+lem-eval-sns-sn []                 ρ = refl
+lem-eval-sns-sn ((k , t) ∷ [])     ρ = _*_ k $≡ lem-eval-sns-sn-t t ρ ⟨≡⟩ auto
+lem-eval-sns-sn ((k , t) ∷ t₁ ∷ n) ρ = _+_ $≡ (_*_ k $≡ lem-eval-sns-sn-t t ρ)
+                                         *≡ lem-eval-sns-sn (t₁ ∷ n) ρ
 
 -- The evaluation that the termination checker lets us write is the
 -- same as the one we want to write.
 
 private
-  lem-sub-eval-t : ∀ t ρ → ⟦ t ⟧st ρ ≡ product (map (atomEnv ρ) t)
-  lem-sub-eval-t [] ρ = refl
-  lem-sub-eval-t (x ∷ t) ρ = (⟦ x ⟧sa ρ *_) $≡ lem-sub-eval-t t ρ
+  lem-eval-sn-n-t : ∀ t ρ → ⟦ t ⟧st ρ ≡ product (map (atomEnv ρ) t)
+  lem-eval-sn-n-t [] ρ = refl
+  lem-eval-sn-n-t (x ∷ t) ρ = (⟦ x ⟧sa ρ *_) $≡ lem-eval-sn-n-t t ρ
 
-lem-sub-eval   : ∀ n ρ → ⟦ n ⟧sn ρ ≡ ⟦ n ⟧n (atomEnv ρ)
-lem-sub-eval []            ρ = refl
-lem-sub-eval ((k , t) ∷ n) ρ = _+_ $≡ (_*_ k $≡ lem-sub-eval-t t ρ) *≡ lem-sub-eval n ρ
+lem-eval-sn-n   : ∀ n ρ → ⟦ n ⟧sn ρ ≡ ⟦ n ⟧n (atomEnv ρ)
+lem-eval-sn-n []            ρ = refl
+lem-eval-sn-n ((k , t) ∷ n) ρ = _+_ $≡ (_*_ k $≡ lem-eval-sn-n-t t ρ) *≡ lem-eval-sn-n n ρ
 
 private
   lem-env : ∀ ρ x → atomEnvS ρ x ≡ atomEnv ρ x
   lem-env ρ (var x) = refl
-  lem-env ρ (a ⟨-⟩ b) = _-_ $≡ lem-simp-eval a ρ *≡ lem-simp-eval b ρ
+  lem-env ρ (a ⟨-⟩ b) = _-_ $≡ lem-eval-sns-sn a ρ *≡ lem-eval-sns-sn b ρ
 
 -- Combining the above equalities.
 
-lem-sub-eval-simp : ∀ n ρ → ⟦ n ⟧sn ρ ≡ ⟦ n ⟧n (atomEnvS ρ)
-lem-sub-eval-simp n ρ = lem-sub-eval n ρ ⟨≡⟩ʳ lem-eval-env (atomEnvS ρ) (atomEnv ρ) (lem-env ρ) n
+lem-eval-sn-nS : ∀ n ρ → ⟦ n ⟧sn ρ ≡ ⟦ n ⟧n (atomEnvS ρ)
+lem-eval-sn-nS n ρ = lem-eval-sn-n n ρ ⟨≡⟩ʳ lem-eval-env (atomEnvS ρ) (atomEnv ρ) (lem-env ρ) n
+
+lem-eval-sns-nS : ∀ n ρ → ⟦ n ⟧sns ρ ≡ ⟦ n ⟧n (atomEnvS ρ)
+lem-eval-sns-nS n ρ = lem-eval-sns-sn n ρ ⟨≡⟩ lem-eval-sn-nS n ρ
+
+lem-eval-sns-ns : ∀ n ρ → ⟦ n ⟧sns ρ ≡ ⟦ n ⟧ns (atomEnvS ρ)
+lem-eval-sns-ns n ρ = lem-eval-sns-nS n ρ ⟨≡⟩ʳ ns-sound n (atomEnvS ρ)
 
 ⟨-⟩-sound′ : ∀ a b ρ → ⟦ a -nf′ b ⟧n (atomEnv ρ) ≡ ⟦ a ⟧n (atomEnv ρ) - ⟦ b ⟧n (atomEnv ρ)
 ⟨-⟩-sound′ a b ρ with cancel a b | λ i j → cancel-complete′ i j a b (atomEnv ρ)
@@ -110,7 +116,7 @@ lem-sub-eval-simp n ρ = lem-sub-eval n ρ ⟨≡⟩ʳ lem-eval-env (atomEnvS ρ
   lem-zero-sub u v k (auto ⟨≡⟩ complete v u auto)
 ⟨-⟩-sound′ a b ρ | u ∷ us , v ∷ vs | complete =
   let eval = λ x → ⟦ x ⟧n (atomEnv ρ) in
-  auto ⟨≡⟩ cong₂ _-_ (lem-sub-eval (u ∷ us) ρ) (lem-sub-eval (v ∷ vs) ρ) ⟨≡⟩
+  auto ⟨≡⟩ cong₂ _-_ (lem-eval-sn-n (u ∷ us) ρ) (lem-eval-sn-n (v ∷ vs) ρ) ⟨≡⟩
   lem-sub (eval a) (eval b) (eval (u ∷ us)) (eval (v ∷ vs)) (complete (eval b) (eval a) auto)
 
 ⟨-⟩-sound : ∀ a b ρ → ⟦ a -nf b ⟧n (atomEnv ρ) ≡ ⟦ a ⟧n (atomEnv ρ) - ⟦ b ⟧n (atomEnv ρ)
@@ -121,7 +127,7 @@ lem-sub-eval-simp n ρ = lem-sub-eval n ρ ⟨≡⟩ʳ lem-eval-env (atomEnvS ρ
   ⟨-⟩-sound′ a (b +nf c) ρ ⟨≡⟩
   (eval a -_) $≡ ⟨+⟩-sound b c (atomEnv ρ) ⟨≡⟩
   sub-add-r (eval a) (eval b) (eval c) ⟨≡⟩
-  (_- eval c) $≡ (_-_ $≡ lem-sub-eval a ρ *≡ lem-sub-eval b ρ) ʳ⟨≡⟩
+  (_- eval c) $≡ (_-_ $≡ lem-eval-sn-n a ρ *≡ lem-eval-sn-n b ρ) ʳ⟨≡⟩
   (_- eval c) $≡ auto
 
 private
@@ -137,7 +143,7 @@ private
     _-_ $≡ lem-mul-sound-kt′ (a , x) b ρ *≡ lem-mul-sound-kt′ (a , x) c ρ ⟨≡⟩
     _-_ $≡ mulTmDistr (a , x) b (atomEnv ρ) *≡ mulTmDistr (a , x) c (atomEnv ρ) ⟨≡⟩
     sub-mul-distr-r (a * prod x) (eval b) (eval c) ʳ⟨≡⟩
-    _*_ (a * prod x) $≡ (_-_ $≡ lem-sub-eval b ρ *≡ lem-sub-eval c ρ) ʳ⟨≡⟩
+    _*_ (a * prod x) $≡ (_-_ $≡ lem-eval-sn-n b ρ *≡ lem-eval-sn-n c ρ) ʳ⟨≡⟩
     auto ⟨≡⟩ʳ
     _*_ (a * 1) $≡ map-merge x [ b ⟨-⟩ c ] (atomEnv ρ) 
 
@@ -158,7 +164,7 @@ private
     _-_ $≡ lem-mul-sound a c ρ *≡ lem-mul-sound b c ρ ⟨≡⟩
     _-_ $≡ ⟨*⟩-sound a c (atomEnv ρ) *≡ ⟨*⟩-sound b c (atomEnv ρ) ⟨≡⟩
     sub-mul-distr-l (eval a) (eval b) (eval c) ʳ⟨≡⟩
-    (_* eval c) $≡ (_-_ $≡ lem-sub-eval a ρ *≡ lem-sub-eval b ρ) ʳ⟨≡⟩
+    (_* eval c) $≡ (_-_ $≡ lem-eval-sn-n a ρ *≡ lem-eval-sn-n b ρ) ʳ⟨≡⟩
     auto ⟨≡⟩ʳ
     mulTmDistr (1 , [ a ⟨-⟩ b ]) c (atomEnv ρ)
 
@@ -177,17 +183,43 @@ sound-sub (var x) ρ = auto
 sound-sub (lit 0) ρ = refl
 sound-sub (lit (suc n)) ρ = auto
 sound-sub (e ⟨+⟩ e₁) ρ =
-  cong₂ _+_ (sound-sub e  ρ ⟨≡⟩ lem-sub-eval (normSub e)  ρ)
-            (sound-sub e₁ ρ ⟨≡⟩ lem-sub-eval (normSub e₁) ρ) ⟨≡⟩
+  cong₂ _+_ (sound-sub e  ρ ⟨≡⟩ lem-eval-sn-n (normSub e)  ρ)
+            (sound-sub e₁ ρ ⟨≡⟩ lem-eval-sn-n (normSub e₁) ρ) ⟨≡⟩
   ⟨+⟩-sound (normSub e) (normSub e₁) (atomEnv ρ) ʳ⟨≡⟩ʳ
-  lem-sub-eval (normSub (e ⟨+⟩ e₁)) ρ
+  lem-eval-sn-n (normSub (e ⟨+⟩ e₁)) ρ
 sound-sub (e ⟨*⟩ e₁) ρ =
-  cong₂ _*_ (sound-sub e  ρ ⟨≡⟩ lem-sub-eval (normSub e)  ρ)
-            (sound-sub e₁ ρ ⟨≡⟩ lem-sub-eval (normSub e₁) ρ) ⟨≡⟩
+  cong₂ _*_ (sound-sub e  ρ ⟨≡⟩ lem-eval-sn-n (normSub e)  ρ)
+            (sound-sub e₁ ρ ⟨≡⟩ lem-eval-sn-n (normSub e₁) ρ) ⟨≡⟩
   ⟨*⟩-sound₁ (normSub e) (normSub e₁) ρ ʳ⟨≡⟩ʳ
-  lem-sub-eval (normSub (e ⟨*⟩ e₁)) ρ
+  lem-eval-sn-n (normSub (e ⟨*⟩ e₁)) ρ
 sound-sub (e ⟨-⟩ e₁) ρ =
-  cong₂ _-_ (sound-sub e  ρ ⟨≡⟩ lem-sub-eval (normSub e)  ρ)
-            (sound-sub e₁ ρ ⟨≡⟩ lem-sub-eval (normSub e₁) ρ) ⟨≡⟩
+  cong₂ _-_ (sound-sub e  ρ ⟨≡⟩ lem-eval-sn-n (normSub e)  ρ)
+            (sound-sub e₁ ρ ⟨≡⟩ lem-eval-sn-n (normSub e₁) ρ) ⟨≡⟩
   ⟨-⟩-sound (normSub e) (normSub e₁) ρ ʳ⟨≡⟩ʳ
-  lem-sub-eval (normSub (e ⟨-⟩ e₁)) ρ
+  lem-eval-sn-n (normSub (e ⟨-⟩ e₁)) ρ
+
+liftNFSubEq : ∀ e₁ e₂ ρ → ⟦ normSub e₁ ⟧sn ρ ≡ ⟦ normSub e₂ ⟧sn ρ → ⟦ e₁ ⟧se ρ ≡ ⟦ e₂ ⟧se ρ
+liftNFSubEq e₁ e₂ ρ eq = eraseEquality $ sound-sub e₁ ρ ⟨≡⟩ eq ⟨≡⟩ʳ sound-sub e₂ ρ
+
+unliftNFSubEq : ∀ e₁ e₂ ρ → ⟦ e₁ ⟧se ρ ≡ ⟦ e₂ ⟧se ρ → ⟦ normSub e₁ ⟧sn ρ ≡ ⟦ normSub e₂ ⟧sn ρ
+unliftNFSubEq e₁ e₂ ρ eq = eraseEquality $ sound-sub e₁ ρ ʳ⟨≡⟩ eq ⟨≡⟩ sound-sub e₂ ρ
+
+SubExpEq : SubExp → SubExp → Env Var → Set
+SubExpEq e₁ e₂ ρ = ⟦ e₁ ⟧se ρ ≡ ⟦ e₂ ⟧se ρ
+
+CancelSubEq : SubExp → SubExp → Env Var → Set
+CancelSubEq e₁ e₂ ρ = NFEqS (cancel (normSub e₁) (normSub e₂)) (atomEnvS ρ)
+
+simplifySubEq : ∀ e₁ e₂ (ρ : Env Var) → CancelSubEq e₁ e₂ ρ → SubExpEq e₁ e₂ ρ
+simplifySubEq e₁ e₂ ρ H = liftNFSubEq e₁ e₂ ρ $
+  lem-eval-sn-nS (normSub e₁) ρ ⟨≡⟩
+  cancel-sound (normSub e₁) (normSub e₂) (atomEnvS ρ) H ⟨≡⟩ʳ
+  lem-eval-sn-nS (normSub e₂) ρ
+
+complicateSubEq : ∀ e₁ e₂ ρ → SubExpEq e₁ e₂ ρ → CancelSubEq e₁ e₂ ρ
+complicateSubEq e₁ e₂ ρ H =
+  cancel-complete (normSub e₁) (normSub e₂) (atomEnvS ρ) $
+  lem-eval-sn-nS (normSub e₁) ρ ʳ⟨≡⟩
+  unliftNFSubEq e₁ e₂ ρ H ⟨≡⟩
+  lem-eval-sn-nS (normSub e₂) ρ
+

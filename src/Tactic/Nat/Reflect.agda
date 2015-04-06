@@ -149,16 +149,23 @@ quoteList (t ∷ ts) = con (quote List._∷_) (defaultArg t ∷ defaultArg (quot
 quotedEnv : List Term → Term
 quotedEnv ts = def (quote buildEnv) $ defaultArg (quoteList $ map stripImplicit ts) ∷ []
 
-QED : {A : Set} {x : Maybe A} → Set
+QED : ∀ {a} {A : Set a} {x : Maybe A} → Set
 QED {x = x} = IsJust x
 
-getProof : {A : Set} (prf : Maybe A) → QED {x = prf} → A
-getProof (just eq) _ = eq
-getProof nothing ()
+get-proof : ∀ {a} {A : Set a} (prf : Maybe A) → QED {x = prf} → A
+get-proof (just eq) _ = eq
+get-proof nothing ()
+
+getProof : Name → Term → Term → Term
+getProof err t proof =
+  def (quote get-proof)
+  $ vArg proof
+  ∷ vArg (def err $ vArg (stripImplicit t) ∷ [])
+  ∷ []
 
 failedProof : Name → Term → Term
 failedProof err t =
-  def (quote getProof)
+  def (quote get-proof)
   $ vArg (con (quote nothing) [])
   ∷ vArg (def err $ vArg (stripImplicit t) ∷ [])
   ∷ []

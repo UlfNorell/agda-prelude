@@ -38,14 +38,12 @@ auto-tactic t =
   case termToEq t of
   λ { nothing → failedProof (quote invalidGoal) t
     ; (just ((e₁ , e₂) , Γ)) →
-      def (quote getProof)
-        $ vArg (def (quote auto-proof)
-                    ( vArg (` e₁)
-                    ∷ vArg (` e₂)
-                    ∷ vArg (quotedEnv Γ)
-                    ∷ []))
-        ∷ vArg (def (quote cantProve) $ vArg (stripImplicit t) ∷ [])
-        ∷ []
+      getProof (quote cantProve) t $
+        def (quote auto-proof)
+            ( vArg (` e₁)
+            ∷ vArg (` e₂)
+            ∷ vArg (quotedEnv Γ)
+            ∷ [] )
     }
 
 macro

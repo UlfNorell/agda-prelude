@@ -19,70 +19,75 @@ open import Tactic.Nat.Reflect
 open import Tactic.Nat.Subtract.Exp
 open import Tactic.Nat.Subtract.Reflect
 open import Tactic.Nat.Subtract.Lemmas
+open import Tactic.Nat.Less.Lemmas
 
-private
-  liftNFSubEq : ∀ e₁ e₂ ρ → ⟦ normSub e₁ ⟧sn ρ ≡ ⟦ normSub e₂ ⟧sn ρ → ⟦ e₁ ⟧se ρ ≡ ⟦ e₂ ⟧se ρ
-  liftNFSubEq e₁ e₂ ρ eq = eraseEquality $ sound-sub e₁ ρ ⟨≡⟩ eq ⟨≡⟩ʳ sound-sub e₂ ρ
+-- less-suc : ∀ {n} → 0 < suc n
+-- less-suc {n} = diff n auto
 
-  unliftNFSubEq : ∀ e₁ e₂ ρ → ⟦ e₁ ⟧se ρ ≡ ⟦ e₂ ⟧se ρ → ⟦ normSub e₁ ⟧sn ρ ≡ ⟦ normSub e₂ ⟧sn ρ
-  unliftNFSubEq e₁ e₂ ρ eq = eraseEquality $ sound-sub e₁ ρ ʳ⟨≡⟩ eq ⟨≡⟩ sound-sub e₂ ρ
+⟦_⟧eqn : Eqn → Env Var → Set
+⟦ e₁ :≡ e₂ ⟧eqn ρ = ⟦ e₁ ⟧se ρ ≡ ⟦ e₂ ⟧se ρ
+⟦ e₁ :< e₂ ⟧eqn ρ = ⟦ e₁ ⟧se ρ < ⟦ e₂ ⟧se ρ
 
-autosub-proof : ∀ e₁ e₂ ρ → Maybe (⟦ e₁ ⟧se ρ ≡ ⟦ e₂ ⟧se ρ)
-autosub-proof e₁ e₂ ρ with normSub e₁ == normSub e₂
-autosub-proof e₁ e₂ ρ | no _   = nothing
-autosub-proof e₁ e₂ ρ | yes eq = just (liftNFSubEq e₁ e₂ ρ (cong (λ n → ⟦ n ⟧sn ρ) eq))
+autosub-proof : ∀ eqn ρ → Maybe (⟦ eqn ⟧eqn ρ)
+autosub-proof (e₁ :≡ e₂) ρ with normSub e₁ == normSub e₂
+autosub-proof (e₁ :≡ e₂) ρ | no _   = nothing
+autosub-proof (e₁ :≡ e₂) ρ | yes eq = just (liftNFSubEq e₁ e₂ ρ (cong (λ n → ⟦ n ⟧sn ρ) eq))
+autosub-proof (e₁ :< e₂) ρ with cancel (normSub e₁) (normSub e₂) | simplifySubLess e₁ e₂ ρ
+autosub-proof (e₁ :< e₂) ρ | [] , (suc n , []) ∷ nf | simp =
+  let sk : SubNF
+      sk = (suc n , []) ∷ nf
+      k  = (    n , []) ∷ nf in
+  just $ simp $ diff (⟦ k ⟧sns ρ) $
+    ns-sound sk (atomEnvS ρ) ⟨≡⟩
+    auto ⟨≡⟩ʳ (λ z → suc (z + 0)) $≡ lem-eval-sns-nS k ρ
+autosub-proof (e₁ :< e₂) ρ | _  , _ | simp = nothing
 
 autosub-tactic : Term → Term
 autosub-tactic t =
-  case termToSubEq t of
+  case termToSubEqn t of
   λ { nothing → failedProof (quote invalidGoal) t
-    ; (just ((e₁ , e₂) , Γ)) →
-      def (quote getProof)
-        $ vArg (def (quote autosub-proof)
-                    ( vArg (` e₁)
-                    ∷ vArg (` e₂)
-                    ∷ vArg (quotedEnv Γ)
-                    ∷ []))
-        ∷ vArg (def (quote cantProve) $ vArg (stripImplicit t) ∷ [])
-        ∷ []
+    ; (just (eqn , Γ)) →
+      getProof (quote cantProve) t $
+        def (quote autosub-proof)
+            ( vArg (` eqn)
+            ∷ vArg (quotedEnv Γ)
+            ∷ [] )
     }
 
 --- Simplification ---
 
 private
-  SubExpEq : SubExp × SubExp → Env Var → Set
-  SubExpEq (e₁ , e₂) ρ = ⟦ e₁ ⟧se ρ ≡ ⟦ e₂ ⟧se ρ
 
-  CancelSubEq : SubExp × SubExp → Env Var → Set
-  CancelSubEq (e₁ , e₂) ρ = NFEqS (cancel (normSub e₁) (normSub e₂)) (atomEnvS ρ)
+  SubExpEqn : Eqn → Env Var → Set
+  SubExpEqn (a :≡ b) = SubExpEq a b
+  SubExpEqn (a :< b) = SubExpLess a b
 
-  ⟦_⟧sh : List (SubExp × SubExp) → Env Var → Set
+  CancelSubEqn : Eqn → Env Var → Set
+  CancelSubEqn (a :≡ b) = CancelSubEq a b
+  CancelSubEqn (a :< b) = CancelSubLess a b
+
+  simplifySubEqn : ∀ eqn ρ → CancelSubEqn eqn ρ → SubExpEqn eqn ρ
+  simplifySubEqn (a :≡ b) = simplifySubEq a b
+  simplifySubEqn (a :< b) = simplifySubLess a b
+
+  complicateSubEqn : ∀ eqn ρ → SubExpEqn eqn ρ → CancelSubEqn eqn ρ
+  complicateSubEqn (a :≡ b) = complicateSubEq a b
+  complicateSubEqn (a :< b) = complicateSubLess a b
+
+  ⟦_⟧sh : List Eqn → Env Var → Set
   ⟦ [] ⟧sh ρ = ⊥
-  ⟦ h ∷ [] ⟧sh ρ = SubExpEq h ρ
-  ⟦ h ∷ g  ⟧sh ρ = SubExpEq h ρ → ⟦ g ⟧sh ρ
+  ⟦ h ∷ [] ⟧sh ρ = SubExpEqn h ρ
+  ⟦ h ∷ g  ⟧sh ρ = SubExpEqn h ρ → ⟦ g ⟧sh ρ
 
-  ⟦_⟧shs : List (SubExp × SubExp) → Env Var → Set
+  ⟦_⟧shs : List Eqn → Env Var → Set
   ⟦ [] ⟧shs ρ = ⊥
-  ⟦ h ∷ [] ⟧shs ρ = CancelSubEq h ρ
-  ⟦ h ∷ g  ⟧shs ρ = CancelSubEq h ρ → ⟦ g ⟧shs ρ
-
-  simplifySubEq : ∀ eq (ρ : Env Var) → CancelSubEq eq ρ → SubExpEq eq ρ
-  simplifySubEq (e₁ , e₂) ρ H = liftNFSubEq e₁ e₂ ρ $
-    lem-sub-eval-simp (normSub e₁) ρ ⟨≡⟩
-    cancel-sound (normSub e₁) (normSub e₂) (atomEnvS ρ) H ⟨≡⟩ʳ
-    lem-sub-eval-simp (normSub e₂) ρ
-
-  complicateSubEq : ∀ eq ρ → SubExpEq eq ρ → CancelSubEq eq ρ
-  complicateSubEq (e₁ , e₂) ρ H =
-    cancel-complete (normSub e₁) (normSub e₂) (atomEnvS ρ) $
-    lem-sub-eval-simp (normSub e₁) ρ ʳ⟨≡⟩
-    unliftNFSubEq e₁ e₂ ρ H ⟨≡⟩
-    lem-sub-eval-simp (normSub e₂) ρ
+  ⟦ h ∷ [] ⟧shs ρ = CancelSubEqn h ρ
+  ⟦ h ∷ g  ⟧shs ρ = CancelSubEqn h ρ → ⟦ g ⟧shs ρ
 
   simplifySubH : ∀ goal ρ → ⟦ goal ⟧shs ρ → ⟦ goal ⟧sh ρ
   simplifySubH []            ρ ()
-  simplifySubH (h ∷ [])     ρ H = simplifySubEq h ρ H
-  simplifySubH (h ∷ h₂ ∷ g) ρ H = λ H₁ → simplifySubH (h₂ ∷ g) ρ $ H (complicateSubEq h ρ H₁)
+  simplifySubH (h ∷ [])     ρ H = simplifySubEqn h ρ H
+  simplifySubH (h ∷ h₂ ∷ g) ρ H = λ H₁ → simplifySubH (h₂ ∷ g) ρ $ H (complicateSubEqn h ρ H₁)
 
 simplifysub-tactic : Term → Term
 simplifysub-tactic t =
@@ -112,18 +117,36 @@ data Impossible : Set where
 invalidEquation : ⊤
 invalidEquation = _
 
-refutationsub : ∀ {a} {A : Set a} eq ρ → ¬ CancelSubEq eq ρ → SubExpEq eq ρ → A
-refutationsub exp ρ !eq eq = ⊥-elim (!eq (complicateSubEq exp ρ eq))
+private
+  0≠suc : ∀ n → 0 ≡ suc n → ⊥
+  0≠suc n ()
+
+  n≮0 : ∀ {n} → n < 0 → ⊥
+  n≮0 (diff k ())
+
+  lem-refute : ∀ n nf ρ → 0 ≡ ⟦ (suc n , []) ∷ nf ⟧ns (atomEnvS ρ) → ⊥
+  lem-refute n nf ρ eq = erase-⊥ $ 0≠suc (n + ⟦ nf ⟧n (atomEnvS ρ)) $
+    eq ⟨≡⟩ ns-sound ((suc n , []) ∷ nf) (atomEnvS ρ) ⟨≡⟩ auto
+
+refutation-proof : ∀ {a} {A : Set a} eqn ρ → Maybe (SubExpEqn eqn ρ → A)
+refutation-proof (a :≡ b) ρ with cancel (normSub a) (normSub b) | complicateSubEq a b ρ
+refutation-proof (a :≡ b) ρ | [] , (suc n , []) ∷ v | compl = just λ eq → ⊥-elim $ lem-refute n v ρ (compl eq)
+refutation-proof (a :≡ b) ρ | (suc n , []) ∷ v , [] | compl = just λ eq → ⊥-elim $ lem-refute n v ρ (sym (compl eq))
+refutation-proof (a :≡ b) ρ | _ , _ | _ = nothing
+
+refutation-proof (a :< b) ρ with cancel (normSub a) (normSub b) | complicateSubLess a b ρ
+refutation-proof (a :< b) ρ | v , [] | compl = just λ eq → ⊥-elim $ erase-⊥ $ n≮0 (compl eq)
+refutation-proof (a :< b) ρ | _ , _  | _     = nothing
 
 refutesub-tactic : Term → Term
 refutesub-tactic (pi (vArg (el _ a)) _) =
-  case termToSubEq a of λ
+  case termToSubEqn a of λ
   { nothing → failedProof (quote invalidEquation) a
-  ; (just (eq , Γ)) →
-    def (quote refutationsub)
-        $ vArg (` eq)
+  ; (just (eqn , Γ)) →
+    getProof (quote cantProve) a $
+    def (quote refutation-proof)
+        $ vArg (` eqn)
         ∷ vArg (quotedEnv Γ)
-        ∷ vArg absurd-lam
         ∷ []
   }
 refutesub-tactic _ = def (quote Impossible) []

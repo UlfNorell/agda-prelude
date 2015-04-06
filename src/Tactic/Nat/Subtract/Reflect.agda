@@ -42,19 +42,29 @@ termToSubEqR _ = fail
 termToSubEq : Term → Maybe ((SubExp × SubExp) × List Term)
 termToSubEq t = runR (termToSubEqR t)
 
+pattern _`<_ a b = def (quote LessNat) (vArg a ∷ vArg b ∷ [])
+
+termToSubEqnR : Term → R Eqn
+termToSubEqnR (lhs `< rhs) = _:<_ <$> termToSubExpR lhs <*> termToSubExpR rhs
+termToSubEqnR (lhs `≡ rhs) = _:≡_ <$> termToSubExpR lhs <*> termToSubExpR rhs
+termToSubEqnR _ = fail
+
+termToSubEqn : Term → Maybe (Eqn × List Term)
+termToSubEqn t = runR (termToSubEqnR t)
+
 private
   lower : Nat → Term → R Term
   lower 0 = pure
   lower i = lift ∘ strengthen i
 
-termToSubHypsR′ : Nat → Term → R (List (SubExp × SubExp))
-termToSubHypsR′ i (hyp `-> a) = _∷_ <$> (termToSubEqR =<< lower i hyp) <*> termToSubHypsR′ (suc i) a
-termToSubHypsR′ i a = [_] <$> (termToSubEqR =<< lower i a)
+termToSubHypsR′ : Nat → Term → R (List Eqn)
+termToSubHypsR′ i (hyp `-> a) = _∷_ <$> (termToSubEqnR =<< lower i hyp) <*> termToSubHypsR′ (suc i) a
+termToSubHypsR′ i a = [_] <$> (termToSubEqnR =<< lower i a)
 
-termToSubHypsR : Term → R (List (SubExp × SubExp))
+termToSubHypsR : Term → R (List Eqn)
 termToSubHypsR = termToSubHypsR′ 0
 
-termToSubHyps : Term → Maybe (List (SubExp × SubExp) × List Term)
+termToSubHyps : Term → Maybe (List Eqn × List Term)
 termToSubHyps t = runR (termToSubHypsR t)
 
 instance
@@ -67,3 +77,10 @@ instance
       quoteSubExp (e ⟨+⟩ e₁) = con (quote SubExp._⟨+⟩_) (map defaultArg $ quoteSubExp e ∷ quoteSubExp e₁ ∷ [])
       quoteSubExp (e ⟨-⟩ e₁) = con (quote SubExp._⟨-⟩_) (map defaultArg $ quoteSubExp e ∷ quoteSubExp e₁ ∷ [])
       quoteSubExp (e ⟨*⟩ e₁) = con (quote SubExp._⟨*⟩_) (map defaultArg $ quoteSubExp e ∷ quoteSubExp e₁ ∷ [])
+
+  QuotableEqn : Quotable Eqn
+  QuotableEqn = record { ` = quoteEqn }
+    where
+      quoteEqn : Eqn → Term
+      quoteEqn (a :≡ b) = con (quote _:≡_) (vArg (` a) ∷ vArg (` b) ∷ [])
+      quoteEqn (a :< b) = con (quote _:<_) (vArg (` a) ∷ vArg (` b) ∷ [])
