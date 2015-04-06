@@ -25,7 +25,7 @@ CancelSubLess e₁ e₂ ρ = NFLessS (cancel (normSub e₁) (normSub e₂)) (ato
 
 simplifySubLess : ∀ e₁ e₂ (ρ : Env Var) → CancelSubLess e₁ e₂ ρ → SubExpLess e₁ e₂ ρ
 simplifySubLess e₁ e₂ ρ H with cancel (normSub e₁) (normSub e₂)
-                                 | λ a b → cancel-sound′ a b (normSub e₁) (normSub e₂) (atomEnvS ρ)
+                             | λ a b → cancel-sound′ a b (normSub e₁) (normSub e₂) (atomEnvS ρ)
 simplifySubLess e₁ e₂ ρ (diff k H) | v₁ , v₂ | sound =
   liftNFSubLess e₁ e₂ ρ $ diff k $
     lem-eval-sn-nS (normSub e₂) ρ ⟨≡⟩

@@ -119,6 +119,16 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
     ⟨≡⟩ cong (et ρ (i , x) +_) (cancel-sound′ a b nf₁ nf₂ ρ H)
     ⟨≡⟩ shuffle₁ (et ρ (i , x)) b _
 
+  cancel-sound-s′ : ∀ a b nf₁ nf₂ (ρ : Env Atom) →
+                         a + ⟦ fst (cancel nf₁ nf₂) ⟧ns ρ ≡ b + ⟦ snd (cancel nf₁ nf₂) ⟧ns ρ →
+                         a + ⟦ nf₁ ⟧ns ρ ≡ b + ⟦ nf₂ ⟧ns ρ
+  cancel-sound-s′ a b nf₁ nf₂ ρ eq =
+    (a +_) $≡ ns-sound nf₁ ρ ⟨≡⟩
+    cancel-sound′ a b nf₁ nf₂ ρ
+      ((a +_) $≡ ns-sound (fst (cancel nf₁ nf₂)) ρ ʳ⟨≡⟩
+       eq ⟨≡⟩ (b +_) $≡ ns-sound (snd (cancel nf₁ nf₂)) ρ) ⟨≡⟩ʳ
+    (b +_) $≡ ns-sound nf₂ ρ
+
   cancel-sound : ∀ nf₁ nf₂ ρ → NFEqS (cancel nf₁ nf₂) ρ → NFEq (nf₁ , nf₂) ρ
   cancel-sound nf₁ nf₂ ρ H rewrite cong (λ p → NFEqS p ρ) (eta (cancel nf₁ nf₂)) =
     (cancel-sound′ 0 0 nf₁ nf₂ ρ
@@ -175,6 +185,16 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
     cancel-complete′ a b nf₁ nf₂ ρ
       (add-inj₂ (i * prod ρ x) _ _
         (shuffle₁ a (i * prod ρ x) _ ʳ⟨≡⟩ H ⟨≡⟩ shuffle₁ b (i * prod ρ x) _))
+
+  cancel-complete-s′ : ∀ a b nf₁ nf₂ (ρ : Env Atom) →
+                         a + ⟦ nf₁ ⟧ns ρ ≡ b + ⟦ nf₂ ⟧ns ρ →
+                         a + ⟦ fst (cancel nf₁ nf₂) ⟧ns ρ ≡ b + ⟦ snd (cancel nf₁ nf₂) ⟧ns ρ
+  cancel-complete-s′ a b nf₁ nf₂ ρ eq =
+    (a +_) $≡ ns-sound (fst (cancel nf₁ nf₂)) ρ ⟨≡⟩
+    cancel-complete′ a b nf₁ nf₂ ρ
+      ((a +_) $≡ ns-sound nf₁ ρ ʳ⟨≡⟩
+       eq ⟨≡⟩ (b +_) $≡ ns-sound nf₂ ρ) ⟨≡⟩ʳ
+    (b +_) $≡ ns-sound (snd (cancel nf₁ nf₂)) ρ
 
   cancel-complete : ∀ nf₁ nf₂ ρ → NFEq (nf₁ , nf₂) ρ → NFEqS (cancel nf₁ nf₂) ρ
   cancel-complete nf₁ nf₂ ρ H rewrite cong (λ p → NFEqS p ρ) (eta (cancel nf₁ nf₂)) =

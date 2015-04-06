@@ -15,43 +15,42 @@ open import Tactic.Nat.Simpl
 
 open import Tactic.Nat.Subtract.Exp
 
-private
-  sub-cancel : ∀ a → a - a ≡ 0
-  sub-cancel zero = refl
-  sub-cancel (suc a) = sub-cancel a
+sub-cancel : ∀ a → a - a ≡ 0
+sub-cancel zero = refl
+sub-cancel (suc a) = sub-cancel a
 
-  sub-add-r : ∀ a b c → a - (b + c) ≡ a - b - c
-  sub-add-r  a       zero    c      = refl
-  sub-add-r zero    (suc b)  zero   = refl
-  sub-add-r zero    (suc b) (suc c) = refl
-  sub-add-r (suc a) (suc b)  c      = sub-add-r a b c
+sub-add-r : ∀ a b c → a - (b + c) ≡ a - b - c
+sub-add-r  a       zero    c      = refl
+sub-add-r zero    (suc b)  zero   = refl
+sub-add-r zero    (suc b) (suc c) = refl
+sub-add-r (suc a) (suc b)  c      = sub-add-r a b c
 
-  lem-sub-zero : ∀ a b c → b + c ≡ a → c ≡ a - b
-  lem-sub-zero ._  zero   c refl = refl
-  lem-sub-zero ._ (suc b) c refl = lem-sub-zero _ b c refl
+lem-sub-zero : ∀ a b c → b + c ≡ a → c ≡ a - b
+lem-sub-zero ._  zero   c refl = refl
+lem-sub-zero ._ (suc b) c refl = lem-sub-zero _ b c refl
 
-  lem-zero-sub : ∀ a b c → b ≡ a + c → 0 ≡ a - b
-  lem-zero-sub  zero   ._  zero   refl = refl
-  lem-zero-sub  zero   ._ (suc c) refl = refl
-  lem-zero-sub (suc a) ._  c      refl = lem-zero-sub a _ c refl
+lem-zero-sub : ∀ a b c → b ≡ a + c → 0 ≡ a - b
+lem-zero-sub  zero   ._  zero   refl = refl
+lem-zero-sub  zero   ._ (suc c) refl = refl
+lem-zero-sub (suc a) ._  c      refl = lem-zero-sub a _ c refl
 
-  lem-sub : ∀ a b u v → b + u ≡ a + v → u - v ≡ a - b
-  lem-sub  zero    zero   u ._ refl = sub-cancel u
-  lem-sub  zero   (suc b) u ._ refl = sym $ lem-zero-sub u (suc b + u) (suc b) auto
-  lem-sub (suc a)  zero  ._  v refl = sym $ lem-sub-zero (suc a + v) v (suc a) auto
-  lem-sub (suc a) (suc b) u  v eq   = lem-sub a b u v (suc-inj eq)
+lem-sub : ∀ a b u v → b + u ≡ a + v → u - v ≡ a - b
+lem-sub  zero    zero   u ._ refl = sub-cancel u
+lem-sub  zero   (suc b) u ._ refl = sym $ lem-zero-sub u (suc b + u) (suc b) auto
+lem-sub (suc a)  zero  ._  v refl = sym $ lem-sub-zero (suc a + v) v (suc a) auto
+lem-sub (suc a) (suc b) u  v eq   = lem-sub a b u v (suc-inj eq)
 
-  sub-mul-distr-l : ∀ a b c → (a - b) * c ≡ a * c - b * c
-  sub-mul-distr-l zero b c = (_* c) $≡ lem-zero-sub 0 b b refl ʳ⟨≡⟩ lem-zero-sub 0 (b * c) (b * c) refl
-  sub-mul-distr-l (suc a) zero c = refl
-  sub-mul-distr-l (suc a) (suc b) c =
-    sub-mul-distr-l a b c ⟨≡⟩
-    lem-sub (suc a * c) (suc b * c) (a * c) (b * c) auto
+sub-mul-distr-l : ∀ a b c → (a - b) * c ≡ a * c - b * c
+sub-mul-distr-l zero b c = (_* c) $≡ lem-zero-sub 0 b b refl ʳ⟨≡⟩ lem-zero-sub 0 (b * c) (b * c) refl
+sub-mul-distr-l (suc a) zero c = refl
+sub-mul-distr-l (suc a) (suc b) c =
+  sub-mul-distr-l a b c ⟨≡⟩
+  lem-sub (suc a * c) (suc b * c) (a * c) (b * c) auto
 
-  sub-mul-distr-r : ∀ a b c → a * (b - c) ≡ a * b - a * c
-  sub-mul-distr-r a b c =
-    auto ⟨≡⟩ sub-mul-distr-l b c a
-         ⟨≡⟩ cong₂ _-_ (mul-commute b a) (mul-commute c a)
+sub-mul-distr-r : ∀ a b c → a * (b - c) ≡ a * b - a * c
+sub-mul-distr-r a b c =
+  auto ⟨≡⟩ sub-mul-distr-l b c a
+       ⟨≡⟩ cong₂ _-_ (mul-commute b a) (mul-commute c a)
 
 -- The evaluator that doesn't generate x * 1 + 0 is the same as the
 -- one that does.
