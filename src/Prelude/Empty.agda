@@ -6,10 +6,10 @@ data ⊥ : Set where
 ⊥-elim : ∀ {a} {A : Set a} → ⊥ → A
 ⊥-elim ()
 
-private postulate unsafeBottom : ⊥
+private postulate erasedBottom : ⊥
 
 erase-⊥ : ⊥ → ⊥
-erase-⊥ _ = unsafeBottom
+erase-⊥ _ = erasedBottom
 
 infix 4 ¬_
 ¬_ : ∀ {a} (A : Set a) → Set a
