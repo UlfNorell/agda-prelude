@@ -64,7 +64,7 @@ less-raa a≱b | equal  refl = ⊥-elim (a≱b (diff! 0))
 less-raa a≱b | greater a>b = ⊥-elim (a≱b (less-suc a>b))
 
 _⟨≤⟩_ : {a b c : Nat} → a ≤ b → b ≤ c → a ≤ c
-diff! k ⟨≤⟩ diff! k₁ = diff (k₁ + k) auto
+diff! k ⟨≤⟩ diff! k₁ = auto
 
 plus-zero-l : ∀ a b → a + b ≡ 0 → a ≡ 0
 plus-zero-l zero b eq = refl
@@ -74,12 +74,6 @@ plus-zero-r : ∀ a b → a + b ≡ 0 → b ≡ 0
 plus-zero-r zero    b eq = eq
 plus-zero-r (suc a) b eq = refute eq
 
-plus-monotone-l : ∀ {a b} c → a < b → a + c < b + c
-plus-monotone-l c (diff k eq) = diff k (follows-from eq)
-
-plus-monotone-r : ∀ a {b c} → b < c → a + b < a + c
-plus-monotone-r a (diff k eq) = diff k (follows-from eq)
-
 leq-antisym : {a b : Nat} → a ≤ b → b ≤ a → a ≡ b
 leq-antisym (diff! k) (diff k₁ eq) = simplify eq to eq′ => sym $ plus-zero-r k₁ k (sym eq′)
 
@@ -87,7 +81,7 @@ leq-add-l : ∀ a {b} → b ≤ a + b
 leq-add-l a {b} = diff! a
 
 leq-add-r : ∀ {a} b → a ≤ a + b
-leq-add-r {a} b = diff b auto
+leq-add-r {a} b = auto
 
 private
   less-mul-r′ : ∀ a b → NonZero b → a ≤ a * b
@@ -98,7 +92,7 @@ private
         H = less-mul-r′ a (suc b) _ ⟨≤⟩ leq-add-r b
     in suc-monotone (transport (_<_ a) auto H)
 
-less-mul-r : ∀ {a} b {{_ : NonZero b}} → a ≤ a * b
-less-mul-r b = fast-diff (less-mul-r′ _ b it)
+less-mul-r : ∀ a b {{_ : NonZero b}} → a ≤ a * b
+less-mul-r a b = fast-diff (less-mul-r′ _ b it)
 
 

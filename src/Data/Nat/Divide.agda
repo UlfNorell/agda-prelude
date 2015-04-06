@@ -16,7 +16,7 @@ pattern factor! q = factor q refl
 
 divides-divmod : ∀ {a b} {{_ : NonZero b}} → b Divides a → DivMod a b
 divides-divmod {b = zero } {{}}
-divides-divmod {b = suc b} (factor q eq) = qr q 0 less-zero-suc (auto ⟨≡⟩ eq)
+divides-divmod {b = suc b} (factor q eq) = qr q 0 auto (follows-from eq)
 
 divides-add : ∀ {a b d} → d Divides a → d Divides b → d Divides (a + b)
 divides-add (factor! q) (factor! q₁) = factor (q + q₁) auto
@@ -59,9 +59,9 @@ divides-trans (factor! q) (factor! q′) = factor (q′ * q) auto
 divides-zero : ∀ {a} → 0 Divides a → a ≡ 0
 divides-zero (factor! q) = auto
 
-divides-less : ∀ {a b} → NonZero b → a Divides b → a ≤ b
-divides-less () (factor! 0)
-divides-less _  (factor! (suc q)) = transport (LessNat _) auto (less-mul-r (suc q))
+divides-less : ∀ {a b} {{_ : NonZero b}} → a Divides b → a ≤ b
+divides-less {{}} (factor! 0)
+divides-less {a} (factor! (suc q)) = follows-from (less-mul-r a (suc q))
 
 private
   safediv : Nat → Nat → Nat

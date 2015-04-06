@@ -17,7 +17,7 @@ data Prime n : Set where
 
 private
   lem : (a b : Nat) → b > 1 → suc a < suc a * b
-  lem a .(suc (k + 1)) (diff! k) = diff (a + k + a * k) auto
+  lem a .(suc (k + 1)) (diff! k) = auto
 
 data Composite n : Set where
   composite : ∀ a b → a > 1 → b > 1 → a * b ≡ n → Composite n
@@ -168,7 +168,7 @@ private
   divide-bigger ._ k (diff! k₁) (factor zero eq) = refute eq
   divide-bigger n  k k<n (factor 1 eq) = ⊥-elim (less-antirefl k<n eq)
   divide-bigger n  k k<n (factor (suc (suc q)) eq) =
-    transport (2 ≤_) (sym $ div-unique (2 + q) eq) (diff q auto)
+    transport (2 ≤_) (sym $ div-unique (2 + q) eq) auto
 
   up-to-root : ∀ r n → r ≤ n → r ^ 2 ≥ suc n → FindInRange 2 r (_Divides suc n) → FindInRange 2 n (_Divides suc n)
   up-to-root r n r<n r²>n (none k∤sn) =
@@ -200,15 +200,15 @@ private
         k=0 = plus-zero-r k₁ k (follows-from (sym eq))
     in refute (divides-zero (transport (_Divides suc n) k=0 (factor q kq=n)))
   is-1-or-n {n} no-div  k (factor q kq=n) | above  k>n =
-    right (leq-antisym (divides-less _ (factor q kq=n)) (suc-monotone k>n))
+    right (leq-antisym (divides-less (factor q kq=n)) (follows-from k>n))
 
-  lem₂ : ∀ {n d} q → q * d ≡ suc n → LessNat d (suc n) → LessNat 1 q
+  lem₂ : ∀ {n d} q → q * d ≡ suc n → d < suc n → q > 1
   lem₂ 0 eq d≤n = refute eq
   lem₂ 1 eq d≤n = ⊥-elim (less-antirefl d≤n eq)
-  lem₂ (suc (suc q)) eq d≤n = diff q auto
+  lem₂ (suc (suc q)) eq d≤n = auto
 
   two-is-prime : ∀ k → k Divides 2 → Either (k ≡ 1) (k ≡ 2)
-  two-is-prime k k|2 with divides-less _ k|2
+  two-is-prime k k|2 with divides-less k|2
   two-is-prime 0 (factor q eq) | k≤2 = refute eq
   two-is-prime 1 k|2 | k≤2 = left refl
   two-is-prime 2 k|2 | k≤2 = right refl
@@ -222,7 +222,7 @@ private
   isPrimeAux (suc (suc (suc _))) (equal ())
   isPrimeAux (suc n) (less n>2) with sqrt (suc n) | sqrt-less _ n>2
   ... | root r r²<n sr²>n | r<n with up-to-root (suc r) n r<n (less-suc sr²>n) $ findInRange 2 (suc r) (λ k → k divides? suc n)
-  ...   | none p = yes (prime (suc-monotoneʳ (less-suc n>2)) (is-1-or-n p))
+  ...   | none p = yes (prime (follows-from (less-suc n>2)) (is-1-or-n p))
   ...   | here d (in-range 2≤d d≤n) (factor q eq) =
     no (composite d q (suc-monotoneʳ 2≤d) (lem₂ q eq d≤n) (follows-from eq))
 

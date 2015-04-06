@@ -17,25 +17,28 @@ data SearchResult {a} (P : Nat → Set a) (lo hi : Nat) : Set a where
   bad-range : lo > hi → SearchResult P lo hi
 
 private
-  infixr 0 _⟨=⟩_
-  _⟨=⟩_ : ∀ {a b c} → a ≡ b → b ≤ c → a ≤ c
-  a=b ⟨=⟩ b≤c = diff 0 (cong suc (sym a=b)) ⟨≤⟩ b≤c
+  infixr 0 _⟨=<⟩_ _⟨<=⟩_
+  _⟨=<⟩_ : ∀ {a : Nat} {b c} → a ≡ b → b < c → a < c
+  refl ⟨=<⟩ b<c = b<c
+
+  _⟨<=⟩_ : ∀ {a : Nat} {b c} → a < b → b ≡ c → a < c
+  a<b ⟨<=⟩ refl = a<b
 
 private
   lem-half : ∀ n → suc n div 2 < suc n
   lem-half n with suc n div 2 | suc n mod 2 | divmod-sound 2 (suc n)
-  lem-half n | zero  | r | eq = diff n auto
+  lem-half n | zero  | r | eq = auto
   lem-half n | suc q | r | eq = diff (q + r) (follows-from (sym eq))
 
   lem-half-nonzero : ∀ n → NonZero ((2 + n) div 2)
   lem-half-nonzero n with (2 + n) div 2 | (2 + n) mod 2 | divmod-sound 2 (2 + n) | mod-less 2 (2 + n)
-  lem-half-nonzero n | zero  | ._ | refl | diff k eq = refute eq
-  lem-half-nonzero n | suc q | r  | _    | _         = _
+  lem-half-nonzero n | zero  | ._ | refl | lt = refute lt
+  lem-half-nonzero n | suc q | r  | _    | _  = _
 
   lem-upper : ∀ {lo hi d} d′ {{_ : NonZero d′}} →
               hi ≡ suc (d + lo) → hi - (d′ + lo) ≤ d
   lem-upper zero {{}}
-  lem-upper {a} {._} {d} (suc d′) refl = auto ⟨=⟩ sub-leq d d′
+  lem-upper {a} {._} {d} (suc d′) refl = auto ⟨=<⟩ sub-leq d d′
 
   search : ∀ {a} {P : Nat → Set a} lo hi d → hi ≡ d + lo → Acc _<_ d →
              (∀ n → Dec (P n)) →
@@ -52,12 +55,11 @@ private
      { (yes pm) →
          case search lo m d′ refl (wf _ d′<d) check !plo pm of λ
          { (here k !pk psk lo≤k k<m) → here k !pk psk lo≤k $
-                   (k<m ⟨<⟩ transport (λ z → d′ + lo < z) (sym eq)
-                             (plus-monotone-l lo d′<d))
+             k<m ⟨<⟩ follows-from d′<d ⟨<=⟩ sym eq
          }
      ; (no !pm) →
          let m≤hi : m ≤ hi
-             m≤hi = plus-monotone-l lo d′<d ⟨≤⟩ diff 1 (cong suc eq)
+             m≤hi = follows-from d′<d ⟨≤⟩ diff 1 (cong suc eq)
              d′≠0 : NonZero d′
              d′≠0 = lem-half-nonzero d₀
              hi-m≤d : hi - m ≤ d
@@ -66,7 +68,7 @@ private
              eq = eraseEquality (sym (sub-less m≤hi))
          in
          case search m hi (hi - m) eq (wf (hi - m) hi-m≤d) check !pm phi of λ
-         { (here k !pk psk m≤k k<hi) → here k !pk psk (leq-add-l d′ ⟨≤⟩ m≤k) k<hi }
+         { (here k !pk psk m≤k k<hi) → here k !pk psk (auto ⟨≤⟩ m≤k) k<hi }
      }
 
 private
