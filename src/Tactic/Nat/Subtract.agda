@@ -113,6 +113,20 @@ private
       lem : suc (uv₁ + k + uv) + v ≡ v₁
       lem = sym $ sound₁ uv₁ 0 auto ʳ⟨≡⟩ auto ⟨≡⟩ sound (uv₁ + suc k + uv) (uv₁ + suc k) auto ʳ⟨≡⟩ auto
 
+  follows-from-proof-less : ∀ a a₁ b b₁ ρ → Maybe (SubExpLess a a₁ ρ → SubExpLess b b₁ ρ)
+  follows-from-proof-less a a₁ b b₁ ρ with cancel (normSub a) (normSub a₁)
+                                         | cancel (normSub b) (normSub b₁)
+                                         | complicateSubLess a a₁ ρ
+                                         | simplifySubLess b b₁ ρ
+  ... | u , u₁ | v , v₁ | compl | simpl
+    with cancel v u | cancel u₁ v₁
+       | (λ a b → cancel-sound-s′ a b v u (atomEnvS ρ))
+       | (λ a b → cancel-sound-s′ a b u₁ v₁ (atomEnvS ρ))
+  ... | [] , uv | [] , uv₁ | sound | sound₁ = just $ λ a<a₁ →
+      simpl $ diff (⟦ v₁ ⟧ns (atomEnvS ρ) - suc (⟦ v ⟧ns (atomEnvS ρ)))
+                   (follows-diff-prf (compl a<a₁) sound sound₁)
+  ... | _ | _ | _ | _ = nothing
+
   follows-from-proof : ∀ hyp goal ρ → Maybe (SubExpEqn hyp ρ → SubExpEqn goal ρ)
   follows-from-proof (a :≡ a₁) (b :≡ b₁) ρ with cancel (normSub a) (normSub a₁)
                                                | cancel (normSub b) (normSub b₁)
@@ -126,22 +140,11 @@ private
     just $ simpl ∘ sym ∘ compl
   ...   | _ | _ = nothing
 
-  follows-from-proof (a :≡ b) (a₁ :< b₁) ρ = nothing  -- todo
-
   follows-from-proof (a :< b) (a₁ :≡ b₁) ρ = nothing
+  follows-from-proof (a :< a₁) (b :< b₁) ρ = follows-from-proof-less a a₁ b b₁ ρ
+  follows-from-proof (a :≡ b) (a₁ :< b₁) ρ = flip fmap (follows-from-proof-less a (lit 1 ⟨+⟩ b) a₁ b₁ ρ) λ prf eq →
+    prf (diff 0 (cong suc (sym eq)))
 
-  follows-from-proof (a :< a₁) (b :< b₁) ρ with cancel (normSub a) (normSub a₁)
-                                              | cancel (normSub b) (normSub b₁)
-                                              | complicateSubLess a a₁ ρ
-                                              | simplifySubLess b b₁ ρ
-  follows-from-proof (a :< a₁) (b :< b₁) ρ | u , u₁ | v , v₁ | compl | simpl
-    with cancel v u | cancel u₁ v₁
-       | (λ a b → cancel-sound-s′ a b v u (atomEnvS ρ))
-       | (λ a b → cancel-sound-s′ a b u₁ v₁ (atomEnvS ρ))
-  ... | [] , uv | [] , uv₁ | sound | sound₁ = just $ λ a<a₁ →
-      simpl $ diff (⟦ v₁ ⟧ns (atomEnvS ρ) - suc (⟦ v ⟧ns (atomEnvS ρ)))
-                   (follows-diff-prf (compl a<a₁) sound sound₁)
-  ... | _ | _ | _ | _ = nothing
 
 follows-from-tactic : Term → Term
 follows-from-tactic t =
