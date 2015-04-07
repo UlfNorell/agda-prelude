@@ -28,7 +28,7 @@ private
   lem-half : ∀ n → suc n div 2 < suc n
   lem-half n with suc n div 2 | suc n mod 2 | divmod-sound 2 (suc n)
   lem-half n | zero  | r | eq = auto
-  lem-half n | suc q | r | eq = diff (q + r) (follows-from (sym eq))
+  lem-half n | suc q | r | eq = diff (q + r) (follows-from eq)
 
   lem-half-nonzero : ∀ n → NonZero ((2 + n) div 2)
   lem-half-nonzero n with (2 + n) div 2 | (2 + n) mod 2 | divmod-sound 2 (2 + n) | mod-less 2 (2 + n)

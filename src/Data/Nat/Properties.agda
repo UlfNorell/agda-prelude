@@ -36,18 +36,6 @@ infixr 0 _⟨<⟩_ _⟨≤⟩_
 _⟨<⟩_ : ∀ {x y z} → LessNat x y → LessNat y z → LessNat x z
 diff! a ⟨<⟩ diff! b = diff (suc (b + a)) auto
 
-less-zero : ∀ {a b} → a < b → 0 < b
-less-zero {a} (diff! k) = diff (k + a) auto
-
-less-suc : {a b : Nat} → a < b → a < suc b
-less-suc (diff k eq) = diff (suc k) (cong suc eq)
-
-less-suc-l : ∀ {a b : Nat} → suc a < b → a < b
-less-suc-l (diff k eq) = diff (suc k) (follows-from eq)
-
-less-zero-suc : ∀ {a} → 0 < suc a
-less-zero-suc {a} = diff a auto
-
 less-antirefl : ∀ {a b : Nat} → a < b → ¬ (a ≡ b)
 less-antirefl (diff! k) eq = refute eq
 
@@ -60,8 +48,8 @@ less-not-geq (diff d eq) (diff! d₁) = refute eq
 less-raa : {a b : Nat} → ¬ (suc a > b) → a < b
 less-raa {a} {b} a≱b with compare a b
 less-raa a≱b | less    a<b = a<b
-less-raa a≱b | equal  refl = ⊥-elim (a≱b (diff! 0))
-less-raa a≱b | greater a>b = ⊥-elim (a≱b (less-suc a>b))
+less-raa a≱b | equal  refl = ⊥-elim (a≱b auto)
+less-raa a≱b | greater a>b = ⊥-elim (a≱b (follows-from a>b))
 
 _⟨≤⟩_ : {a b c : Nat} → a ≤ b → b ≤ c → a ≤ c
 diff! k ⟨≤⟩ diff! k₁ = auto

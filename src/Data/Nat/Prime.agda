@@ -42,7 +42,7 @@ private
   less-inv {a} {b} a≮b with compare a b
   less-inv a≮b | less a<b    = ⊥-elim (a≮b a<b)
   less-inv a≮b | equal refl  = diff! 0
-  less-inv a≮b | greater a>b = less-suc a>b
+  less-inv a≮b | greater a>b = follows-from a>b
 
 data _∈[_,_] (n a b : Nat) : Set where
   in-range : a ≤ n → n ≤ b → n ∈[ a , b ]
@@ -63,10 +63,10 @@ singleton-range : ∀ {n a} → n ∈[ a , a ] → a ≡ n
 singleton-range (in-range a<n n<a) = leq-antisym a<n n<a
 
 suc-range-r : ∀ {n a b} → n ∈[ a , b ] → n ∈[ a , suc b ]
-suc-range-r (in-range a<n n<b) = in-range a<n (less-suc n<b)
+suc-range-r (in-range a<n n<b) = in-range a<n (follows-from n<b)
 
 suc-range-l : ∀ {n a b} → n ∈[ suc a , b ] → n ∈[ a , b ]
-suc-range-l (in-range a<n n<b) = in-range (less-suc-l a<n) n<b
+suc-range-l (in-range a<n n<b) = in-range (follows-from a<n) n<b
 
 in-range-l :  ∀ {a b} → a ≤ b → a ∈[ a , b ]
 in-range-l a<b = in-range (diff! 0) a<b
@@ -87,7 +87,7 @@ cmp-leq : ∀ a b → Either (a < b) (b ≤ a)
 cmp-leq a b with compare a b
 cmp-leq a b | less    a<b = left a<b
 cmp-leq a b | equal   a=b = right (diff 0 (cong suc a=b))
-cmp-leq a b | greater a>b = right (less-suc a>b)
+cmp-leq a b | greater a>b = right (follows-from a>b)
 
 in-range? : ∀ k a b → k ∈[ a , b ]?
 in-range? k a b with cmp-leq k a
@@ -221,8 +221,8 @@ private
   isPrimeAux (suc (suc (suc n))) (greater (diff k eq)) = refute eq
   isPrimeAux (suc (suc (suc _))) (equal ())
   isPrimeAux (suc n) (less n>2) with sqrt (suc n) | sqrt-less _ n>2
-  ... | root r r²<n sr²>n | r<n with up-to-root (suc r) n r<n (less-suc sr²>n) $ findInRange 2 (suc r) (λ k → k divides? suc n)
-  ...   | none p = yes (prime (follows-from (less-suc n>2)) (is-1-or-n p))
+  ... | root r r²<n sr²>n | r<n with up-to-root (suc r) n r<n (follows-from sr²>n) $ findInRange 2 (suc r) (λ k → k divides? suc n)
+  ...   | none p = yes (prime (follows-from n>2) (is-1-or-n p))
   ...   | here d (in-range 2≤d d≤n) (factor q eq) =
     no (composite d q (suc-monotoneʳ 2≤d) (lem₂ q eq d≤n) (follows-from eq))
 
