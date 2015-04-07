@@ -9,87 +9,56 @@ open import Tactic.Nat.Exp
 open import Data.Nat.Properties
 
 private
-  lemCancelMinus : ∀ b → b - b ≡ 0
-  lemCancelMinus zero    = refl
-  lemCancelMinus (suc b) = lemCancelMinus b
+  lemModAux′ : ∀ k m b j → modAux k m (suc j + b) j ≡ modAux 0 m b m
+  lemModAux′ k m b  zero   = refl
+  lemModAux′ k m b (suc j) = lemModAux′ (suc k) m b j
 
-  lemPlusMinus : ∀ a b → a + b - b ≡ a
-  lemPlusMinus zero b = lemCancelMinus b
-  lemPlusMinus (suc a) zero = auto
-  lemPlusMinus (suc a) (suc b) =
-    -- Want cong tactic for this!
-    let lem : a + suc b - b ≡ suc a + b - b
-        lem = cong (λ z → z - b) auto
-    in lem ⟨≡⟩ lemPlusMinus (suc a) b
+  lemModAux : ∀ k m b j → modAux k m (suc b + j) j ≡ modAux 0 m b m
+  lemModAux k m b j = (λ z → modAux k m (suc z) j) $≡ auto ⟨≡⟩ lemModAux′ k m b j
 
-  lemModAux : ∀ k m n j → j < n → modAux k m n j ≡ modAux 0 m (n - suc j) m
-  lemModAux k m zero j (diff _ ())
-  lemModAux k m (suc n) zero lt = refl
-  lemModAux k m (suc n) (suc j) (diff d eq) =
-    lemModAux (suc k) m n j
-    $ diff d $ follows-from eq
+  lemDivAux′ : ∀ k m b j → divAux k m (suc j + b) j ≡ divAux (suc k) m b m
+  lemDivAux′ k m b  zero   = refl
+  lemDivAux′ k m b (suc j) = lemDivAux′ k m b j
 
-  lemDivAux : ∀ k m n j → j < n → divAux k m n j ≡ divAux (suc k) m (n - suc j) m
-  lemDivAux k m zero j (diff _ ())
-  lemDivAux k m (suc n) zero lt = refl
-  lemDivAux k m (suc n) (suc j) (diff d eq) =
-    lemDivAux k m n j
-    $ diff d $ follows-from eq
+  lemDivAux : ∀ k m b j → divAux k m (suc b + j) j ≡ divAux (suc k) m b m
+  lemDivAux k m b j = (λ z → divAux k m (suc z) j) $≡ auto ⟨≡⟩ lemDivAux′ k m b j
 
   modLessAux : ∀ k m n j → k + j < suc m → modAux k m n j < suc m
-  modLessAux k m zero j (diff d lt) =
-    diff (j + d) $ lt ⟨≡⟩ auto
-  modLessAux k m (suc n) zero _ =
-    modLessAux 0 m n m $ diff 0 $ auto
-  modLessAux k m (suc n) (suc j) (diff d lt) =
-    modLessAux (suc k) m n j
-    $ diff d $ follows-from lt
-
-  LessThan′ : Nat → Nat → Set
-  LessThan′ a b = b ≡ b - suc a + suc a
-
-  toPrimed : ∀ {a b} → a < b → LessThan′ a b
-  toPrimed {a = a} (diff! k) rewrite lemPlusMinus k a = auto
-
-  modLessAux′ : ∀ k m n j → k + j < suc m → LessThan′ (modAux k m n j) (suc m)
-  modLessAux′ k m n j lt = toPrimed (modLessAux k m n j lt)
+  modLessAux k m  zero    j      lt = follows-from lt
+  modLessAux k m (suc n)  zero   _  = modLessAux 0 m n m auto
+  modLessAux k m (suc n) (suc j) lt = modLessAux (suc k) m n j (follows-from lt)
 
   modLess : ∀ a b → a mod suc b < suc b
-  modLess a b = diff (b - a mod suc b) $ eraseEquality $
-                follows-from (modLessAux′ 0 b a b (diff 0 auto))
+  modLess a b = fast-diff $ modLessAux 0 b a b auto
 
-  notLess1 : ∀ {a n} {A : Set a} → suc n < 1 → A
-  notLess1 (diff k eq) = refute eq
-
-  lessSuc-inj : ∀ {a b} → LessNat (suc a) (suc b) → LessNat a b
-  lessSuc-inj (diff j eq) = diff j (follows-from eq)
-
-  divAuxGt : ∀ k a b j → LessNat a (suc j) → divAux k b a j ≡ k
+  divAuxGt : ∀ k a b j → a ≤ j → divAux k b a j ≡ k
   divAuxGt k  zero   b  j      lt = refl
-  divAuxGt k (suc a) b  zero   lt = notLess1 lt
-  divAuxGt k (suc a) b (suc j) lt = divAuxGt k a b j (lessSuc-inj lt)
+  divAuxGt k (suc a) b  zero   lt = refute lt
+  divAuxGt k (suc a) b (suc j) lt = divAuxGt k a b j (follows-from lt)
 
-  modAuxGt : ∀ k a b j → LessNat a (suc j) → modAux k b a j ≡ k + a
-  modAuxGt k zero b j lt = auto
-  modAuxGt k (suc a) b  zero   lt = notLess1 lt
-  modAuxGt k (suc a) b (suc j) lt = follows-from (modAuxGt (suc k) a b j (lessSuc-inj lt))
+  modAuxGt : ∀ k a b j → a ≤ j → modAux k b a j ≡ k + a
+  modAuxGt k  zero   b  j      lt = auto
+  modAuxGt k (suc a) b  zero   lt = refute lt
+  modAuxGt k (suc a) b (suc j) lt = follows-from (modAuxGt (suc k) a b j (follows-from lt))
 
-  divmodAux : ∀ k a b → Acc _<_ a → divAux k b a b * suc b + modAux 0 b a b ≡ k * suc b + a
-  divmodAux k a b wf with compare b a
-  ... | greater (diff j p)
-        rewrite divAuxGt k a b b (diff (suc j) (cong suc p))
-              | modAuxGt 0 a b b (diff (suc j) (cong suc p)) = refl
-  divmodAux k a .a wf | equal refl
-        rewrite divAuxGt k a a a (diff! 0)
-              | modAuxGt 0 a a a (diff! 0) = refl
-  divmodAux k .(suc (j + b)) b (acc wf) | less (diff! j)
-    rewrite lemDivAux k b (suc (j + b)) b (diff! j)
-          | lemModAux 0 b (suc (j + b)) b (diff! j)
-          | lemPlusMinus j b
-          = follows-from (divmodAux (suc k) j b (wf j (diff b auto)))
+  qr-mul : (b q r : Nat) → Nat
+  qr-mul b q r = q * suc b + r
 
-  divmod-spec : ∀ a b′ → let b = suc b′ in
-                  a div b * b + a mod b ≡ a
+  divmodAux : ∀ k a b → Acc _<_ a → qr-mul b (divAux k b a b) (modAux 0 b a b) ≡ qr-mul b k a
+  divmodAux k a  b wf    with compare b a
+  divmodAux k a  b wf       | greater lt =
+    let leq : a ≤ b
+        leq = follows-from lt in
+    qr-mul b $≡ divAuxGt k a b b leq
+             *≡ modAuxGt 0 a b b leq
+  divmodAux k a .a wf       | equal refl =
+    qr-mul a $≡ divAuxGt k a a a (diff! 0)
+             *≡ modAuxGt 0 a a a (diff! 0)
+  divmodAux k ._ b (acc wf) | less (diff! j) =
+    qr-mul b $≡ lemDivAux k b j b *≡ lemModAux 0 b j b ⟨≡⟩
+    follows-from (divmodAux (suc k) j b (wf j auto))
+
+  divmod-spec : ∀ a b′ → let b = suc b′ in a div b * b + a mod b ≡ a
   divmod-spec a b = eraseEquality (divmodAux 0 a b (wfNat a))
 
 --- Public definitions ---
@@ -126,10 +95,10 @@ divmod-sound (suc b) a = quot-rem-sound (a divmod suc b)
 
 private
   divmod-unique′ : ∀ b q₁ q₂ r₁ r₂ → r₁ < b → r₂ < b → q₁ * b + r₁ ≡ q₂ * b + r₂ → q₁ ≡ q₂ × r₁ ≡ r₂
-  divmod-unique′ b zero zero r₁ r₂ lt₁ lt₂ eq = refl , eq
-  divmod-unique′ b zero (suc q₂) ._ r₂ (diff k eq) lt₂ refl = refute eq
-  divmod-unique′ b (suc q₁) zero r₁ ._ lt₁ (diff k eq) refl = refute eq
-  divmod-unique′ b (suc q₁) (suc q₂) r₁ r₂ lt₁ lt₂ eq =
+  divmod-unique′ b  zero     zero    r₁ r₂ lt₁ lt₂ eq   = refl , eq
+  divmod-unique′ b  zero    (suc q₂) ._ r₂ lt₁ lt₂ refl = refute lt₁
+  divmod-unique′ b (suc q₁)  zero    r₁ ._ lt₁ lt₂ refl = refute lt₂
+  divmod-unique′ b (suc q₁) (suc q₂) r₁ r₂ lt₁ lt₂ eq   =
     first (cong suc) $ divmod-unique′ b q₁ q₂ r₁ r₂ lt₁ lt₂ (follows-from eq)
 
 divmod-unique : ∀ {a b} (d₁ d₂ : DivMod a b) → quot d₁ ≡ quot d₂ × rem d₁ ≡ rem d₂
