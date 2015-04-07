@@ -28,7 +28,7 @@ private
   lem-half : ∀ n → suc n div 2 < suc n
   lem-half n with suc n div 2 | suc n mod 2 | divmod-sound 2 (suc n)
   lem-half n | zero  | r | eq = auto
-  lem-half n | suc q | r | eq = diff (q + r) (follows-from eq)
+  lem-half n | suc q | r | eq = follows-from eq
 
   lem-half-nonzero : ∀ n → NonZero ((2 + n) div 2)
   lem-half-nonzero n with (2 + n) div 2 | (2 + n) mod 2 | divmod-sound 2 (2 + n) | mod-less 2 (2 + n)
@@ -38,7 +38,7 @@ private
   lem-upper : ∀ {lo hi d} d′ {{_ : NonZero d′}} →
               hi ≡ suc (d + lo) → hi - (d′ + lo) ≤ d
   lem-upper zero {{}}
-  lem-upper {a} {._} {d} (suc d′) refl = auto ⟨=<⟩ sub-leq d d′
+  lem-upper {d = d} (suc d′) refl = follows-from (sub-leq d d′)
 
   search : ∀ {a} {P : Nat → Set a} lo hi d → hi ≡ d + lo → Acc _<_ d →
              (∀ n → Dec (P n)) →
@@ -62,12 +62,10 @@ private
              m≤hi = follows-from d′<d ⟨≤⟩ diff 1 (cong suc eq)
              d′≠0 : NonZero d′
              d′≠0 = lem-half-nonzero d₀
-             hi-m≤d : hi - m ≤ d
-             hi-m≤d = lem-upper d′ eq
-             eq : hi ≡ hi - m + m
-             eq = eraseEquality (sym (sub-less m≤hi))
+             eq′ : hi ≡ hi - m + m
+             eq′ = eraseEquality (sym (sub-less m≤hi))
          in
-         case search m hi (hi - m) eq (wf (hi - m) hi-m≤d) check !pm phi of λ
+         case search m hi (hi - m) eq′ (wf (hi - m) (lem-upper d′ eq)) check !pm phi of λ
          { (here k !pk psk m≤k k<hi) → here k !pk psk (auto ⟨≤⟩ m≤k) k<hi }
      }
 
