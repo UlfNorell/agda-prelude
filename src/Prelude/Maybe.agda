@@ -24,8 +24,11 @@ maybe z f (just x) = f x
 IsJust : ∀ {a} {A : Set a} → Maybe A → Set
 IsJust = maybe ⊥ (const ⊤)
 
-fromJust : ∀ {a} {A : Set a} (m : Maybe A) {j : IsJust m} → A
-fromJust nothing {}
+FromJust : ∀ {a} {A : Set a} → Maybe A → Set a
+FromJust {A = A} = maybe ⊤′ (const A)
+
+fromJust : ∀ {a} {A : Set a} (m : Maybe A) → FromJust m
+fromJust nothing  = _
 fromJust (just x) = x
 
 --- Equality ---
