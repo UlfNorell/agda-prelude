@@ -1,5 +1,6 @@
 agda-ffi/dist
 *.agdai
 MAlonzo
+test/UHC
 test/hello
 test/Main
