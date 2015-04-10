@@ -60,21 +60,54 @@ private
   lem-leq-zero : ∀ {a b} → a ≤ b → b ≡ 0 → a ≡ 0
   lem-leq-zero (diff k eq) refl = lem-plus-zero-r k _ (follows-from (sym eq))
 
+  ⟨+⟩-sound-ns : ∀ {Atom} {{_ : Ord Atom}} u v (ρ : Env Atom) → ⟦ u +nf v ⟧ns ρ ≡ ⟦ u ⟧ns ρ + ⟦ v ⟧ns ρ
+  ⟨+⟩-sound-ns u v ρ =
+    ns-sound (u +nf v) ρ ⟨≡⟩
+    ⟨+⟩-sound u v ρ ⟨≡⟩ʳ
+    _+_ $≡ ns-sound u ρ *≡ ns-sound v ρ
+
+  by-proof-eq-nf : Nat → ∀ u u₁ v v₁ ρ → Maybe (NFGoal _≡_ _≡_ u u₁ v v₁ ρ)
+
+  by-proof-eq-sub : Nat → ∀ u u₁ v v₁ v₂ ρ → Maybe (NFGoal _≡_ _≡_ u u₁ [ 1 , [ v ⟨-⟩ v₁ ] ] v₂ ρ)
+  by-proof-eq-sub n u u₁ v v₁ v₂ ρ =
+    let eval  x = ⟦ x ⟧ns (atomEnvS ρ)
+        evals x = ⟦ x ⟧sns ρ in
+    for prf ← by-proof-eq-nf n u u₁ v (v₁ +nf v₂) ρ do λ u=u₁ →
+    sym $ lem-sub-zero (evals v) (evals v₁) (eval v₂) $ sym $
+      lem-eval-sns-ns v ρ ⟨≡⟩
+      prf u=u₁ ⟨≡⟩
+      ⟨+⟩-sound-ns v₁ v₂ (atomEnvS ρ) ⟨≡⟩ʳ
+      (_+ eval v₂) $≡ (lem-eval-sns-ns v₁ ρ)
+
+  by-proof-eq-sub₂ : Nat → ∀ u u₁ v v₁ v₂ v₃ ρ → Maybe (NFGoal _≡_ _≡_ u u₁ [ 1 , [ v ⟨-⟩ v₁ ] ] [ 1 , [ v₂ ⟨-⟩ v₃ ] ] ρ)
+  by-proof-eq-sub₂ n u u₁ v v₁ v₂ v₃ ρ =
+    let eval  x = ⟦ x ⟧ns (atomEnvS ρ)
+        evals x = ⟦ x ⟧sns ρ in
+    for prf ← by-proof-eq-nf n u u₁ (v₃ +nf v) (v₂ +nf v₁) ρ do λ u=u₁ →
+    lem-sub (evals v₂) (evals v₃) (evals v) (evals v₁) $
+      _+_ $≡ lem-eval-sns-ns v₃ ρ *≡ lem-eval-sns-ns v ρ ⟨≡⟩
+      ⟨+⟩-sound-ns v₃ v (atomEnvS ρ) ʳ⟨≡⟩
+      prf u=u₁ ⟨≡⟩ ⟨+⟩-sound-ns v₂ v₁ (atomEnvS ρ) ⟨≡⟩ʳ
+      _+_ $≡ lem-eval-sns-ns v₂ ρ *≡ lem-eval-sns-ns v₁ ρ
+
   -- More advanced tactics for equalities
   --   a + b ≡ 0 → a ≡ 0
-  by-proof-eq-adv : ∀ u u₁ v v₁ ρ → Maybe (NFGoal _≡_ _≡_ u u₁ v v₁ ρ)
-  by-proof-eq-adv u  [] v  [] ρ = for leq ← decide-leq v  u  ρ do lem-leq-zero leq
-  by-proof-eq-adv [] u₁ v  [] ρ = for leq ← decide-leq v  u₁ ρ do lem-leq-zero leq ∘ sym
-  by-proof-eq-adv u  [] [] v₁ ρ = for leq ← decide-leq v₁ u  ρ do sym ∘ lem-leq-zero leq
-  by-proof-eq-adv [] u₁ [] v₁ ρ = for leq ← decide-leq v₁ u₁ ρ do sym ∘ lem-leq-zero leq ∘ sym
-  by-proof-eq-adv u  u₁ v  v₁ ρ = nothing
+  by-proof-eq-adv : Nat → ∀ u u₁ v v₁ ρ → Maybe (NFGoal _≡_ _≡_ u u₁ v v₁ ρ)
+  by-proof-eq-adv _ u  [] v  [] ρ = for leq ← decide-leq v  u  ρ do lem-leq-zero leq
+  by-proof-eq-adv _ [] u₁ v  [] ρ = for leq ← decide-leq v  u₁ ρ do lem-leq-zero leq ∘ sym
+  by-proof-eq-adv _ u  [] [] v₁ ρ = for leq ← decide-leq v₁ u  ρ do sym ∘ lem-leq-zero leq
+  by-proof-eq-adv _ [] u₁ [] v₁ ρ = for leq ← decide-leq v₁ u₁ ρ do sym ∘ lem-leq-zero leq ∘ sym
+  by-proof-eq-adv (suc n) u  u₁ [ 1 , [ v ⟨-⟩ v₁ ] ] [ 1 , [ v₂ ⟨-⟩ v₃ ] ] ρ = by-proof-eq-sub₂ n u u₁ v v₁ v₂ v₃ ρ
+  by-proof-eq-adv n u  u₁ [ 1 , [ v ⟨-⟩ v₁ ] ] v₂ ρ = by-proof-eq-sub n u u₁ v v₁ v₂ ρ
+  by-proof-eq-adv (suc n) u u₁ v₂ [ 1 , [ v ⟨-⟩ v₁ ] ] ρ =
+    for prf ← by-proof-eq-sub n u u₁ v v₁ v₂ ρ do sym ∘ prf
+  by-proof-eq-adv _ u  u₁ v  v₁ ρ = nothing
 
-  by-proof-eq-nf : ∀ u u₁ v v₁ ρ → Maybe (NFGoal _≡_ _≡_ u u₁ v v₁ ρ)
-  by-proof-eq-nf u u₁  v  v₁ ρ with u == v | u₁ == v₁
-  by-proof-eq-nf u u₁ .u .u₁ ρ | yes refl | yes refl = just id
+  by-proof-eq-nf n u u₁  v  v₁ ρ with u == v | u₁ == v₁
+  by-proof-eq-nf n u u₁ .u .u₁ ρ | yes refl | yes refl = just id
   ... | _ | _ with u == v₁ | u₁ == v -- try sym
-  by-proof-eq-nf u u₁ .u₁ .u ρ | _ | _ | yes refl | yes refl = just sym
-  ... | _ | _ = by-proof-eq-adv u u₁ v v₁ ρ -- try advanced stuff
+  by-proof-eq-nf n u u₁ .u₁ .u ρ | _ | _ | yes refl | yes refl = just sym
+  ... | _ | _ = by-proof-eq-adv n u u₁ v v₁ ρ -- try advanced stuff
 
 
   by-proof-eq : ∀ a a₁ b b₁ ρ → Maybe (SubExpEq a a₁ ρ → SubExpEq b b₁ ρ)
@@ -83,7 +116,7 @@ private
                              | complicateSubEq a a₁ ρ
                              | simplifySubEq b b₁ ρ
   ... | u , u₁ |  v ,  v₁ | compl | simpl =
-    for prf ← by-proof-eq-nf u u₁ v v₁ ρ do simpl ∘ prf ∘ compl
+    for prf ← by-proof-eq-nf 10 u u₁ v v₁ ρ do simpl ∘ prf ∘ compl
 
   not-less-zero′ : ∀ {n} → n < 0 → ⊥
   not-less-zero′ (diff _ ())
@@ -98,7 +131,7 @@ private
   by-proof-less-eq-nf : ∀ u u₁ v v₁ ρ → Maybe (NFGoal _<_ _≡_ u u₁ v v₁ ρ)
   by-proof-less-eq-nf u [] v v₁ ρ = just not-less-zero  -- could've used refute, but we'll take it
   by-proof-less-eq-nf u [ 1 , [] ] v v₁ ρ =
-    for prf ← by-proof-eq-nf u [] v v₁ ρ do prf ∘ less-one-is-zero
+    for prf ← by-proof-eq-nf 10 u [] v v₁ ρ do prf ∘ less-one-is-zero
   by-proof-less-eq-nf u u₁ v v₁ ρ = nothing
 
   by-proof-less-eq : ∀ a a₁ b b₁ ρ → Maybe (SubExpLess a a₁ ρ → SubExpEq b b₁ ρ)
