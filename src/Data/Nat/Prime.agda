@@ -111,7 +111,7 @@ private
   not-first {a = a} !pa !pa+ k k∈r pk with compare k a
   not-first !pa !pa+ k k∈r              pk | less    k<a  = below-range k<a k∈r
   not-first !pa !pa+ k k∈r              pk | equal   refl = !pa pk
-  not-first !pa !pa+ k (in-range _ k≤b) pk | greater k>a  = !pa+ k (in-range (suc-monotone k>a) k≤b) pk
+  not-first !pa !pa+ k (in-range _ k≤b) pk | greater k>a  = !pa+ k (in-range (by k>a) k≤b) pk
 
   find! : ∀ {ℓ} {P : Nat → Set ℓ} a b d → d + a ≡ suc b → (∀ k → Dec (P k)) → FindInRange! a b P
   find! a b  zero   eq check = none
@@ -210,7 +210,7 @@ private
   two-is-prime 0 (factor q eq) | k≤2 = refute eq
   two-is-prime 1 k|2 | k≤2 = left refl
   two-is-prime 2 k|2 | k≤2 = right refl
-  two-is-prime (suc (suc (suc k))) k|2 | diff k₁ eq = refute eq
+  two-is-prime (suc (suc (suc k))) k|2 | lt = refute lt
 
   isPrimeAux : ∀ n → Comparison _<_ 2 n → Prime? n
   isPrimeAux 0 _ = tiny (diff! 1)
@@ -222,7 +222,7 @@ private
   ... | root r r²<n sr²>n | r<n with up-to-root (suc r) n r<n (by sr²>n) $ findInRange 2 (suc r) (λ k → k divides? suc n)
   ...   | none p = yes (prime (by n>2) (is-1-or-n p))
   ...   | here d (in-range 2≤d d≤n) (factor q eq) =
-    no (composite d q (suc-monotoneʳ 2≤d) (lem₂ q eq d≤n) (by eq))
+    no (composite d q (by 2≤d) (lem₂ q eq d≤n) (by eq))
 
 isPrime : ∀ n → Prime? n
 isPrime n = isPrimeAux n (compare 2 n)

@@ -17,16 +17,16 @@ private
   _<?_ : (a b : Nat) → Dec (a < b)
   a <?  b with compare a b
   a <?  b | less    a<b = yes a<b
-  a <? .a | equal  refl = no (λ a<a → less-antirefl a<a refl)
+  a <? .a | equal  refl = no (λ a<a → refute a<a)
   a <?  b | greater a>b = no (λ a<b → less-antisym a>b a<b)
 
 sqrt : ∀ n → Sqrt n
 sqrt 0 = root 0 (diff! 0) (diff! 0)  -- just to avoid unfolding neutral application
 sqrt n with binarySearch 0 n (λ r → n <? r ^ 2)
-sqrt n | here k !n< n< _ _ = root k (less-raa (λ lt → !n< (suc-monotoneʳ lt))) n<
+sqrt n | here k !n< n< _ _ = root k (less-raa (λ lt → !n< (by lt))) n<
 sqrt 0 | none _ = root 0 (diff! 0) (diff! 0)
 sqrt 1 | none _ = root 1 (diff! 0) (diff! 2)
-sqrt (suc (suc n)) | none !n<n² = ⊥-elim (!n<n² (diff (n * (n + 3) + 1) auto))
+sqrt (suc (suc n)) | none !n<n² = ⊥-elim (!n<n² auto)
 sqrt n | below (diff _ ())
 sqrt n | bad-range (diff _ ())
 
@@ -42,15 +42,13 @@ sqrt-above n with sqrt n
 ... | root _ _ hi = hi
 
 private
-  lem : (n r a : Nat) →
-        4 + n ≡ suc a + r * r →
-        LessNat (suc n) r → ⊥
-  lem n ._ a eq (diff! c) = refute eq
+  lem : (n r : Nat) → r ^ 2 < 4 + n → ¬ (suc n < r)
+  lem n ._ lt (diff! c) = refute lt
 
 sqrt-less : ∀ n → n > 2 → suc (sqrt! n) < n
 sqrt-less 0 (diff k ())
 sqrt-less 1 (diff k eq) = refute eq
 sqrt-less 2 (diff k eq) = refute eq
 sqrt-less (suc (suc (suc n))) _ with sqrt (3 + n)
-sqrt-less (suc (suc (suc n))) _ | root r (diff a eq) _ =
-  less-raa (lem n r a eq ∘ suc-monotoneʳ ∘ suc-monotoneʳ)
+sqrt-less (suc (suc (suc n))) _ | root r lt _ =
+  less-raa λ n<r → lem n r lt (by n<r)

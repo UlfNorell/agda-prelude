@@ -22,14 +22,8 @@ sub-leq ._ b | greater (diff! k) = diff b auto
 
 --- LessNat ---
 
-suc-monotone : ∀ {a b : Nat} → a < b → Nat.suc a < suc b
-suc-monotone (diff k eq) = diff k (by eq)
-
-suc-monotoneʳ : ∀ {a b : Nat} → Nat.suc a < suc b → a < b
-suc-monotoneʳ (diff k eq) = diff k (by eq)
-
-fast-diff : ∀ {a b} → LessNat a b → LessNat a b
-fast-diff {a} {b} a<b = diff (b - suc a) (eraseEquality (sub-less (suc-monotone a<b) ʳ⟨≡⟩ auto))
+fast-diff : ∀ {a b} → a < b → a < b
+fast-diff {a} {b} a<b = diff (b - suc a) $ eraseEquality $ by (sub-less {suc a} {b} (by a<b))
 
 infixr 0 _⟨<⟩_ _⟨≤⟩_
 
@@ -57,20 +51,10 @@ diff! k ⟨≤⟩ diff! k₁ = auto
 leq-antisym : {a b : Nat} → a ≤ b → b ≤ a → a ≡ b
 leq-antisym (diff! k) (diff k₁ eq) = by eq
 
-leq-add-l : ∀ a {b} → b ≤ a + b
-leq-add-l a {b} = diff! a
-
-leq-add-r : ∀ {a} b → a ≤ a + b
-leq-add-r {a} b = auto
-
 private
   less-mul-r′ : ∀ a b → NonZero b → a ≤ a * b
-  less-mul-r′ _ zero ()
-  less-mul-r′ zero _ nz = diff! 0
-  less-mul-r′ (suc a) (suc b) _ =
-    let H : a ≤ a * suc b + b
-        H = less-mul-r′ a (suc b) _ ⟨≤⟩ leq-add-r b
-    in suc-monotone (transport (_<_ a) auto H)
+  less-mul-r′ _  zero ()
+  less-mul-r′ a (suc b) _ = auto
 
 less-mul-r : ∀ a b {{_ : NonZero b}} → a ≤ a * b
 less-mul-r a b = fast-diff (less-mul-r′ _ b it)

@@ -50,7 +50,7 @@ divides-antisym : ∀ {a b} → a Divides b → b Divides a → a ≡ b
 divides-antisym         (factor! q)       (factor! 0)                = auto
 divides-antisym         (factor! q)       (factor 1 eq)              = sym eq
 divides-antisym {zero}  (factor! q)       (factor (suc (suc q₁)) eq) = auto
-divides-antisym {suc a} (factor! 0)       (factor (suc (suc q₁)) eq) = by (sym eq)
+divides-antisym {suc a} (factor! 0)       (factor (suc (suc q₁)) eq) = by eq
 divides-antisym {suc a} (factor! (suc q)) (factor (suc (suc q₁)) eq) = refute eq
 
 divides-trans : ∀ {a b c} → a Divides b → b Divides c → a Divides c
@@ -61,7 +61,7 @@ divides-zero (factor! q) = auto
 
 divides-less : ∀ {a b} {{_ : NonZero b}} → a Divides b → a ≤ b
 divides-less {{}} (factor! 0)
-divides-less {a} (factor! (suc q)) = by (less-mul-r a (suc q))
+divides-less {a} (factor! (suc q)) = auto
 
 private
   safediv : Nat → Nat → Nat

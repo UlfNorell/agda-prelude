@@ -40,9 +40,14 @@ private
       a + b ≡ 0 → a ≡ 0
 
     For inequalities, to prove a < b -> c < d, it simplifies the assumption and
-    goal and then tries to prove c′ ≤ a′ and b′ ≤ d′. When proving that an
-    inequality follows from an equality a ≡ b, the equality is weakened to
-    a ≤ b before applying the above procedure.
+    goal and then tries to prove c′ ≤ a′ and b′ ≤ d′.
+
+    When proving that an inequality follows from an equality a ≡ b, the equality
+    is weakened to a ≤ b before applying the above procedure.
+
+    Proving an equality from an inequality works if the inequality simplifies to
+    a ≤ 0 (or a < 0 in which case it's trivial). It then reduces that to a ≡ 0
+    and tries to prove the goal from that.
 -}
 
 private
@@ -55,6 +60,9 @@ private
 
   by-example₃ : ∀ a b → a ≡ b * 2 → a + b < (b + 1) * 3
   by-example₃ a b eq = by eq
+
+  by-example₄ : ∀ a b c → a + b + c ≤ b → 2 * c ≡ c
+  by-example₄ a b c lt = by lt
 
 {-
   refute eq
