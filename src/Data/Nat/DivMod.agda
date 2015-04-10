@@ -24,9 +24,9 @@ private
   lemDivAux k m b j = (λ z → divAux k m (suc z) j) $≡ auto ⟨≡⟩ lemDivAux′ k m b j
 
   modLessAux : ∀ k m n j → k + j < suc m → modAux k m n j < suc m
-  modLessAux k m  zero    j      lt = follows-from lt
+  modLessAux k m  zero    j      lt = by lt
   modLessAux k m (suc n)  zero   _  = modLessAux 0 m n m auto
-  modLessAux k m (suc n) (suc j) lt = modLessAux (suc k) m n j (follows-from lt)
+  modLessAux k m (suc n) (suc j) lt = modLessAux (suc k) m n j (by lt)
 
   modLess : ∀ a b → a mod suc b < suc b
   modLess a b = fast-diff $ modLessAux 0 b a b auto
@@ -34,12 +34,12 @@ private
   divAuxGt : ∀ k a b j → a ≤ j → divAux k b a j ≡ k
   divAuxGt k  zero   b  j      lt = refl
   divAuxGt k (suc a) b  zero   lt = refute lt
-  divAuxGt k (suc a) b (suc j) lt = divAuxGt k a b j (follows-from lt)
+  divAuxGt k (suc a) b (suc j) lt = divAuxGt k a b j (by lt)
 
   modAuxGt : ∀ k a b j → a ≤ j → modAux k b a j ≡ k + a
   modAuxGt k  zero   b  j      lt = auto
   modAuxGt k (suc a) b  zero   lt = refute lt
-  modAuxGt k (suc a) b (suc j) lt = follows-from (modAuxGt (suc k) a b j (follows-from lt))
+  modAuxGt k (suc a) b (suc j) lt = by (modAuxGt (suc k) a b j (by lt))
 
   qr-mul : (b q r : Nat) → Nat
   qr-mul b q r = q * suc b + r
@@ -48,7 +48,7 @@ private
   divmodAux k a  b wf    with compare b a
   divmodAux k a  b wf       | greater lt =
     let leq : a ≤ b
-        leq = follows-from lt in
+        leq = by lt in
     qr-mul b $≡ divAuxGt k a b b leq
              *≡ modAuxGt 0 a b b leq
   divmodAux k a .a wf       | equal refl =
@@ -56,7 +56,7 @@ private
              *≡ modAuxGt 0 a a a (diff! 0)
   divmodAux k ._ b (acc wf) | less (diff! j) =
     qr-mul b $≡ lemDivAux k b j b *≡ lemModAux 0 b j b ⟨≡⟩
-    follows-from (divmodAux (suc k) j b (wf j auto))
+    by (divmodAux (suc k) j b (wf j auto))
 
   divmod-spec : ∀ a b′ → let b = suc b′ in a div b * b + a mod b ≡ a
   divmod-spec a b = eraseEquality (divmodAux 0 a b (wfNat a))
@@ -99,7 +99,7 @@ private
   divmod-unique′ b  zero    (suc q₂) ._ r₂ lt₁ lt₂ refl = refute lt₁
   divmod-unique′ b (suc q₁)  zero    r₁ ._ lt₁ lt₂ refl = refute lt₂
   divmod-unique′ b (suc q₁) (suc q₂) r₁ r₂ lt₁ lt₂ eq   =
-    first (cong suc) $ divmod-unique′ b q₁ q₂ r₁ r₂ lt₁ lt₂ (follows-from eq)
+    first (cong suc) $ divmod-unique′ b q₁ q₂ r₁ r₂ lt₁ lt₂ (by eq)
 
 divmod-unique : ∀ {a b} (d₁ d₂ : DivMod a b) → quot d₁ ≡ quot d₂ × rem d₁ ≡ rem d₂
 divmod-unique (qr q₁ r₁ lt₁ eq₁) (qr q₂ r₂ lt₂ eq₂) =
@@ -122,8 +122,8 @@ data Odd n : Set where
 
 parity : ∀ n → Either (Odd n) (Even n)
 parity n with n divmod 2
-parity n | qr q 0 lt eq = right $ dbl   q (follows-from eq)
-parity n | qr q 1 lt eq = left  $ dbl+1 q (follows-from eq)
+parity n | qr q 0 lt eq = right $ dbl   q (by eq)
+parity n | qr q 1 lt eq = left  $ dbl+1 q (by eq)
 parity n | qr q (suc (suc _)) (diff _ bad) _ = refute bad
 
 instance

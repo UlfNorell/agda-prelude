@@ -16,7 +16,7 @@ pattern factor! q = factor q refl
 
 divides-divmod : ∀ {a b} {{_ : NonZero b}} → b Divides a → DivMod a b
 divides-divmod {b = zero } {{}}
-divides-divmod {b = suc b} (factor q eq) = qr q 0 auto (follows-from eq)
+divides-divmod {b = suc b} (factor q eq) = qr q 0 auto (by eq)
 
 divides-add : ∀ {a b d} → d Divides a → d Divides b → d Divides (a + b)
 divides-add (factor! q) (factor! q₁) = factor (q + q₁) auto
@@ -29,7 +29,7 @@ divides-mul-l b (factor! q) = factor (b * q) auto
 
 divides-sub-l : ∀ {a b d} → d Divides (a + b) → d Divides a → d Divides b
 divides-sub-l {b = b} {d} (factor q₁ eq) (factor! q) = factor (q₁ - q) $
-  follows-from ((_- (q * d)) $≡ eq)
+  by ((_- (q * d)) $≡ eq)
 
 divides-sub-r : ∀ {a b d} → d Divides (a + b) → d Divides b → d Divides a
 divides-sub-r {a} {b} d|ab d|b rewrite add-commute a b = divides-sub-l d|ab d|b
@@ -41,7 +41,7 @@ mod-divides {suc a} {b} (factor q eq) =
 
 div-divides : ∀ {a b} {{_ : NonZero a}} → a Divides b → (b div a) * a ≡ b
 div-divides {a} {b} a|b with divmod-sound a b
-... | eq rewrite mod-divides a|b = follows-from eq
+... | eq rewrite mod-divides a|b = by eq
 
 divides-refl : ∀ {a} → a Divides a
 divides-refl = factor! 1
@@ -50,7 +50,7 @@ divides-antisym : ∀ {a b} → a Divides b → b Divides a → a ≡ b
 divides-antisym         (factor! q)       (factor! 0)                = auto
 divides-antisym         (factor! q)       (factor 1 eq)              = sym eq
 divides-antisym {zero}  (factor! q)       (factor (suc (suc q₁)) eq) = auto
-divides-antisym {suc a} (factor! 0)       (factor (suc (suc q₁)) eq) = follows-from (sym eq)
+divides-antisym {suc a} (factor! 0)       (factor (suc (suc q₁)) eq) = by (sym eq)
 divides-antisym {suc a} (factor! (suc q)) (factor (suc (suc q₁)) eq) = refute eq
 
 divides-trans : ∀ {a b c} → a Divides b → b Divides c → a Divides c
@@ -61,7 +61,7 @@ divides-zero (factor! q) = auto
 
 divides-less : ∀ {a b} {{_ : NonZero b}} → a Divides b → a ≤ b
 divides-less {{}} (factor! 0)
-divides-less {a} (factor! (suc q)) = follows-from (less-mul-r a (suc q))
+divides-less {a} (factor! (suc q)) = by (less-mul-r a (suc q))
 
 private
   safediv : Nat → Nat → Nat
@@ -90,5 +90,5 @@ _divides?_ : ∀ a b → Dec (a Divides b)
 a     divides? zero  = yes (factor! 0)
 zero  divides? suc b = no no-divides-zero
 suc a divides? suc b with suc b divmod suc a
-suc a divides? suc b | qr q  zero    _ eq  = yes (factor q (follows-from eq))
+suc a divides? suc b | qr q  zero    _ eq  = yes (factor q (by eq))
 suc a divides? suc b | qr q (suc r) lt eq₁ = no (no-divides-suc-mod q lt eq₁)

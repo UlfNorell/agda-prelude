@@ -23,7 +23,7 @@ private
   lem-divide-mul 0 (suc b) (factor q eq) = refute eq
   lem-divide-mul (suc a) (suc b) (factor 0 eq) = refute eq
   lem-divide-mul (suc a) (suc b) (factor (suc q) eq) =
-    cong suc (plus-zero-l a (q * suc a * suc b + a * b) (follows-from eq))
+    cong suc (plus-zero-l a (q * suc a * suc b + a * b) (by eq))
 
   nonzero-gcd : ∀ a b {{_ : NonZero b}} → NonZero (gcd! a b)
   nonzero-gcd _ 0 {{}}

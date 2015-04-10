@@ -28,7 +28,7 @@ private
   lem-half : ∀ n → suc n div 2 < suc n
   lem-half n with suc n div 2 | suc n mod 2 | divmod-sound 2 (suc n)
   lem-half n | zero  | r | eq = auto
-  lem-half n | suc q | r | eq = follows-from eq
+  lem-half n | suc q | r | eq = by eq
 
   lem-half-nonzero : ∀ n → NonZero ((2 + n) div 2)
   lem-half-nonzero n with (2 + n) div 2 | (2 + n) mod 2 | divmod-sound 2 (2 + n) | mod-less 2 (2 + n)
@@ -38,7 +38,7 @@ private
   lem-upper : ∀ {lo hi d} d′ {{_ : NonZero d′}} →
               hi ≡ suc (d + lo) → hi - (d′ + lo) ≤ d
   lem-upper zero {{}}
-  lem-upper {d = d} (suc d′) refl = follows-from (sub-leq d d′)
+  lem-upper {d = d} (suc d′) refl = by (sub-leq d d′)
 
   search : ∀ {a} {P : Nat → Set a} lo hi d → hi ≡ d + lo → Acc _<_ d →
              (∀ n → Dec (P n)) →
@@ -55,11 +55,11 @@ private
      { (yes pm) →
          case search lo m d′ refl (wf _ d′<d) check !plo pm of λ
          { (here k !pk psk lo≤k k<m) → here k !pk psk lo≤k $
-             k<m ⟨<⟩ follows-from d′<d ⟨<=⟩ sym eq
+             k<m ⟨<⟩ by d′<d ⟨<=⟩ sym eq
          }
      ; (no !pm) →
          let m≤hi : m ≤ hi
-             m≤hi = follows-from d′<d ⟨≤⟩ diff 1 (cong suc eq)
+             m≤hi = by d′<d ⟨≤⟩ diff 1 (cong suc eq)
              d′≠0 : NonZero d′
              d′≠0 = lem-half-nonzero d₀
              eq′ : hi ≡ hi - m + m

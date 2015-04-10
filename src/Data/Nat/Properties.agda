@@ -23,10 +23,10 @@ sub-leq ._ b | greater (diff! k) = diff b auto
 --- LessNat ---
 
 suc-monotone : ∀ {a b : Nat} → a < b → Nat.suc a < suc b
-suc-monotone (diff k eq) = diff k (follows-from eq)
+suc-monotone (diff k eq) = diff k (by eq)
 
 suc-monotoneʳ : ∀ {a b : Nat} → Nat.suc a < suc b → a < b
-suc-monotoneʳ (diff k eq) = diff k (follows-from eq)
+suc-monotoneʳ (diff k eq) = diff k (by eq)
 
 fast-diff : ∀ {a b} → LessNat a b → LessNat a b
 fast-diff {a} {b} a<b = diff (b - suc a) (eraseEquality (sub-less (suc-monotone a<b) ʳ⟨≡⟩ auto))
@@ -49,7 +49,7 @@ less-raa : {a b : Nat} → ¬ (suc a > b) → a < b
 less-raa {a} {b} a≱b with compare a b
 less-raa a≱b | less    a<b = a<b
 less-raa a≱b | equal  refl = ⊥-elim (a≱b auto)
-less-raa a≱b | greater a>b = ⊥-elim (a≱b (follows-from a>b))
+less-raa a≱b | greater a>b = ⊥-elim (a≱b (by a>b))
 
 _⟨≤⟩_ : {a b c : Nat} → a ≤ b → b ≤ c → a ≤ c
 diff! k ⟨≤⟩ diff! k₁ = auto

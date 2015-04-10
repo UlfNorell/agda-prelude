@@ -8,7 +8,7 @@ open import Tactic.Nat.Induction public
 open import Tactic.Nat.Subtract public renaming
   ( autosub          to auto
   ; simplifysub      to simplify
-  ; follows-from-sub to follows-from
+  ; follows-from-sub to by
   ; refutesub        to refute )
 
 open import Tactic.Reflection public using (apply-tactic; apply-goal-tactic)
@@ -31,7 +31,7 @@ private
   auto-example₂ a b = auto
 
 {-
-  follows-from eq
+  by eq
 
     Prove the goal using the given assumption. For equalities it simplifies
     the goal and the assumption and check that they are the same (or symmetric).
@@ -42,15 +42,15 @@ private
 -}
 
 private
-  follows-from-example₁ : ∀ xs ys → sum (xs ++ ys) ≡ sum ys + sum xs
-  follows-from-example₁ []       ys = auto
-  follows-from-example₁ (x ∷ xs) ys = follows-from (follows-from-example₁ xs ys)
+  by-example₁ : ∀ xs ys → sum (xs ++ ys) ≡ sum ys + sum xs
+  by-example₁ []       ys = auto
+  by-example₁ (x ∷ xs) ys = by (by-example₁ xs ys)
 
-  follows-from-example₂ : ∀ a b c → a + c < b + c → a < b
-  follows-from-example₂ a b c lt = follows-from lt
+  by-example₂ : ∀ a b c → a + c < b + c → a < b
+  by-example₂ a b c lt = by lt
 
-  follows-from-example₃ : ∀ a b → a ≡ b * 2 → a + b < (b + 1) * 3
-  follows-from-example₃ a b eq = follows-from eq
+  by-example₃ : ∀ a b → a ≡ b * 2 → a + b < (b + 1) * 3
+  by-example₃ a b eq = by eq
 
 {-
   refute eq
@@ -70,14 +70,14 @@ private
   simplify-goal => ?
 
     Simplify the current goal and let you keep working on the new goal.
-    In most cases 'follows-from prf' works better than
+    In most cases 'by prf' works better than
     'simplify-goal => prf' since it will also simplify prf. The advantage
     of simplify-goal is that it allows holes in prf.
 -}
 
 private
   simplify-goal-example : ∀ a b → a - b ≡ b - a → a ≡ b
-  simplify-goal-example  zero    b      eq = follows-from eq
+  simplify-goal-example  zero    b      eq = by eq
   simplify-goal-example (suc a)  zero   eq = refute eq
   simplify-goal-example (suc a) (suc b) eq =
     simplify-goal => simplify-goal-example a b eq
@@ -103,7 +103,7 @@ private
   induction
 
     Prove a goal ∀ n → P n using induction. Applies 'auto' in the base case
-    and 'follows-from IH' in the step case.
+    and 'by IH' in the step case.
 -}
 
 private

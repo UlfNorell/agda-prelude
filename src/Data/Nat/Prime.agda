@@ -42,7 +42,7 @@ private
   less-inv {a} {b} a≮b with compare a b
   less-inv a≮b | less a<b    = ⊥-elim (a≮b a<b)
   less-inv a≮b | equal refl  = diff! 0
-  less-inv a≮b | greater a>b = follows-from a>b
+  less-inv a≮b | greater a>b = by a>b
 
 data _∈[_,_] (n a b : Nat) : Set where
   in-range : a ≤ n → n ≤ b → n ∈[ a , b ]
@@ -63,10 +63,10 @@ singleton-range : ∀ {n a} → n ∈[ a , a ] → a ≡ n
 singleton-range (in-range a<n n<a) = leq-antisym a<n n<a
 
 suc-range-r : ∀ {n a b} → n ∈[ a , b ] → n ∈[ a , suc b ]
-suc-range-r (in-range a<n n<b) = in-range a<n (follows-from n<b)
+suc-range-r (in-range a<n n<b) = in-range a<n (by n<b)
 
 suc-range-l : ∀ {n a b} → n ∈[ suc a , b ] → n ∈[ a , b ]
-suc-range-l (in-range a<n n<b) = in-range (follows-from a<n) n<b
+suc-range-l (in-range a<n n<b) = in-range (by a<n) n<b
 
 in-range-l :  ∀ {a b} → a ≤ b → a ∈[ a , b ]
 in-range-l a<b = in-range (diff! 0) a<b
@@ -87,7 +87,7 @@ cmp-leq : ∀ a b → Either (a < b) (b ≤ a)
 cmp-leq a b with compare a b
 cmp-leq a b | less    a<b = left a<b
 cmp-leq a b | equal   a=b = right (diff 0 (cong suc a=b))
-cmp-leq a b | greater a>b = right (follows-from a>b)
+cmp-leq a b | greater a>b = right (by a>b)
 
 in-range? : ∀ k a b → k ∈[ a , b ]?
 in-range? k a b with cmp-leq k a
@@ -117,7 +117,7 @@ private
   find! a b  zero   eq check = none
   find! a b (suc d) eq check with check a
   find! a b (suc d) eq check | yes pa = here a (in-range-l (diff d (sym eq))) pa
-  find! a b (suc d) eq check | no !pa with find! (suc a) b d (follows-from eq) check
+  find! a b (suc d) eq check | no !pa with find! (suc a) b d (by eq) check
   find! a b (suc d) eq check | no !pa | here k k∈sab pk = here k (suc-range-l k∈sab) pk
   find! a b (suc d) eq check | no !pa | none = none
 
@@ -127,7 +127,7 @@ private
   not-found-in-range a b (suc d) eq check prf k (in-range a<k k<b) pk with check a
   not-found-in-range a b (suc d) eq check ()  k (in-range a<k k<b) pk | yes pa
   not-found-in-range a b (suc d) eq check prf k (in-range a<k k<b) pk | no !pa
-    with find! (suc a) b d (follows-from eq) check | not-found-in-range (suc a) b d (follows-from eq) check
+    with find! (suc a) b d (by eq) check | not-found-in-range (suc a) b d (by eq) check
   not-found-in-range a b (suc d) eq check ()  k (in-range a<k k<b) pk | no !pa | here _ _ _ | rec
   not-found-in-range a b (suc d) eq check prf k (in-range a<k k<b) pk | no !pa | none       | rec =
     not-first !pa (rec refl) k (in-range a<k k<b) pk
@@ -156,7 +156,7 @@ private
 
   div-unique : ∀ q {a b} {{_ : NonZero b}} → q * b ≡ a → a div b ≡ q
   div-unique q {a} {b} eq = quot-unique (qr (a div b) (a mod b) (mod-less b a) (divmod-sound b a))
-                                        (qr q 0 non-zero-less (follows-from eq))
+                                        (qr q 0 non-zero-less (by eq))
 
   divide-smaller : ∀ n r d {{_ : NonZero d}} → n ≤ r ^ 2 → d Divides n → d > r → n div d ≤ r
   divide-smaller n r d n<r² (factor q eq) d>r =
@@ -183,7 +183,7 @@ private
           hi = divide-smaller (suc n) r k r²>n k|sn k>r
           lo : suc n div k ≥ 2
           lo = divide-bigger (suc n) k (range-upper-bound k∈2n) k|sn
-      in k∤sn (suc n div k) (in-range lo hi) (factor k (follows-from (div-divides k|sn)))
+      in k∤sn (suc n div k) (in-range lo hi) (factor k (by (div-divides k|sn)))
     }
   up-to-root 0 _ _ _ (here k k∈⊥ _) = ⊥-elim (empty-range (diff! 1) k∈⊥)
   up-to-root (suc r) n r<n r²>n (here k (in-range 2<k k<r) pk) =
@@ -197,10 +197,10 @@ private
   is-1-or-n     no-div .1 (factor q kq=n) | below (diff! zero) = left refl
   is-1-or-n {n} no-div  k (factor q kq=n) | below (diff (suc k₁) eq) =
     let k=0 : k ≡ 0
-        k=0 = plus-zero-r k₁ k (follows-from (sym eq))
+        k=0 = plus-zero-r k₁ k (by (sym eq))
     in refute (divides-zero (transport (_Divides suc n) k=0 (factor q kq=n)))
   is-1-or-n {n} no-div  k (factor q kq=n) | above  k>n =
-    right (leq-antisym (divides-less (factor q kq=n)) (follows-from k>n))
+    right (leq-antisym (divides-less (factor q kq=n)) (by k>n))
 
   lem₂ : ∀ {n d} q → q * d ≡ suc n → d < suc n → q > 1
   lem₂ 0 eq d≤n = refute eq
@@ -221,10 +221,10 @@ private
   isPrimeAux (suc (suc (suc n))) (greater (diff k eq)) = refute eq
   isPrimeAux (suc (suc (suc _))) (equal ())
   isPrimeAux (suc n) (less n>2) with sqrt (suc n) | sqrt-less _ n>2
-  ... | root r r²<n sr²>n | r<n with up-to-root (suc r) n r<n (follows-from sr²>n) $ findInRange 2 (suc r) (λ k → k divides? suc n)
-  ...   | none p = yes (prime (follows-from n>2) (is-1-or-n p))
+  ... | root r r²<n sr²>n | r<n with up-to-root (suc r) n r<n (by sr²>n) $ findInRange 2 (suc r) (λ k → k divides? suc n)
+  ...   | none p = yes (prime (by n>2) (is-1-or-n p))
   ...   | here d (in-range 2≤d d≤n) (factor q eq) =
-    no (composite d q (suc-monotoneʳ 2≤d) (lem₂ q eq d≤n) (follows-from eq))
+    no (composite d q (suc-monotoneʳ 2≤d) (lem₂ q eq d≤n) (by eq))
 
 isPrime : ∀ n → Prime? n
 isPrime n = isPrimeAux n (compare 2 n)
