@@ -15,6 +15,7 @@ data Bool : Set where
 {-# BUILTIN FALSE false #-}
 
 {-# COMPILED_DATA Bool Bool False True #-}
+{-# COMPILED_DATA_UHC Bool __BOOL__ __FALSE__ __TRUE__ #-}
 
 infix 0 if_then_else_
 if_then_else_ : ∀ {a} {A : Set a} → Bool → A → A → A

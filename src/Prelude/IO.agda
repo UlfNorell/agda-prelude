@@ -26,6 +26,9 @@ postulate
 {-# COMPILED ioReturn (\ _ -> return)    #-}
 {-# COMPILED ioBind   (\ _ _ -> (>>=)) #-}
 
+{-# COMPILED_UHC ioReturn (\_ x -> UHC.Agda.Builtins.primReturn x) #-}
+{-# COMPILED_UHC ioBind   (\_ _ x y -> UHC.Agda.Builtins.primBind x y) #-}
+
 instance
   MonadIO : Monad IO
   MonadIO = record { return = ioReturn ; _>>=_ = ioBind }
@@ -49,6 +52,9 @@ postulate
 {-# COMPILED putStr  putStr    #-}
 {-# COMPILED putStrLn putStrLn #-}
 
+{-# COMPILED_UHC putStr   (UHC.Agda.Builtins.primPutStr) #-}
+{-# COMPILED_UHC putStrLn (UHC.Agda.Builtins.primPutStrLn) #-}
+
 print : ∀ {a} {A : Set a} {{ShowA : Show A}} → A → IO Unit
 print = putStrLn ∘ show
 
@@ -62,6 +68,9 @@ postulate
 
 {-# COMPILED readFile  readFile  #-}
 {-# COMPILED writeFile writeFile #-}
+
+{-# COMPILED_UHC readFile  (UHC.Agda.Builtins.primReadFile) #-}
+{-# COMPILED_UHC writeFile (UHC.Agda.Builtins.primWriteFile) #-}
 
 --- Command line arguments ---
 
