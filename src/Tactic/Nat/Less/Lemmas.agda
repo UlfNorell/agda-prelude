@@ -23,6 +23,10 @@ NFLessS (nf₁ , nf₂) ρ = ⟦ nf₁ ⟧ns ρ < ⟦ nf₂ ⟧ns ρ
 CancelSubLess : SubExp → SubExp → Env Var → Set
 CancelSubLess e₁ e₂ ρ = NFLessS (cancel (normSub e₁) (normSub e₂)) (atomEnvS ρ)
 
+c⟦_⟧eqn : Eqn → Env Var → Set
+c⟦ a :≡ b ⟧eqn = CancelSubEq a b
+c⟦ a :< b ⟧eqn = CancelSubLess a b
+
 simplifySubLess : ∀ e₁ e₂ (ρ : Env Var) → CancelSubLess e₁ e₂ ρ → SubExpLess e₁ e₂ ρ
 simplifySubLess e₁ e₂ ρ H with cancel (normSub e₁) (normSub e₂)
                              | λ a b → cancel-sound′ a b (normSub e₁) (normSub e₂) (atomEnvS ρ)

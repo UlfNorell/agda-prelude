@@ -27,6 +27,10 @@ data Eqn : Set where
 ⟦ e₁ ⟨-⟩ e₂ ⟧se ρ = ⟦ e₁ ⟧se ρ - ⟦ e₂ ⟧se ρ
 ⟦ e₁ ⟨*⟩ e₂ ⟧se ρ = ⟦ e₁ ⟧se ρ * ⟦ e₂ ⟧se ρ
 
+⟦_⟧eqn : Eqn → Env Var → Set
+⟦ e₁ :≡ e₂ ⟧eqn ρ = ⟦ e₁ ⟧se ρ ≡ ⟦ e₂ ⟧se ρ
+⟦ e₁ :< e₂ ⟧eqn ρ = ⟦ e₁ ⟧se ρ < ⟦ e₂ ⟧se ρ
+
 data SubAtom : Set
 
 SubNF : Set
