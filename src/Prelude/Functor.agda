@@ -16,6 +16,11 @@ record Functor {a b} (F : Set a → Set b) : Set (lsuc a ⊔ b) where
 
 open Functor {{...}} public
 
+infixr 0 flip-fmap
+syntax flip-fmap a (λ x → y) = for x ← a do y
+flip-fmap : ∀ {a b} {F : Set a → Set b} {{_ : Functor F}} {A B} → F A → (A → B) → F B
+flip-fmap x f = fmap f x
+
 -- Congruence for _<$>_ --
 
 infixl 4 _=$=_ 

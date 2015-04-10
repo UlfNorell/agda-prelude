@@ -28,3 +28,11 @@ record Monad {a b} (M : Set a → Set b) : Set (lsuc a ⊔ b) where
            ; _<*>_ = λ mf mx → mf >>= λ f → mx >>= λ x → return (f x) }
 
 open Monad {{...}} public
+
+infixr 0 do-bind
+syntax do-bind m (λ x → m₁) = forM x ← m do m₁
+do-bind = _>>=_
+
+infixr 0 do-seq
+syntax do-seq m m₁ = forM m do m₁
+do-seq = _>>_
