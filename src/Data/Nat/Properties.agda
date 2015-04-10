@@ -54,16 +54,8 @@ less-raa a≱b | greater a>b = ⊥-elim (a≱b (by a>b))
 _⟨≤⟩_ : {a b c : Nat} → a ≤ b → b ≤ c → a ≤ c
 diff! k ⟨≤⟩ diff! k₁ = auto
 
-plus-zero-l : ∀ a b → a + b ≡ 0 → a ≡ 0
-plus-zero-l zero b eq = refl
-plus-zero-l (suc a) b eq = refute eq
-
-plus-zero-r : ∀ a b → a + b ≡ 0 → b ≡ 0
-plus-zero-r zero    b eq = eq
-plus-zero-r (suc a) b eq = refute eq
-
 leq-antisym : {a b : Nat} → a ≤ b → b ≤ a → a ≡ b
-leq-antisym (diff! k) (diff k₁ eq) = simplify eq to eq′ => sym $ plus-zero-r k₁ k (sym eq′)
+leq-antisym (diff! k) (diff k₁ eq) = by eq
 
 leq-add-l : ∀ a {b} → b ≤ a + b
 leq-add-l a {b} = diff! a

@@ -196,9 +196,7 @@ private
   is-1-or-n     no-div  k (factor q kq=n) | inside inr = ⊥-elim (no-div k inr (factor q kq=n))
   is-1-or-n     no-div .1 (factor q kq=n) | below (diff! zero) = left refl
   is-1-or-n {n} no-div  k (factor q kq=n) | below (diff (suc k₁) eq) =
-    let k=0 : k ≡ 0
-        k=0 = plus-zero-r k₁ k (by (sym eq))
-    in refute (divides-zero (transport (_Divides suc n) k=0 (factor q kq=n)))
+    refute (divides-zero (transport (_Divides suc n) (by eq) (factor q kq=n)))
   is-1-or-n {n} no-div  k (factor q kq=n) | above  k>n =
     right (leq-antisym (divides-less (factor q kq=n)) (by k>n))
 

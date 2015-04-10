@@ -34,7 +34,12 @@ private
   by eq
 
     Prove the goal using the given assumption. For equalities it simplifies
-    the goal and the assumption and check that they are the same (or symmetric).
+    the goal and the assumption and checks if they match any of the following
+    forms (up to symmetry):
+
+          a ≡ b → a ≡ b
+      a + b ≡ 0 → a ≡ 0
+
     For inequalities, to prove a < b -> c < d, it simplifies the assumption and
     goal and then tries to prove c′ ≤ a′ and b′ ≤ d′. When proving that an
     inequality follows from an equality a ≡ b, the equality is weakened to

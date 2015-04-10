@@ -113,6 +113,13 @@ private
       lem : suc (uv₁ + k + uv) + v ≡ v₁
       lem = sym $ sound₁ uv₁ 0 auto ʳ⟨≡⟩ auto ⟨≡⟩ sound (uv₁ + suc k + uv) (uv₁ + suc k) auto ʳ⟨≡⟩ auto
 
+  decide-leq : ∀ u v ρ → Maybe (⟦ u ⟧ns (atomEnvS ρ) ≤ ⟦ v ⟧ns (atomEnvS ρ))
+  decide-leq u v ρ with cancel u v | λ a b → cancel-sound-s′ a b u v (atomEnvS ρ)
+  ... | [] , d | sound =
+    let eval x = ⟦ x ⟧ns (atomEnvS ρ) in
+    just (diff (eval d) $ sym (sound (suc (eval d)) 1 auto))
+  ... | _  , _ | _     = nothing
+
   follows-from-proof-less : ∀ a a₁ b b₁ ρ → Maybe (SubExpLess a a₁ ρ → SubExpLess b b₁ ρ)
   follows-from-proof-less a a₁ b b₁ ρ with cancel (normSub a) (normSub a₁)
                                          | cancel (normSub b) (normSub b₁)
@@ -127,6 +134,22 @@ private
                    (follows-diff-prf (compl a<a₁) sound sound₁)
   ... | _ | _ | _ | _ = nothing
 
+  lem-plus-zero-r : ∀ a b → a + b ≡ 0 → b ≡ 0
+  lem-plus-zero-r  zero   b eq = eq
+  lem-plus-zero-r (suc a) b ()
+
+  lem-leq-zero : ∀ {a b} → a ≤ b → b ≡ 0 → a ≡ 0
+  lem-leq-zero (diff k eq) refl = lem-plus-zero-r k _ (follows-from (sym eq))
+
+  -- More advanced tactics for equalities
+  --   a + b ≡ 0 → a ≡ 0
+  follows-from-proof-eq : ∀ u u₁ v v₁ ρ → Maybe (⟦ u ⟧ns (atomEnvS ρ) ≡ ⟦ u₁ ⟧ns (atomEnvS ρ) → ⟦ v ⟧ns (atomEnvS ρ) ≡ ⟦ v₁ ⟧ns (atomEnvS ρ))
+  follows-from-proof-eq u  [] v  [] ρ = flip fmap (decide-leq v u ρ) lem-leq-zero
+  follows-from-proof-eq [] u₁ v  [] ρ = flip fmap (decide-leq v u₁ ρ) λ leq → lem-leq-zero leq ∘ sym
+  follows-from-proof-eq u  [] [] v₁ ρ = flip fmap (decide-leq v₁ u ρ) λ leq → sym ∘ lem-leq-zero leq
+  follows-from-proof-eq [] u₁ [] v₁ ρ = flip fmap (decide-leq v₁ u₁ ρ) λ leq → sym ∘ lem-leq-zero leq ∘ sym
+  follows-from-proof-eq u  u₁ v  v₁ ρ = nothing
+
   follows-from-proof : ∀ hyp goal ρ → Maybe (SubExpEqn hyp ρ → SubExpEqn goal ρ)
   follows-from-proof (a :≡ a₁) (b :≡ b₁) ρ with cancel (normSub a) (normSub a₁)
                                                | cancel (normSub b) (normSub b₁)
@@ -138,7 +161,7 @@ private
   ... | _ | _ with u == v₁ | u₁ == v   -- try sym
   follows-from-proof (a :≡ b) (a₁ :≡ b₁) ρ | u , u₁ | .u₁ , .u | compl | simpl | w | w₁ | yes refl | yes refl =
     just $ simpl ∘ sym ∘ compl
-  ...   | _ | _ = nothing
+  ...   | _ | _ = fmap (λ prf → simpl ∘ prf ∘ compl) (follows-from-proof-eq u u₁ v v₁ ρ)
 
   follows-from-proof (a :< b) (a₁ :≡ b₁) ρ = nothing
   follows-from-proof (a :< a₁) (b :< b₁) ρ = follows-from-proof-less a a₁ b b₁ ρ
