@@ -14,41 +14,57 @@ open import Tactic.Nat.Subtract public renaming
 open import Tactic.Reflection public using (apply-tactic; apply-goal-tactic)
 
 -- All tactics know about addition, multiplication and subtraction
--- of natural numbers. The available ones are:
+-- of natural numbers, and can prove equalities and inequalities (_<_).
+-- The available tactics are:
 
 {-
   auto
 
-    Prove an equation.
+    Prove an equation or inequality.
 -}
 
 private
-  auto-example : ∀ a b → (a - b) * (a + b) ≡ a ^ 2 - b ^ 2
-  auto-example a b = auto
+  auto-example₁ : ∀ a b → (a - b) * (a + b) ≡ a ^ 2 - b ^ 2
+  auto-example₁ a b = auto
+
+  auto-example₂ : ∀ a b → (a + b) ^ 2 ≥ a ^ 2 + b ^ 2
+  auto-example₂ a b = auto
 
 {-
   follows-from eq
 
-    Prove the goal using the given equation. Only works when the goal and the given
-    equation simplify to the same thing. Symmetry not included.
+    Prove the goal using the given assumption. For equalities it simplifies
+    the goal and the assumption and check that they are the same (or symmetric).
+    For inequalities, to prove a < b -> c < d, it simplifies the assumption and
+    goal and then tries to prove c′ ≤ a′ and b′ ≤ d′. When proving that an
+    inequality follows from an equality a ≡ b, the equality is weakened to
+    a ≤ b before applying the above procedure.
 -}
 
 private
-  follows-from-example : ∀ xs ys → sum (xs ++ ys) ≡ sum ys + sum xs
-  follows-from-example []       ys = auto
-  follows-from-example (x ∷ xs) ys = follows-from (follows-from-example xs ys)
+  follows-from-example₁ : ∀ xs ys → sum (xs ++ ys) ≡ sum ys + sum xs
+  follows-from-example₁ []       ys = auto
+  follows-from-example₁ (x ∷ xs) ys = follows-from (follows-from-example₁ xs ys)
+
+  follows-from-example₂ : ∀ a b c → a + c < b + c → a < b
+  follows-from-example₂ a b c lt = follows-from lt
+
+  follows-from-example₃ : ∀ a b → a ≡ b * 2 → a + b < (b + 1) * 3
+  follows-from-example₃ a b eq = follows-from eq
 
 {-
   refute eq
 
-  Proves an arbitrary proposition given a false equation. For the purposes of this
-  tactic a false equation is one that simplifies to 0 ≡ 1 + n (or symmetric) for
-  some n.
+  Proves an arbitrary proposition given a false equation. Works for equations
+  that simplify to 0 ≡ suc n (or symmetric) or n < 0, for some n.
 -}
 
 private
-  refute-example : ∀ {Anything : Set} a → a ≡ 2 * a + 1 → Anything
-  refute-example a eq = refute eq
+  refute-example₁ : ∀ {Anything : Set} a → a ≡ 2 * a + 1 → Anything
+  refute-example₁ a eq = refute eq
+
+  refute-example₂ : ∀ {Anything : Set} a b → a + b < a → Anything
+  refute-example₂ a b lt = refute lt
 
 {-
   simplify-goal => ?
