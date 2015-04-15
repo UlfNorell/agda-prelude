@@ -78,6 +78,10 @@ non-zero-range : ∀ {n a b} → n ∈[ suc a , b ] → NonZero n
 non-zero-range {zero} {a} (in-range (diff k eq) _) = refute eq
 non-zero-range {suc _} _ = _
 
+erase-in-range : ∀ {n a b} → n ∈[ a , b ] → n ∈[ a , b ]
+erase-in-range r = in-range (fast-diff (range-lower-bound r))
+                            (fast-diff (range-upper-bound r))
+
 data _∈[_,_]? k a b : Set where
   inside : k ∈[ a , b ] → k ∈[ a , b ]?
   below  : k < a → k ∈[ a , b ]?
@@ -100,9 +104,10 @@ data FindInRange {ℓ} a b (P : Nat → Set ℓ) : Set ℓ where
   here :  ∀ k → k ∈[ a , b ] →   P k  → FindInRange a b P
   none : (∀ k → k ∈[ a , b ] → ¬ P k) → FindInRange a b P
 
-data FindInRange! {ℓ} a b (P : Nat → Set ℓ) : Set ℓ where
-  here :  ∀ k → k ∈[ a , b ] → P k → FindInRange! a b P
-  none : FindInRange! a b P
+-- Version with less evidence. Faster to compute.
+data FindInRange! {ℓ} (P : Nat → Set ℓ) : Set ℓ where
+  here :  ∀ k → P k → FindInRange! P
+  none : FindInRange! P
 
 private
   not-first : ∀ {ℓ} {P : Nat → Set ℓ} {a b} →
@@ -113,28 +118,47 @@ private
   not-first !pa !pa+ k k∈r              pk | equal   refl = !pa pk
   not-first !pa !pa+ k (in-range _ k≤b) pk | greater k>a  = !pa+ k (in-range (by k>a) k≤b) pk
 
-  find! : ∀ {ℓ} {P : Nat → Set ℓ} a b d → d + a ≡ suc b → (∀ k → Dec (P k)) → FindInRange! a b P
-  find! a b  zero   eq check = none
-  find! a b (suc d) eq check with check a
-  find! a b (suc d) eq check | yes pa = here a (in-range-l (diff d (sym eq))) pa
-  find! a b (suc d) eq check | no !pa with find! (suc a) b d (by eq) check
-  find! a b (suc d) eq check | no !pa | here k k∈sab pk = here k (suc-range-l k∈sab) pk
-  find! a b (suc d) eq check | no !pa | none = none
+  find! : ∀ {ℓ} {P : Nat → Set ℓ} (a d : Nat) → (∀ k → Dec (P k)) → FindInRange! P
+  find! a  zero   check = none
+  find! a (suc d) check with check a
+  find! a (suc d) check | yes pa = here a pa
+  find! 0 (suc d) check | no _ = find! 1 d check   -- strict in a (blows up without sharing otherwise)
+  find! a (suc d) check | no _ = find! (suc a) d check
+
+  found-in-range : ∀ {ℓ} {P : Nat → Set ℓ} a b d (eq : d + a ≡ suc b) (check : ∀ k → Dec (P k)) →
+                     ∀ k (pk : P k) → find! a d check ≡ here k pk → k ∈[ a , b ]
+  found-in-range a b zero eq check k pk ()
+  found-in-range a b (suc d) eq check k pk feq with check a
+  found-in-range a b (suc d) eq check .a pa refl | yes .pa = in-range-l (by eq)
+  found-in-range  0      b (suc d) eq check  k pk feq | no !pa
+    with find! 1 d check | found-in-range 1 b d (by eq) check
+  found-in-range  0      b (suc d) eq check k pk refl | no !pa | here .k .pk | rec = suc-range-l (rec _ _ refl)
+  found-in-range  0      b (suc d) eq check k pk ()   | no !pa | none        | rec
+  found-in-range (suc a) b (suc d) eq check k pk feq  | no !pa
+    with find! (2 + a) d check | found-in-range (2 + a) b d (by eq) check
+  found-in-range (suc a) b (suc d) eq check k pk refl | no !pa | here .k .pk | rec = suc-range-l (rec _ _ refl)
+  found-in-range (suc a) b (suc d) eq check k pk ()   | no !pa | none        | rec
 
   not-found-in-range : ∀ {ℓ} {P : Nat → Set ℓ} a b d (eq : d + a ≡ suc b) (check : ∀ k → Dec (P k)) →
-                         find! a b d eq check ≡ none → ∀ k → k ∈[ a , b ] → ¬ P k
-  not-found-in-range a b zero    eq check prf k k∈ab pk = empty-range (diff 0 eq) k∈ab
+                         find! a d check ≡ none → ∀ k → k ∈[ a , b ] → ¬ P k
+  not-found-in-range 0       b zero eq check prf k k∈ab pk = empty-range (diff 0 eq) k∈ab
+  not-found-in-range (suc _) b zero eq check prf k k∈ab pk = empty-range (diff 0 eq) k∈ab
   not-found-in-range a b (suc d) eq check prf k (in-range a<k k<b) pk with check a
   not-found-in-range a b (suc d) eq check ()  k (in-range a<k k<b) pk | yes pa
-  not-found-in-range a b (suc d) eq check prf k (in-range a<k k<b) pk | no !pa
-    with find! (suc a) b d (by eq) check | not-found-in-range (suc a) b d (by eq) check
-  not-found-in-range a b (suc d) eq check ()  k (in-range a<k k<b) pk | no !pa | here _ _ _ | rec
-  not-found-in-range a b (suc d) eq check prf k (in-range a<k k<b) pk | no !pa | none       | rec =
+  not-found-in-range 0 b (suc d) eq check prf k (in-range a<k k<b) pk | no !pa
+    with find! 1 d check | not-found-in-range 1 b d (by eq) check
+  not-found-in-range 0 b (suc d) eq check ()  k (in-range a<k k<b) pk | no !pa | here _ _ | rec
+  not-found-in-range 0 b (suc d) eq check prf k (in-range a<k k<b) pk | no !pa | none     | rec =
+    not-first !pa (rec refl) k (in-range a<k k<b) pk
+  not-found-in-range (suc a) b (suc d) eq check prf k (in-range a<k k<b) pk | no !pa
+    with find! (suc (suc a)) d check | not-found-in-range (suc (suc a)) b d (by eq) check
+  not-found-in-range (suc a) b (suc d) eq check ()  k (in-range a<k k<b) pk | no !pa | here _ _ | rec
+  not-found-in-range (suc a) b (suc d) eq check prf k (in-range a<k k<b) pk | no !pa | none     | rec =
     not-first !pa (rec refl) k (in-range a<k k<b) pk
 
   find : ∀ {ℓ} {P : Nat → Set ℓ} a b d → d + a ≡ suc b → (∀ k → Dec (P k)) → FindInRange a b P
-  find a b d eq check with inspect (find! a b d eq check)
-  ... | here k r pk with≡ _ = here k r pk
+  find a b d eq check with inspect (find! a d check)
+  ... | here k pk with≡ prf = here k (erase-in-range (found-in-range a b d eq check k pk prf)) pk
   ... | none with≡ prf      = none (not-found-in-range a b d eq check prf)
 
 findInRange : ∀ {ℓ} {P : Nat → Set ℓ} a b → (∀ k → Dec (P k)) → FindInRange a b P
@@ -253,6 +277,7 @@ isPrime! n with isPrime n
 --       5.2s    + isPrime (1021 * 1021)
 --       0.2s    remove range argument from check
 --       0.8s    + isPrime (3581 * 3581)
+--       0.3s    don't compute in-range proof in find!
 
 --   Prime (no proof)
 --       2.3s    + isPrime! 1021
@@ -272,3 +297,4 @@ isPrime! n with isPrime n
 --       0.2s    only check up to sqrt
 --       0.7s    + isPrime 12823607
 --       2.3s    + isPrime 234576373
+--       1.4s    don't compute in-range proof in find!
