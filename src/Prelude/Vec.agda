@@ -44,6 +44,28 @@ tabulate : ∀ {a} {A : Set a} {n} → (Fin n → A) → Vec A n
 tabulate {n = zero } f = []
 tabulate {n = suc n} f = f zero ∷ tabulate (f ∘ suc)
 
+--- Folding ---
+
+vfoldr : ∀ {a b} {A : Set a} {B : Nat → Set b} → (∀ {n} → A → B n → B (suc n)) → B 0 → ∀ {n} → Vec A n → B n
+vfoldr f z [] = z
+vfoldr f z (x ∷ xs) = f x (vfoldr (λ {n} → f {n}) z xs)
+
+vfoldl : ∀ {a b} {A : Set a} {B : Nat → Set b} → (∀ {n} → B n → A → B (suc n)) → B 0 → ∀ {n} → Vec A n → B n
+vfoldl         f z [] = z
+vfoldl {B = B} f z (x ∷ xs) = vfoldl {B = B ∘ suc} f (f z x) xs
+
+--- Other list functions ---
+
+module _ {a} {A : Set a} where
+
+  infixr 5 _v++_
+  _v++_ : ∀ {m n} → Vec A m → Vec A n → Vec A (m + n)
+  []       v++ ys = ys
+  (x ∷ xs) v++ ys = x ∷ xs v++ ys 
+
+  vreverse : ∀ {n} → Vec A n → Vec A n
+  vreverse xs = vfoldl {B = Vec A} (flip _∷_) [] xs
+
 --- Equality ---
 
 vcons-inj-head : ∀ {a} {A : Set a} {x y : A} {n}
