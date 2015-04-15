@@ -31,8 +31,8 @@ infix  4 _`≡_
 pattern _`≡_ x y = def (quote _≡_) (_ ∷ hArg `Nat ∷ vArg x ∷ vArg y ∷ [])
 pattern _`->_ a b = pi (vArg (el (lit 0) a)) (abs _ (el (lit 0) b))
 
-pattern _`+_ x y = def (quote _+_) (vArg x ∷ vArg y ∷ [])
-pattern _`*_ x y = def (quote _*_) (vArg x ∷ vArg y ∷ [])
+pattern _`+_ x y = def (quote _+N_) (vArg x ∷ vArg y ∷ [])
+pattern _`*_ x y = def (quote _*N_) (vArg x ∷ vArg y ∷ [])
 pattern `0       = `zero
 pattern `1       = `suc `0
 

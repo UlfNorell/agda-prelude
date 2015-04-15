@@ -72,9 +72,6 @@ NonZeroQ : Rational → Set
 NonZeroQ (ratio 0 _ _) = ⊥
 NonZeroQ (ratio (suc n) _ _) = ⊤
 
-fromNat : Nat → Rational
-fromNat n = n :/ 1
-
 infixl 6 _+Q_ _-Q_
 infixl 7 _*Q_ _/_
 
@@ -93,3 +90,9 @@ recip (ratio (suc p) q eq) = ratio q (suc p) (gcd-commute q (suc p) ⟨≡⟩ eq
 
 _/_ : (x y : Rational) {{_ : NonZeroQ y}} → Rational
 x / y = x *Q recip y
+
+instance
+  SemiringRational : Semiring Rational
+  SemiringRational = record { zro = 0 :/ 1 ; one = 1 :/ 1
+                            ; _+_ = _+Q_ ; _*_ = _*Q_
+                            ; fromNat = λ n → n :/ 1 }

@@ -12,6 +12,7 @@ open import Prelude.Decidable
 open import Prelude.Ord
 open import Prelude.Function
 open import Prelude.Monad
+open import Prelude.Semiring
 
 postulate
   String : Set

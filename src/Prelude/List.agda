@@ -13,6 +13,7 @@ open import Prelude.Monad
 open import Prelude.Decidable
 open import Prelude.Equality
 open import Prelude.Ord
+open import Prelude.Semiring
 
 infixr 5 _∷_ _++_
 data List {a} (A : Set a) : Set a where

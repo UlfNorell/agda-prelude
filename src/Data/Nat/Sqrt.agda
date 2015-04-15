@@ -6,7 +6,7 @@ open import Data.Nat.Properties
 open import Tactic.Nat
 open import Data.Nat.BinarySearch
 
-data Sqrt n : Set where
+data Sqrt (n : Nat) : Set where
   root : ∀ r → r ^ 2 ≤ n → n < suc r ^ 2 → Sqrt n
 
 getSqrt : ∀ {n} → Sqrt n → Nat
@@ -20,7 +20,7 @@ private
   a <? .a | equal  refl = no (λ a<a → refute a<a)
   a <?  b | greater a>b = no (λ a<b → less-antisym a>b a<b)
 
-sqrt : ∀ n → Sqrt n
+sqrt : (n : Nat) → Sqrt n
 sqrt 0 = root 0 (diff! 0) (diff! 0)  -- just to avoid unfolding neutral application
 sqrt n with binarySearch 0 n (λ r → n <? r ^ 2)
 sqrt n | here k !n< n< _ _ = root k (less-raa (λ lt → !n< (by lt))) n<

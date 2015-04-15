@@ -26,7 +26,7 @@ private
   NFGoal : (R₁ R₂ : Nat → Nat → Set) (a b c d : SubNF) → Env Var → Set
   NFGoal _R₁_ _R₂_ a b c d ρ = ⟦ a ⟧ns (atomEnvS ρ) R₁ ⟦ b ⟧ns (atomEnvS ρ) → ⟦ c ⟧ns (atomEnvS ρ) R₂ ⟦ d ⟧ns (atomEnvS ρ)
 
-  follows-diff-prf : ∀ {a b c d} → a ≤ b → b < c → c ≤ d → d ≡ suc (d - suc a) + a
+  follows-diff-prf : {a b c d : Nat} → a ≤ b → b < c → c ≤ d → d ≡ suc (d - suc a) + a
   follows-diff-prf {a} (diff! i) (diff! j) (diff! k) =
     sym $ (λ z → suc z + a) $≡ lem-sub-zero (k + suc (j + (i + a))) (suc a) (i + j + k) auto ʳ⟨≡⟩
           auto

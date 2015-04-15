@@ -37,11 +37,8 @@ eta : ∀ {a b} {A : Set a} {B : Set b} (p : A × B) → p ≡ (fst p , snd p)
 eta (x , y) = refl
 
 private
-  shuffle₁ : ∀ a b c → a + (b + c) ≡ b + (a + c)
+  shuffle₁ : (a b c : Nat) → a + (b + c) ≡ b + (a + c)
   shuffle₁ a b c = auto
-
-  arith₁ : ∀ b k i x y → b + ((k + i) * x + x + y) ≡ i * x + (b + (k * x + x) + y)
-  arith₁ b k i x y = auto
 
 module _ {Atom : Set} {{_ : Ord Atom}} where
 
@@ -172,7 +169,7 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
       (cancel-complete′ a (b + suc k * prod ρ x) nf₁ nf₂ ρ
         (add-inj₂ (i * prod ρ x) _ _
           (shuffle₁ (i * prod ρ x) a _
-            ⟨≡⟩ H ⟨≡⟩ arith₁ b k i _ _))
+            ⟨≡⟩ H ⟨≡⟩ auto))
       ⟨≡⟩ʳ add-assoc b _ _)
   cancel-complete′ a b ((.(suc (k + j)) , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl | greater (diff! k) =
     lem-complete a b ρ (_∷_ (suc k , x)) id (cancel nf₁ nf₂)
@@ -180,7 +177,7 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
        cancel-complete′ (a + suc k * prod ρ x) b nf₁ nf₂ ρ
          (add-inj₂ (j * prod ρ x) _ _
            (sym (shuffle₁ (j * prod ρ x) b _ ⟨≡⟩ʳ
-                 arith₁ a k j _ _ ʳ⟨≡⟩ H))))
+                 auto ʳ⟨≡⟩ H))))
   cancel-complete′ a b ((i , x) ∷ nf₁) ((.i , .x) ∷ nf₂) ρ H | equal refl | equal refl =
     cancel-complete′ a b nf₁ nf₂ ρ
       (add-inj₂ (i * prod ρ x) _ _

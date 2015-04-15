@@ -18,31 +18,26 @@ data Nat : Set where
 
 --- Addition, subtraction and multiplication ---
 
-infixl 6 _+_ _-_
-infixl 7 _*_ natDiv natMod
+infixl 6 _+N_ _-_
+infixl 7 _*N_ natDiv natMod
 
-_+_ : Nat → Nat → Nat
-zero  + m = m
-suc n + m = suc (n + m)
+_+N_ : Nat → Nat → Nat
+zero  +N m = m
+suc n +N m = suc (n +N m)
 
 _-_ : Nat → Nat → Nat
 n     - zero = n
 zero  - suc m = zero
 suc n - suc m = n - m
 
-{-# BUILTIN NATPLUS _+_ #-}
+{-# BUILTIN NATPLUS _+N_ #-}
 {-# BUILTIN NATMINUS _-_ #-}
 
-_*_ : Nat → Nat → Nat
-zero  * m = zero
-suc n * m = n * m + m
+_*N_ : Nat → Nat → Nat
+zero  *N m = zero
+suc n *N m = n *N m +N m
 
-{-# BUILTIN NATTIMES _*_ #-}
-
-infixr 8 _^_
-_^_ : Nat → Nat → Nat
-n ^ zero = 1
-n ^ suc m = n ^ m * n
+{-# BUILTIN NATTIMES _*N_ #-}
 
 --- Equality ---
 
@@ -118,20 +113,20 @@ lessNat (suc n) (suc m) = lessNat n m
 {-# BUILTIN NATLESS lessNat #-}
 
 data LessNat n m : Set where
-  diff : ∀ k → m ≡ suc k + n → LessNat n m
+  diff : ∀ k → m ≡ suc k +N n → LessNat n m
 
 pattern diff! k = diff k refl
 
 private
-  add-zero : ∀ n → n ≡ n + 0
+  add-zero : ∀ n → n ≡ n +N 0
   add-zero zero = refl
   add-zero (suc n) = cong suc (add-zero n)
 
-  add-suc : ∀ n m → n + suc m ≡ suc n + m
+  add-suc : ∀ n m → n +N suc m ≡ suc n +N m
   add-suc zero m = refl
   add-suc (suc n) m = cong suc (add-suc n m)
 
-  lemLessNatMinus : ∀ n m → IsTrue (lessNat n m) → m ≡ suc (m - suc n) + n
+  lemLessNatMinus : ∀ n m → IsTrue (lessNat n m) → m ≡ suc (m - suc n) +N n
   lemLessNatMinus  _       zero  ()
   lemLessNatMinus  zero   (suc m) _   = cong suc $ add-zero m
   lemLessNatMinus (suc n) (suc m) n<m rewrite add-suc (m - suc n) n = cong suc (lemLessNatMinus n m n<m)

@@ -170,7 +170,7 @@ findInRange a  b check | greater gt     = none (λ k k∈ab _ → empty-range gt
 --- Reducing the required search space to 2..√a ---
 
 private
-  lem-less : ∀ {n r d q} → r ^ 2 ≥ n →
+  lem-less : {n r d q : Nat} → r ^ 2 ≥ n →
         q * d ≡ n → r < d → suc r ≤ q → ⊥
   lem-less (diff k eq) refl (diff j refl) (diff! i) = refute eq
 

@@ -63,7 +63,7 @@ private
 
 --- Public definitions ---
 
-data DivMod a b : Set where
+data DivMod (a b : Nat) : Set where
   qr : ∀ q r → r < b → q * b + r ≡ a → DivMod a b
 
 quot : ∀ {a b} → DivMod a b → Nat
@@ -94,7 +94,7 @@ divmod-sound zero {{}} _
 divmod-sound (suc b) a = quot-rem-sound (a divmod suc b)
 
 private
-  divmod-unique′ : ∀ b q₁ q₂ r₁ r₂ → r₁ < b → r₂ < b → q₁ * b + r₁ ≡ q₂ * b + r₂ → q₁ ≡ q₂ × r₁ ≡ r₂
+  divmod-unique′ : (b q₁ q₂ r₁ r₂ : Nat) → r₁ < b → r₂ < b → q₁ * b + r₁ ≡ q₂ * b + r₂ → q₁ ≡ q₂ × r₁ ≡ r₂
   divmod-unique′ b  zero     zero    r₁ r₂ lt₁ lt₂ eq   = refl , eq
   divmod-unique′ b  zero    (suc q₂) ._ r₂ lt₁ lt₂ refl = refute lt₁
   divmod-unique′ b (suc q₁)  zero    r₁ ._ lt₁ lt₂ refl = refute lt₂
@@ -114,10 +114,10 @@ rem-unique d₁ d₂ = snd (divmod-unique d₁ d₂)
 
 --- Even/Odd ---
 
-data Even n : Set where
+data Even (n : Nat) : Set where
   dbl : ∀ k → k * 2 ≡ n → Even n
 
-data Odd n : Set where
+data Odd (n : Nat) : Set where
   dbl+1 : ∀ k → 1 + k * 2 ≡ n → Odd n
 
 parity : ∀ n → Either (Odd n) (Even n)

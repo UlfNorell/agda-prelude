@@ -23,10 +23,10 @@ open import Tactic.Reflection public using (apply-tactic; apply-goal-tactic)
 -}
 
 private
-  auto-example₁ : ∀ a b → (a - b) * (a + b) ≡ a ^ 2 - b ^ 2
+  auto-example₁ : (a b : Nat) → (a - b) * (a + b) ≡ a ^ 2 - b ^ 2
   auto-example₁ a b = auto
 
-  auto-example₂ : ∀ a b → (a + b) ^ 2 ≥ a ^ 2 + b ^ 2
+  auto-example₂ : (a b : Nat) → (a + b) ^ 2 ≥ a ^ 2 + b ^ 2
   auto-example₂ a b = auto
 
 {-
@@ -55,13 +55,13 @@ private
   by-example₁ []       ys = auto
   by-example₁ (x ∷ xs) ys = by (by-example₁ xs ys)
 
-  by-example₂ : ∀ a b c → a + c < b + c → a < b
+  by-example₂ : (a b c : Nat) → a + c < b + c → a < b
   by-example₂ a b c lt = by lt
 
-  by-example₃ : ∀ a b → a ≡ b * 2 → a + b < (b + 1) * 3
+  by-example₃ : (a b : Nat) → a ≡ b * 2 → a + b < (b + 1) * 3
   by-example₃ a b eq = by eq
 
-  by-example₄ : ∀ a b c → a + b + c ≤ b → 2 * c ≡ c
+  by-example₄ : (a b c : Nat) → a + b + c ≤ b → 2 * c ≡ c
   by-example₄ a b c lt = by lt
 
 {-
@@ -72,10 +72,10 @@ private
 -}
 
 private
-  refute-example₁ : ∀ {Anything : Set} a → a ≡ 2 * a + 1 → Anything
+  refute-example₁ : {Anything : Set} (a : Nat) → a ≡ 2 * a + 1 → Anything
   refute-example₁ a eq = refute eq
 
-  refute-example₂ : ∀ {Anything : Set} a b → a + b < a → Anything
+  refute-example₂ : {Anything : Set} (a b : Nat) → a + b < a → Anything
   refute-example₂ a b lt = refute lt
 
 {-
@@ -88,7 +88,7 @@ private
 -}
 
 private
-  simplify-goal-example : ∀ a b → a - b ≡ b - a → a ≡ b
+  simplify-goal-example : (a b : Nat) → a - b ≡ b - a → a ≡ b
   simplify-goal-example  zero    b      eq = by eq
   simplify-goal-example (suc a)  zero   eq = refute eq
   simplify-goal-example (suc a) (suc b) eq =
@@ -104,7 +104,7 @@ private
 -}
 
 private
-  lemma : ∀ a b → a + b ≡ 0 → a ≡ 0
+  lemma : (a b : Nat) → a + b ≡ 0 → a ≡ 0
   lemma zero    b eq = refl
   lemma (suc a) b eq = refute eq
 

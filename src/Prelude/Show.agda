@@ -13,6 +13,7 @@ open import Prelude.Sum
 open import Prelude.Product
 open import Prelude.Bool
 open import Prelude.Ord
+open import Prelude.Semiring
 
 --- Class ---
 
