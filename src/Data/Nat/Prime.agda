@@ -211,6 +211,17 @@ private
   two-is-prime 2 k|2 | k≤2 = right refl
   two-is-prime (suc (suc (suc k))) k|2 | lt = refute lt
 
+  lem-sqrt : (n r : Nat) → r ^ 2 < 4 + n → ¬ (suc n < r)
+  lem-sqrt n ._ lt (diff! c) = refute lt
+
+  sqrt-less : ∀ n → n > 2 → suc (sqrt! n) < n
+  sqrt-less 0 (diff k ())
+  sqrt-less 1 (diff k eq) = refute eq
+  sqrt-less 2 (diff k eq) = refute eq
+  sqrt-less (suc (suc (suc n))) _ with sqrt (3 + n)
+  sqrt-less (suc (suc (suc n))) _ | root r lt _ =
+    less-raa λ n<r → lem-sqrt n r lt (by n<r)
+
   isPrimeAux : ∀ n → Comparison _<_ 2 n → Prime? n
   isPrimeAux 0 _ = tiny (diff! 1)
   isPrimeAux 1 _ = tiny (diff! 0)
@@ -231,14 +242,6 @@ isPrime! n with isPrime n
 ... | yes  _ = true
 ... | no   _ = false
 ... | tiny _ = false
-
-testPrimeProof : Nat → String
-testPrimeProof n with isPrime n
-... | tiny _ = show n & " is tiny"
-... | no (composite a b _ _ _) = show a & " * " & show b
-... | yes (prime _ f) with f n divides-refl
-testPrimeProof .1 | yes (prime x f) | left  refl = "n ≡ 1"
-testPrimeProof  n | yes (prime x f) | right refl = "n ≡ " & show n
 
 -- Benchmarking
 

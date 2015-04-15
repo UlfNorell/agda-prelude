@@ -40,15 +40,3 @@ sqrt-below n with sqrt n
 sqrt-above : ∀ n → suc (sqrt! n) ^ 2 > n
 sqrt-above n with sqrt n
 ... | root _ _ hi = hi
-
-private
-  lem : (n r : Nat) → r ^ 2 < 4 + n → ¬ (suc n < r)
-  lem n ._ lt (diff! c) = refute lt
-
-sqrt-less : ∀ n → n > 2 → suc (sqrt! n) < n
-sqrt-less 0 (diff k ())
-sqrt-less 1 (diff k eq) = refute eq
-sqrt-less 2 (diff k eq) = refute eq
-sqrt-less (suc (suc (suc n))) _ with sqrt (3 + n)
-sqrt-less (suc (suc (suc n))) _ | root r lt _ =
-  less-raa λ n<r → lem n r lt (by n<r)
