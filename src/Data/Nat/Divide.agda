@@ -28,8 +28,7 @@ divides-mul-l : ∀ {a} b {d} → d Divides a → d Divides (a * b)
 divides-mul-l b (factor! q) = factor (b * q) auto
 
 divides-sub-l : ∀ {a b d} → d Divides (a + b) → d Divides a → d Divides b
-divides-sub-l {b = b} {d} (factor q₁ eq) (factor! q) = factor (q₁ - q) $
-  by ((_- (q * d)) $≡ eq)
+divides-sub-l {b = b} {d} (factor q₁ eq) (factor! q) = factor (q₁ - q) $ by eq
 
 divides-sub-r : ∀ {a b d} → d Divides (a + b) → d Divides b → d Divides a
 divides-sub-r {a} {b} d|ab d|b rewrite add-commute a b = divides-sub-l d|ab d|b

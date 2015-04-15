@@ -167,8 +167,7 @@ private
   divide-bigger : ∀ n k {{_ : NonZero k}} → k < n → k Divides n → n div k ≥ 2
   divide-bigger ._ k (diff! k₁) (factor zero eq) = refute eq
   divide-bigger n  k k<n (factor 1 eq) = ⊥-elim (less-antirefl k<n eq)
-  divide-bigger n  k k<n (factor (suc (suc q)) eq) =
-    transport (2 ≤_) (sym $ div-unique (2 + q) eq) auto
+  divide-bigger n  k k<n (factor (suc (suc q)) eq) = by (sym $ div-unique (2 + q) eq)
 
   up-to-root : ∀ r n → r ≤ n → r ^ 2 ≥ suc n → FindInRange 2 r (_Divides suc n) → FindInRange 2 n (_Divides suc n)
   up-to-root r n r<n r²>n (none k∤sn) =
