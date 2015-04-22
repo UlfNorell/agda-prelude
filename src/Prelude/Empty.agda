@@ -1,12 +1,16 @@
 
 module Prelude.Empty where
 
+open import Prelude.Erased
+
 data ⊥ : Set where
 
 ⊥-elim : ∀ {a} {A : Set a} → ⊥ → A
 ⊥-elim ()
 
 private postulate erasedBottom : ⊥
+
+{-# DISPLAY erasedBottom = [erased] #-}
 
 erase-⊥ : ⊥ → ⊥
 erase-⊥ _ = erasedBottom

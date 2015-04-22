@@ -3,6 +3,7 @@ module Prelude.Equality.Unsafe where
 
 open import Prelude.Equality
 open import Prelude.Empty
+open import Prelude.Erased
 
 private primitive primTrustMe : ∀ {a} {A : Set a} {x y : A} → x ≡ y
 
@@ -11,9 +12,12 @@ private primitive primTrustMe : ∀ {a} {A : Set a} {x y : A} → x ≡ y
 unsafeEqual : ∀ {a} {A : Set a} {x y : A} → x ≡ y
 unsafeEqual = primTrustMe
 
-postulate
-  -- Used in decidable equality for primitive types (String, Char and Float)
-  unsafeNotEqual : ∀ {a} {A : Set a} {x y : A} → ¬ (x ≡ y)
+{-# DISPLAY primTrustMe = [erased] #-}
+
+-- Used in decidable equality for primitive types (String, Char and Float)
+unsafeNotEqual : ∀ {a} {A : Set a} {x y : A} → ¬ (x ≡ y)
+unsafeNotEqual _ = erase-⊥ trustme
+  where postulate trustme : ⊥
 
 -- Erase an equality proof. Throws away the actual proof
 -- and replaces it by unsafeEqual.
