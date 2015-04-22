@@ -98,6 +98,15 @@ sum = foldr _+_ 0
 product : List Nat → Nat
 product = foldr _*_ 1
 
+private
+  fromto : Nat → Nat → List Nat
+  fromto 0  0   = []  -- make strict
+  fromto a  0   = []
+  fromto a (suc d) = a ∷ fromto (suc a) d
+
+from_to_ : Nat → Nat → List Nat
+from a to b = fromto a (suc b - a)
+
 --- Equality ---
 
 cons-inj-tail : ∀ {a} {A : Set a} {x : A} {xs : List A} {y : A}
