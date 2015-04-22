@@ -19,6 +19,13 @@ private
   primitive
     primQNameEquality : Name → Name → Bool
     primQNameLess : Name → Name → Bool
+    primShowQName : Name → String
+
+-- Show instance --
+
+instance
+  ShowName : Show Name
+  ShowName = record { showsPrec = λ _ x → showString (primShowQName x) }
 
 -- Eq instance --
 
