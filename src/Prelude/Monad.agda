@@ -29,10 +29,18 @@ record Monad {a b} (M : Set a → Set b) : Set (lsuc a ⊔ b) where
 
 open Monad {{...}} public
 
-infixr 0 do-bind
-syntax do-bind m (λ x → m₁) = forM x ← m do m₁
-do-bind = _>>=_
+record PMonad {a b} (M : ∀ {a} → Set a → Set a) : Set (lsuc (a ⊔ b)) where
+  field
+    _>>=′_ : {A : Set a} {B : Set b} → M A → (A → M B) → M B
 
-infixr 0 do-seq
-syntax do-seq m m₁ = forM m do m₁
+open PMonad {{...}} public
+
+infixr 0 do-bind do-seq do-pbind
+
+syntax do-bind  m (λ x → m₁) = forM x ← m do m₁
+syntax do-pbind m (λ x → m₁) = forM′ x ← m do m₁
+syntax do-seq   m m₁          = forM m do m₁
+
+do-bind = _>>=_
 do-seq = _>>_
+do-pbind = _>>=′_

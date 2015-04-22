@@ -51,8 +51,11 @@ instance
 --- Monad ---
 
 instance
-  MonadMaybe : ∀ {a} → Monad (Maybe {a})
+  MonadMaybe : ∀ {a} → Monad {a} Maybe
   MonadMaybe = record { return = just ; _>>=_ = flip (maybe nothing) }
+
+  PMonadMaybe : ∀ {a b} → PMonad {a} {b} Maybe
+  PMonadMaybe = record { _>>=′_ = flip (maybe nothing) }
 
   FunctorMaybe : ∀ {a} → Functor (Maybe {a})
   FunctorMaybe = defaultMonadFunctor

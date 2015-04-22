@@ -165,5 +165,8 @@ instance
   MonadList : ∀ {a} → Monad (List {a})
   MonadList = record { return = λ x → x ∷ [] ; _>>=_ = flip concatMap }
 
+  PMonadList : ∀ {a b} → PMonad {a} {b} List
+  PMonadList = record { _>>=′_ = flip concatMap }
+
   ApplicativeList : ∀ {a} → Applicative (List {a})
   ApplicativeList = defaultMonadApplicative
