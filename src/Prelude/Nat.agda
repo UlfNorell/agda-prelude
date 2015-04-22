@@ -123,6 +123,7 @@ data LessNat n m : Set where
   diff : ∀ k → m ≡ suc k +N n → LessNat n m
 
 pattern diff! k = diff k refl
+{-# DISPLAY diff k refl = diff! k #-}
 
 private
   add-zero : ∀ n → n ≡ n +N 0

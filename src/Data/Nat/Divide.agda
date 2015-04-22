@@ -13,6 +13,7 @@ data _Divides_ (a b : Nat) : Set where
   factor : ∀ q (eq : q * a ≡ b) → a Divides b
 
 pattern factor! q = factor q refl
+{-# DISPLAY factor q refl = factor! q #-}
 
 divides-divmod : ∀ {a b} {{_ : NonZero b}} → b Divides a → DivMod a b
 divides-divmod {b = zero } {{}}
