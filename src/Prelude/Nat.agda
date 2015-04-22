@@ -9,12 +9,8 @@ open import Prelude.Equality
 open import Prelude.Equality.Unsafe using (eraseEquality)
 open import Prelude.Function
 open import Prelude.Ord
-
-data Nat : Set where
-  zero : Nat
-  suc  : (n : Nat) → Nat
-
-{-# BUILTIN NATURAL Nat #-}
+open import Prelude.Nat.Core public
+open import Prelude.Semiring
 
 --- Addition, subtraction and multiplication ---
 
@@ -38,6 +34,17 @@ zero  *N m = zero
 suc n *N m = n *N m +N m
 
 {-# BUILTIN NATTIMES _*N_ #-}
+
+--- Semiring ---
+
+instance
+  SemiringNat : Semiring Nat
+  SemiringNat = record { zro = 0 ; one = 1
+                       ; _+_ = _+N_ ; _*_ = _*N_
+                       ; fromNat = id }
+
+{-# DISPLAY _+N_ n m = n + m #-}
+{-# DISPLAY _*N_ n m = n * m #-}
 
 --- Equality ---
 
