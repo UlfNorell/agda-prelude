@@ -4,6 +4,9 @@ module Prelude.Function where
 id : ∀ {a} {A : Set a} → A → A
 id x = x
 
+infixl -10 id
+syntax id {A = A} x = x ofType A
+
 const : ∀ {a b} {A : Set a} {B : Set b} → A → B → A
 const x _ = x
 
