@@ -53,11 +53,11 @@ private
   ... | u , u₁ | v , v₁ | compl | simpl =
     for prf ← by-proof-less-nf u u₁ v v₁ ρ do simpl ∘ prf ∘ compl
 
-  lem-plus-zero-r : ∀ a b → a + b ≡ 0 → b ≡ 0
+  lem-plus-zero-r : (a b : Nat) → a + b ≡ 0 → b ≡ 0
   lem-plus-zero-r  zero   b eq = eq
   lem-plus-zero-r (suc a) b ()
 
-  lem-leq-zero : ∀ {a b} → a ≤ b → b ≡ 0 → a ≡ 0
+  lem-leq-zero : {a b : Nat} → a ≤ b → b ≡ 0 → a ≡ 0
   lem-leq-zero (diff k eq) refl = lem-plus-zero-r k _ (follows-from (sym eq))
 
   ⟨+⟩-sound-ns : ∀ {Atom} {{_ : Ord Atom}} u v (ρ : Env Atom) → ⟦ u +nf v ⟧ns ρ ≡ ⟦ u ⟧ns ρ + ⟦ v ⟧ns ρ
@@ -118,13 +118,13 @@ private
   ... | u , u₁ |  v ,  v₁ | compl | simpl =
     for prf ← by-proof-eq-nf 10 u u₁ v v₁ ρ do simpl ∘ prf ∘ compl
 
-  not-less-zero′ : ∀ {n} → n < 0 → ⊥
+  not-less-zero′ : {n : Nat} → n < 0 → ⊥
   not-less-zero′ (diff _ ())
 
-  not-less-zero : ∀ {A : Set} {n} → n < 0 → A
+  not-less-zero : {A : Set} {n : Nat} → n < 0 → A
   not-less-zero n<0 = ⊥-elim (erase-⊥ (not-less-zero′ n<0))
 
-  less-one-is-zero : ∀ {n} → n < 1 → n ≡ 0
+  less-one-is-zero : {n : Nat} → n < 1 → n ≡ 0
   less-one-is-zero {zero} _ = refl
   less-one-is-zero {suc n} (diff k eq) = refute eq
 

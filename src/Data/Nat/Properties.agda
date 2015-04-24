@@ -7,14 +7,14 @@ open import Tactic.Nat
 
 --- Subtraction ---
 
-sub-less : ∀ {a b} → a ≤ b → b - a + a ≡ b
+sub-less : {a b : Nat} → a ≤ b → b - a + a ≡ b
 sub-less {zero} _ = auto
 sub-less {suc a} (diff! k) = auto
 
-sub-underflow : ∀ a b → a ≤ b → a - b ≡ 0
+sub-underflow : (a b : Nat) → a ≤ b → a - b ≡ 0
 sub-underflow a ._ (diff! k) = auto
 
-sub-leq : ∀ a b → a - b ≤ a
+sub-leq : (a b : Nat) → a - b ≤ a
 sub-leq a b with compare a b
 sub-leq a ._ | less    (diff! k) = diff a auto
 sub-leq a .a | equal    refl     = diff a auto

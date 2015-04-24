@@ -20,11 +20,11 @@ add-assoc : (x y z : Nat) → x + (y + z) ≡ x + y + z
 add-assoc zero y z = refl
 add-assoc (suc x) y z rewrite add-assoc x y z = refl
 
-mul-1-r : ∀ x → x * 1 ≡ x
+mul-1-r : (x : Nat) → x * 1 ≡ x
 mul-1-r zero = refl
 mul-1-r (suc x) rewrite mul-1-r x = add-commute x _
 
-mul-0-r : ∀ x → x * 0 ≡ 0
+mul-0-r : (x : Nat) → x * 0 ≡ 0
 mul-0-r zero = refl
 mul-0-r (suc x) rewrite mul-0-r x = refl
 

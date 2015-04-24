@@ -15,32 +15,32 @@ open import Tactic.Nat.Simpl
 
 open import Tactic.Nat.Subtract.Exp
 
-sub-cancel : ∀ a → a - a ≡ 0
+sub-cancel : (a : Nat) → a - a ≡ 0
 sub-cancel zero = refl
 sub-cancel (suc a) = sub-cancel a
 
-sub-add-r : ∀ a b c → a - (b + c) ≡ a - b - c
+sub-add-r : (a b c : Nat) → a - (b + c) ≡ a - b - c
 sub-add-r  a       zero    c      = refl
 sub-add-r zero    (suc b)  zero   = refl
 sub-add-r zero    (suc b) (suc c) = refl
 sub-add-r (suc a) (suc b)  c      = sub-add-r a b c
 
-lem-sub-zero : ∀ a b c → b + c ≡ a → c ≡ a - b
+lem-sub-zero : (a b c : Nat) → b + c ≡ a → c ≡ a - b
 lem-sub-zero ._  zero   c refl = refl
 lem-sub-zero ._ (suc b) c refl = lem-sub-zero _ b c refl
 
-lem-zero-sub : ∀ a b c → b ≡ a + c → 0 ≡ a - b
+lem-zero-sub : (a b c : Nat) → b ≡ a + c → 0 ≡ a - b
 lem-zero-sub  zero   ._  zero   refl = refl
 lem-zero-sub  zero   ._ (suc c) refl = refl
 lem-zero-sub (suc a) ._  c      refl = lem-zero-sub a _ c refl
 
-lem-sub : ∀ a b u v → b + u ≡ a + v → u - v ≡ a - b
+lem-sub : (a b u v : Nat) → b + u ≡ a + v → u - v ≡ a - b
 lem-sub  zero    zero   u ._ refl = sub-cancel u
 lem-sub  zero   (suc b) u ._ refl = sym $ lem-zero-sub u (suc b + u) (suc b) auto
 lem-sub (suc a)  zero  ._  v refl = sym $ lem-sub-zero (suc a + v) v (suc a) auto
 lem-sub (suc a) (suc b) u  v eq   = lem-sub a b u v (suc-inj eq)
 
-sub-mul-distr-l : ∀ a b c → (a - b) * c ≡ a * c - b * c
+sub-mul-distr-l : (a b c : Nat) → (a - b) * c ≡ a * c - b * c
 sub-mul-distr-l zero b c = (_* c) $≡ lem-zero-sub 0 b b refl ʳ⟨≡⟩ lem-zero-sub 0 (b * c) (b * c) refl
 sub-mul-distr-l (suc a) zero c = refl
 sub-mul-distr-l (suc a) (suc b) c =

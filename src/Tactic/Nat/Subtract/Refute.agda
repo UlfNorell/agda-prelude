@@ -27,10 +27,10 @@ invalidEquation : ⊤
 invalidEquation = _
 
 private
-  0≠suc : ∀ n → 0 ≡ suc n → ⊥
+  0≠suc : ∀ n → 0 ≡ Nat.suc n → ⊥
   0≠suc n ()
 
-  n≮0 : ∀ {n} → n < 0 → ⊥
+  n≮0 : {n : Nat} → n < 0 → ⊥
   n≮0 (diff k ())
 
   lem-refute : ∀ n nf ρ → 0 ≡ ⟦ (suc n , []) ∷ nf ⟧ns (atomEnvS ρ) → ⊥

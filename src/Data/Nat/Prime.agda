@@ -12,14 +12,14 @@ open import Tactic.Nat
 Coprime : Nat → Nat → Set
 Coprime a b = gcd! a b ≡ 1
 
-data Prime n : Set where
+data Prime (n : Nat) : Set where
   prime : n > 1 → (∀ k → k Divides n → Either (k ≡ 1) (k ≡ n)) → Prime n
 
 private
   lem : (a b : Nat) → b > 1 → suc a < suc a * b
   lem a .(suc (k + 1)) (diff! k) = auto
 
-data Composite n : Set where
+data Composite (n : Nat) : Set where
   composite : ∀ a b → a > 1 → b > 1 → a * b ≡ n → Composite n
 
 pattern composite! a b 1<a 1<b = composite a b 1<a 1<b refl

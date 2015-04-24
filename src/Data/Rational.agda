@@ -91,8 +91,16 @@ recip (ratio (suc p) q eq) = ratio q (suc p) (gcd-commute q (suc p) ⟨≡⟩ eq
 _/_ : (x y : Rational) {{_ : NonZeroQ y}} → Rational
 x / y = x *Q recip y
 
+{-# DISPLAY _+Q_ a b = a + b #-}
+{-# DISPLAY _-Q_ a b = a - b #-}
+{-# DISPLAY _*Q_ a b = a * b #-}
+{-# DISPLAY ratio a b refl = a / b #-}
+{-# DISPLAY ratio a 1 refl = a #-}
+
 instance
+  NumberRational : Number Rational
+  NumberRational = record { fromNat = λ n → n :/ 1 }
+
   SemiringRational : Semiring Rational
   SemiringRational = record { zro = 0 :/ 1 ; one = 1 :/ 1
-                            ; _+_ = _+Q_ ; _*_ = _*Q_
-                            ; fromNat = λ n → n :/ 1 }
+                            ; _+_ = _+Q_ ; _*_ = _*Q_ }

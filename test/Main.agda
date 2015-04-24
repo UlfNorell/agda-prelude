@@ -51,5 +51,5 @@ downFrom (suc n) = suc n ∷ downFrom n
 thm : ∀ n → 6 * sum (map (_^ 2) (downFrom n)) ≡ n * (n + 1) * (2 * n + 1)
 thm = induction
 
-thm₂ : ∀ a b → (a - b) * (a + b) ≡ a ^ 2 - b ^ 2
+thm₂ : (a b : Nat) → (a - b) * (a + b) ≡ a ^ 2 - b ^ 2
 thm₂ a b = auto

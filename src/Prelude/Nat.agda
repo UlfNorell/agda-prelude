@@ -10,24 +10,25 @@ open import Prelude.Equality.Unsafe using (eraseEquality)
 open import Prelude.Function
 open import Prelude.Ord
 open import Prelude.Nat.Core public
+open import Prelude.Number
 open import Prelude.Semiring
 
 --- Addition, subtraction and multiplication ---
 
-infixl 6 _+N_ _-_
+infixl 6 _+N_ _-N_
 infixl 7 _*N_ natDiv natMod
 
 _+N_ : Nat → Nat → Nat
 zero  +N m = m
 suc n +N m = suc (n +N m)
 
-_-_ : Nat → Nat → Nat
-n     - zero = n
-zero  - suc m = zero
-suc n - suc m = n - m
+_-N_ : Nat → Nat → Nat
+n     -N zero = n
+zero  -N suc m = zero
+suc n -N suc m = n -N m
 
 {-# BUILTIN NATPLUS _+N_ #-}
-{-# BUILTIN NATMINUS _-_ #-}
+{-# BUILTIN NATMINUS _-N_ #-}
 
 _*N_ : Nat → Nat → Nat
 zero  *N m = zero
@@ -38,12 +39,18 @@ suc n *N m = n *N m +N m
 --- Semiring ---
 
 instance
+  NumberNat : Number Nat
+  NumberNat = record { fromNat = id }
+
   SemiringNat : Semiring Nat
-  SemiringNat = record { zro = 0 ; one = 1
-                       ; _+_ = _+N_ ; _*_ = _*N_
-                       ; fromNat = id }
+  SemiringNat = record { zro = zero ; one = suc zero
+                       ; _+_ = _+N_ ; _*_ = _*N_ }
+
+  SubtractiveNat : Subtractive Nat
+  SubtractiveNat = record { _-_ = _-N_ ; negate = λ _ → 0 }
 
 {-# DISPLAY _+N_ n m = n + m #-}
+{-# DISPLAY _-N_ n m = n - m #-}
 {-# DISPLAY _*N_ n m = n * m #-}
 
 --- Equality ---
@@ -134,10 +141,10 @@ private
   add-suc zero m = refl
   add-suc (suc n) m = cong suc (add-suc n m)
 
-  lemLessNatMinus : ∀ n m → IsTrue (lessNat n m) → m ≡ suc (m - suc n) +N n
+  lemLessNatMinus : ∀ n m → IsTrue (lessNat n m) → m ≡ suc (m -N suc n) +N n
   lemLessNatMinus  _       zero  ()
   lemLessNatMinus  zero   (suc m) _   = cong suc $ add-zero m
-  lemLessNatMinus (suc n) (suc m) n<m rewrite add-suc (m - suc n) n = cong suc (lemLessNatMinus n m n<m)
+  lemLessNatMinus (suc n) (suc m) n<m rewrite add-suc (m -N suc n) n = cong suc (lemLessNatMinus n m n<m)
 
   lemNoLessEqual : ∀ n m → ¬ IsTrue (lessNat n m) → ¬ IsTrue (lessNat m n) → n ≡ m
   lemNoLessEqual zero zero _ _ = refl
@@ -149,9 +156,9 @@ private
   -- proofs.
   compareNat : ∀ n m → Comparison LessNat n m
   compareNat n m with decBool (lessNat n m)
-  ... | yes p = less (diff (m - suc n) (eraseEquality (lemLessNatMinus n m p)))
+  ... | yes p = less (diff (m -N suc n) (eraseEquality (lemLessNatMinus n m p)))
   ... | no np₁ with decBool (lessNat m n)
-  ...             | yes p  = greater (diff (n - suc m) (eraseEquality (lemLessNatMinus m n p)))
+  ...             | yes p  = greater (diff (n -N suc m) (eraseEquality (lemLessNatMinus m n p)))
   ...             | no np₂ = equal (eraseEquality (lemNoLessEqual n m np₁ np₂))
 
 private

@@ -17,6 +17,7 @@ open import Prelude.Maybe       public
 open import Prelude.Fin         public
 open import Prelude.Vec         public
 open import Prelude.Semiring    public
+open import Prelude.Number      public
 open import Prelude.Erased      public
 
 open import Prelude.Equality    public
