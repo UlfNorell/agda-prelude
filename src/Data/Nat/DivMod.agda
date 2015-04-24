@@ -112,20 +112,6 @@ quot-unique d₁ d₂ = fst (divmod-unique d₁ d₂)
 rem-unique : ∀ {a b} (d₁ d₂ : DivMod a b) → rem d₁ ≡ rem d₂
 rem-unique d₁ d₂ = snd (divmod-unique d₁ d₂)
 
---- Even/Odd ---
-
-data Even (n : Nat) : Set where
-  dbl : ∀ k → k * 2 ≡ n → Even n
-
-data Odd (n : Nat) : Set where
-  dbl+1 : ∀ k → 1 + k * 2 ≡ n → Odd n
-
-parity : ∀ n → Either (Odd n) (Even n)
-parity n with n divmod 2
-parity n | qr q 0 lt eq = right $ dbl   q (by eq)
-parity n | qr q 1 lt eq = left  $ dbl+1 q (by eq)
-parity n | qr q (suc (suc _)) (diff _ bad) _ = refute bad
-
 instance
   ShowDivMod : ∀ {a b} → Show (DivMod a b)
   ShowDivMod {a} {b} =
