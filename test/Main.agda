@@ -28,6 +28,7 @@ open import Data.Nat.GCD
 open import Data.Nat.Prime
 open import Data.Rational
 open import Data.Nat.Modulo
+open import Data.Nat.Pow
 
 Hello = printf "%c%s" 'H' "ello"
 World = printf "%6s" "World"
