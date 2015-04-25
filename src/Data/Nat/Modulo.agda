@@ -4,6 +4,7 @@ module Data.Nat.Modulo where
 
 open import Prelude
 open import Data.Nat.DivMod
+open import Control.Strict
 open import Tactic.Nat
 
 data IntMod (n : Nat) : Set where
@@ -30,10 +31,10 @@ instance
   NegativeIntMod {n} = record { fromNeg = negIntMod ∘ fromNat }
 
 addIntMod : ∀ {n} → IntMod (suc n) → IntMod (suc n) → IntMod (suc n)
-addIntMod (modn a _) (modn b _) = fromNat (a + b)
+addIntMod {n} (modn a _) (modn b _) = force (a + b) λ a+b → fromNat a+b ofType IntMod (suc n)
 
 mulIntMod : ∀ {n} → IntMod (suc n) → IntMod (suc n) → IntMod (suc n)
-mulIntMod (modn a _) (modn b _) = fromNat (a * b)
+mulIntMod {n} (modn a _) (modn b _) = force (a * b) λ a*b → fromNat a*b ofType IntMod (suc n)
 
 subIntMod : ∀ {n} → IntMod (suc n) → IntMod (suc n) → IntMod (suc n)
 subIntMod a b = addIntMod a (negIntMod b)
@@ -48,3 +49,5 @@ instance
 
   SubtractiveIntMod : ∀ {n} → Subtractive (IntMod (suc n))
   SubtractiveIntMod {n} = record { _-_ = subIntMod ; negate = negIntMod }
+
+  unquoteDecl ForceIntMod = deriveForceable (quote IntMod)
