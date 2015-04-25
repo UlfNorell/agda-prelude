@@ -12,6 +12,11 @@ record Semiring {a} (A : Set a) : Set a where
 
 open Semiring {{...}} public
 
+{-# DISPLAY Semiring.zro _ = zro #-}
+{-# DISPLAY Semiring.one _ = one #-}
+{-# DISPLAY Semiring._+_ _ a b = a + b #-}
+{-# DISPLAY Semiring._*_ _ a b = a * b #-}
+
 infixr 8 _^_
 _^_ : ∀ {a} {A : Set a} {{_ : Semiring A}} → A → Nat → A
 n ^ zero  = one
@@ -23,3 +28,6 @@ record Subtractive {a} (A : Set a) : Set a where
         negate : A → A
 
 open Subtractive {{...}} public
+
+{-# DISPLAY Subtractive._-_ _ a b = a - b #-}
+{-# DISPLAY Subtractive.negate _ = negate #-}
