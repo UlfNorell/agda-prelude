@@ -87,3 +87,15 @@ instance
     where
       quoteSigma : Σ _ _ → Term
       quoteSigma (x , y) = ` x `, ` y
+
+-- Name --
+
+instance
+  QuotableName : Quotable Name
+  QuotableName = record { ` = λ x → lit (name x) }
+
+-- Term --
+
+instance
+  QuotableTerm : Quotable Term
+  QuotableTerm = record { ` = quote-term }  -- cheating a little
