@@ -2,6 +2,7 @@
 module Control.Monad.State where
 
 open import Prelude
+open import Control.Monad.Zero
 
 data StateT {a} (S : Set a) (M : Set a → Set a) (A : Set a) : Set a where
   stateT : (S → M (A × S)) → StateT S M A
@@ -21,39 +22,35 @@ private
                  StateT S M A → (A → StateT S M B) → StateT S M B
   bindStateT m f = stateT λ s → runStateT m s >>= λ r → uncurry (runStateT ∘ f) r
 
-instance
-  MonadStateT : ∀ {a} {S : Set a} {M : Set a → Set a} {{MonadM : Monad M}} →
-                  Monad {a = a} (StateT S M)
-  MonadStateT = record { return = returnStateT
-                       ; _>>=_  = bindStateT
-                       }
+module _ {a} {S : Set a} {M : Set a → Set a} {{MonadM : Monad M}} where
+  instance
+    MonadStateT : Monad {a = a} (StateT S M)
+    MonadStateT = record { return = returnStateT
+                         ; _>>=_  = bindStateT
+                         }
 
-  FunctorStateT : ∀ {a} {S : Set a} {M : Set a → Set a} {{MonadM : Monad M}} →
-                    Functor {a = a} (StateT S M)
-  FunctorStateT = defaultMonadFunctor {{MonadStateT}}
+    FunctorStateT : Functor {a = a} (StateT S M)
+    FunctorStateT = defaultMonadFunctor {{MonadStateT}}
 
-  ApplicativeStateT : ∀ {a} {S : Set a} {M : Set a → Set a} {{MonadM : Monad M}} →
-                      Applicative {a = a} (StateT S M)
-  ApplicativeStateT = defaultMonadApplicative {{MonadStateT}}
+    ApplicativeStateT : Applicative {a = a} (StateT S M)
+    ApplicativeStateT = defaultMonadApplicative {{MonadStateT}}
 
--- State operations --
+    MonadZeroStateT : {{_ : MonadZero M}} → MonadZero {a = a} (StateT S M)
+    MonadZeroStateT = record { mzero = stateT λ _ → mzero }
 
-lift : ∀ {a} {S : Set a} {M : Set a → Set a} {{MonadM : Monad M}} {A : Set a} →
-       M A → StateT S M A
-lift {M = M} m = stateT λ s → _>>=_ {M = M} m λ x → return {M = M} (x , s)
+  -- State operations --
 
-gets : ∀ {a} {S A : Set a} {M : Set a → Set a} {{MonadM : Monad M}} →
-         (S → A) → StateT S M A
-gets {M = M} f = stateT λ s → return {M = M} (f s , s)
+  lift : {A : Set a} → M A → StateT S M A
+  lift m = stateT λ s → m >>= λ x → return (x , s)
 
-modify : ∀ {a} {S : Set a} {M : Set a → Set a} {{MonadM : Monad M}} →
-           (S → S) → StateT S M S
-modify {M = M} f = stateT λ s → return {M = M} (s , f s)
+  gets : {A : Set a} → (S → A) → StateT S M A
+  gets f = stateT λ s → return (f s , s)
 
-get : ∀ {a} {S : Set a} {M : Set a → Set a} {{MonadM : Monad M}} →
-        StateT S M S
-get = gets id
+  modify : (S → S) → StateT S M S
+  modify f = stateT λ s → return (s , f s)
 
-put : ∀ {a} {S : Set a} {M : Set a → Set a} {{MonadM : Monad M}} →
-        S → StateT S M S
-put s = modify (const s)
+  get : StateT S M S
+  get = gets id
+
+  put : S → StateT S M S
+  put s = modify (const s)
