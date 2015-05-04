@@ -88,6 +88,11 @@ lookup : ∀ {a b} {A : Set a} {B : Set b} {{EqA : Eq A}} → List (A × B) → 
 lookup [] _ = nothing
 lookup ((x₁ , v) ∷ xs) x = ifYes (x == x₁) then just v else lookup xs x
 
+index : ∀ {a} {A : Set a} → List A → Nat → Maybe A
+index [] _             = nothing
+index (x ∷ xs) 0       = just x
+index (x ∷ xs) (suc i) = index xs i
+
 replicate : ∀ {a} {A : Set a} → Nat → A → List A
 replicate zero x = []
 replicate (suc n) x = x ∷ replicate n x
