@@ -7,6 +7,7 @@ open import Prelude.Decidable
 open import Prelude.Ord
 open import Prelude.Bool
 open import Prelude.Function
+open import Prelude.Number
 
 data Fin : Nat → Set where
   zero : ∀ {n} → Fin (suc n)
@@ -22,12 +23,14 @@ finToNat-inj {i = zero } {suc j} ()
 finToNat-inj {i = suc i} {zero } ()
 finToNat-inj {i = suc i} {suc j} p rewrite finToNat-inj (suc-inj p) = refl
 
-natToFin : ∀ {n} (m : Nat) {m<n : IsTrue (lessNat m n)} → Fin n
-natToFin {zero }  _      {}
-natToFin {suc n}  zero         = zero
-natToFin {suc n} (suc m) {m<n} = suc (natToFin m {m<n})
+natToFin : ∀ {n} (m : Nat) {{m<n : IsTrue (lessNat m n)}} → Fin n
+natToFin {zero }  _   {{}}
+natToFin {suc n}  zero   = zero
+natToFin {suc n} (suc m) = suc (natToFin m)
 
-fin = natToFin
+instance
+  NumberFin : ∀ {n} → Number (Fin n)
+  NumberFin {n} = record { Constraint = λ k → IsTrue (lessNat k n) ; fromNat = natToFin }
 
 --- Equality ---
 

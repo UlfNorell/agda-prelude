@@ -25,10 +25,10 @@ private
 
 instance
   NumberIntMod : ∀ {n} → Number (IntMod (suc n))
-  NumberIntMod {n} = record { fromNat = toMod }
+  NumberIntMod {n} = record { Constraint = λ _ → ⊤ ; fromNat = λ k → toMod k }
 
   NegativeIntMod : ∀ {n} → Negative (IntMod (suc n))
-  NegativeIntMod {n} = record { fromNeg = negIntMod ∘ fromNat }
+  NegativeIntMod {n} = record { Constraint = λ _ → ⊤ ; fromNeg = λ k → negIntMod (fromNat k) }
 
 addIntMod : ∀ {n} → IntMod (suc n) → IntMod (suc n) → IntMod (suc n)
 addIntMod {n} (modn a _) (modn b _) = force (a + b) λ a+b → fromNat a+b ofType IntMod (suc n)

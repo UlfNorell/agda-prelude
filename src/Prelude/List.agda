@@ -109,6 +109,7 @@ private
   fromto a  0   = []
   fromto a (suc d) = a ∷ fromto (suc a) d
 
+infix 10 from_to_
 from_to_ : Nat → Nat → List Nat
 from a to b = fromto a (suc b - a)
 

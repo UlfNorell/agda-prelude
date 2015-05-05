@@ -99,7 +99,7 @@ x / y = x *Q recip y
 
 instance
   NumberRational : Number Rational
-  NumberRational = record { fromNat = λ n → n :/ 1 }
+  NumberRational = record { Constraint = λ _ → ⊤ ; fromNat = λ n → n :/ 1 }
 
   SemiringRational : Semiring Rational
   SemiringRational = record { zro = 0 :/ 1 ; one = 1 :/ 1
