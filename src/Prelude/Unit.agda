@@ -10,6 +10,6 @@ Unit = ⊤
 pattern unit = tt
 
 record ⊤′ {a} : Set a where
-  constructor tt
+  instance constructor tt
 
 {-# COMPILED_DATA ⊤ () () #-}
