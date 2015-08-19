@@ -21,7 +21,8 @@ induction-tactic (pi a b) =
   in def (quote nat-induction)
          ( vArg P
          ∷ vArg (on-goal (quote autosub-tactic))
-         ∷ vArg (lam visible $ abs "_" $ lam visible $ abs "ih" $ on-type-of-term (quote by-tactic) (var 0 []))
+         ∷ vArg (lam visible $ abs "_" $ lam visible $ abs "ih" $
+                on-type-of-term (quote by-tactic) (var 0 []))
          ∷ [])
 induction-tactic t = failedProof (quote induction-goal-must-be-a-function-type) t
 

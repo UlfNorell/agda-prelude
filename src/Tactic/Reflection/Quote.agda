@@ -77,6 +77,7 @@ instance
 
 -- Sigma --
 
+infixr 1 _`,_
 pattern _`,_ x y = con (quote _,_) (vArg x ∷ vArg y ∷ [])
 
 instance

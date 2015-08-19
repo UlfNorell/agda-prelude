@@ -6,7 +6,7 @@ open import Tactic.Nat.Exp
 open import Data.Bag
 
 Tm : Set → Set
-Tm = List
+Tm Atom = List Atom
 
 NF : Set → Set
 NF Atom = Bag (Tm Atom)
@@ -40,6 +40,8 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
   []      *nf b = []
   (t ∷ a) *nf b = sort (map (mulTm t) b) +nf (a *nf b)
 
+
+  -- Normalising expressions --
   norm : Exp Atom → NF Atom
   norm (var x) = [ 1 , [ x ] ]
   norm (lit 0) = []
@@ -50,12 +52,12 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
   ⟦_⟧t : Nat × Tm Atom → Env Atom → Nat
   ⟦ k , v ⟧t ρ = k * product (map ρ v)
 
+  ⟦_⟧n : NF Atom → Env Atom → Nat
+  ⟦ nf ⟧n ρ = sum (map (flip ⟦_⟧t ρ) nf)
+
   ⟦_⟧ts : Nat × Tm Atom → Env Atom → Nat
   ⟦ 1 , v ⟧ts ρ = product1 (map ρ v)
   ⟦ k , v ⟧ts ρ = product1 (map ρ v) * k
-
-  ⟦_⟧n : NF Atom → Env Atom → Nat
-  ⟦ nf ⟧n ρ = sum (map (flip ⟦_⟧t ρ) nf)
 
   ⟦_⟧ns : NF Atom → Env Atom → Nat
   ⟦ []     ⟧ns ρ = 0
