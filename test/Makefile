@@ -1,5 +1,5 @@
 
-agda = agda-2.4.2.2
+agda = agda-2.4.2.4
 
 default :
 	$(agda) -i. -i../src Main.agda --compile --ghc-flag=-o --ghc-flag=hello $(agda-flags)
