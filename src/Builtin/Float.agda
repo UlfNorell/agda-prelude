@@ -4,6 +4,7 @@ module Builtin.Float where
 open import Prelude.Bool
 open import Prelude.Equality
 open import Prelude.Equality.Unsafe
+open import Prelude.Equality.Inspect
 open import Prelude.Decidable
 open import Prelude.Ord
 

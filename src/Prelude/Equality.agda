@@ -81,12 +81,3 @@ x ≡⟨ refl ⟩ʳ p = p
 
 _∎ : ∀ {a} {A : Set a} (x : A) → x ≡ x
 x ∎ = refl
-
--- Inspect --
-
-infix 4 _with≡_
-data Inspect {a} {A : Set a} (x : A) : Set a where
-  _with≡_ : ∀ y → x ≡ y → Inspect x
-
-inspect : ∀ {a} {A : Set a} (x : A) → Inspect x
-inspect x = x with≡ refl
