@@ -175,9 +175,3 @@ instance
                   ; lt-to-leq = nat-lt-to-leq
                   ; eq-to-leq = nat-eq-to-leq
                   }
-
-min : Nat → Nat → Nat
-min n m = if n <? m then n else m
-
-max : Nat → Nat → Nat
-max n m = if n >? m then n else m

@@ -33,25 +33,33 @@ record Ord {a} (A : Set a) : Set (lsuc a) where
 
 open Ord {{...}} public
 
-_>_ : ∀ {a} {A : Set a} {{_ : Ord A}} → A → A → Set a
-a > b = b < a
+module _ {a} {A : Set a} {{_ : Ord A}} where
 
-_≥_ : ∀ {a} {A : Set a} {{_ : Ord A}} → A → A → Set a
-a ≥ b = b ≤ a
+  _>_ : A → A → Set a
+  a > b = b < a
 
-infix 4 _>_ _≥_ _<?_ _≤?_ _>?_ _≥?_
+  _≥_ : A → A → Set a
+  a ≥ b = b ≤ a
 
-_<?_ : ∀ {a} {A : Set a} {{OrdA : Ord A}} → A → A → Bool
-x <? y = isLess (compare x y)
+  infix 4 _>_ _≥_ _<?_ _≤?_ _>?_ _≥?_
 
-_>?_ : ∀ {a} {A : Set a} {{OrdA : Ord A}} → A → A → Bool
-_>?_ = flip _<?_
+  _<?_ : A → A → Bool
+  x <? y = isLess (compare x y)
 
-_≤?_ : ∀ {a} {A : Set a} {{OrdA : Ord A}} → A → A → Bool
-x ≤? y = not (y <? x)
+  _>?_ : A → A → Bool
+  _>?_ = flip _<?_
 
-_≥?_ : ∀ {a} {A : Set a} {{OrdA : Ord A}} → A → A → Bool
-x ≥? y = not (x <? y)
+  _≤?_ : A → A → Bool
+  x ≤? y = not (y <? x)
+
+  _≥?_ : A → A → Bool
+  x ≥? y = not (x <? y)
+
+  min : A → A → A
+  min x y = if x <? y then x else y
+
+  max : A → A → A
+  max x y = if x >? y then x else y
 
 --- Instances ---
 
