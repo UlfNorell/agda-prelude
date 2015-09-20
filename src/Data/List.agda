@@ -56,6 +56,10 @@ lookup∈ : ∀ {a b} {A : Set a} {P : A → Set b} {xs x} → All P xs → x �
 lookup∈ (p ∷ ps) (zero refl) = p
 lookup∈ (p ∷ ps) (suc i)     = lookup∈ ps i
 
+mapAll : ∀ {a b} {A : Set a} {P Q : A → Set b} {xs} → (∀ {x} → P x → Q x) → All P xs → All Q xs
+mapAll f [] = []
+mapAll f (x ∷ xs) = f x ∷ mapAll f xs
+
 map∈ : ∀ {a b} {A : Set a} {B : Set b} (f : A → B) {x xs} → x ∈ xs → f x ∈ map f xs
 map∈ f (zero refl) = zero refl
 map∈ f (suc i)     = suc (map∈ f i)
