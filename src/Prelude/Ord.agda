@@ -66,8 +66,9 @@ module _ {a} {A : Set a} {{_ : Ord A}} where
 -- Default implementation of _≤_ --
 
 data LessEq {a} {A : Set a} (_<_ : A → A → Set a) (x y : A) : Set a where
-  less  : x < y → LessEq _<_ x y
-  equal : x ≡ y → LessEq _<_ x y
+  instance
+    less  : x < y → LessEq _<_ x y
+    equal : x ≡ y → LessEq _<_ x y
 
 defaultOrd : ∀ {a} {A : Set a} {_<_ : A → A → Set a} → (∀ x y → Comparison _<_ x y) → Ord A
 defaultOrd {_<_ = _<_} compare =
