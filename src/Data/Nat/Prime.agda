@@ -27,7 +27,7 @@ pattern composite! a b 1<a 1<b = composite a b 1<a 1<b refl
 composite-not-prime : ∀ {n} → Composite n → Prime n → ⊥
 composite-not-prime (composite! 0 b (diff _ ()) _)
 composite-not-prime (composite! (suc a) b sa>1 b>1) (prime _ f) =
-  case f (suc a) (divides-mul-l b divides-refl) of λ 
+  case f (suc a) (divides-mul-l b divides-refl) of λ
   { (left  sa=1)   → less-antirefl sa>1 (sym sa=1)
   ; (right sa=sab) → less-antirefl (lem a b b>1) sa=sab
   }
@@ -253,7 +253,8 @@ private
   isPrimeAux (suc (suc (suc n))) (greater (diff k eq)) = refute eq
   isPrimeAux (suc (suc (suc _))) (equal ())
   isPrimeAux (suc n) (less n>2) with sqrt (suc n) | sqrt-less _ n>2
-  ... | root r r²<n sr²>n | r<n with up-to-root (suc r) n r<n (by sr²>n) $ findInRange 2 (suc r) (λ k → k divides? suc n)
+  ... | root r r²<n sr²>n | r<n with up-to-root (suc r) n r<n (by sr²>n) $
+                                     findInRange 2 (suc r) (λ k → k divides? suc n)
   ...   | none p = yes (prime (by n>2) (is-1-or-n p))
   ...   | here d (in-range 2≤d d≤n) (factor q eq) =
     no (composite d q (by 2≤d) (lem₂ q eq d≤n) (by eq))
