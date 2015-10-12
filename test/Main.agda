@@ -55,3 +55,13 @@ thm = induction
 
 thm₂ : (a b : Nat) → (a - b) * (a + b) ≡ a ^ 2 - b ^ 2
 thm₂ a b = auto
+
+data N : Set where
+  z : N
+  s : N → N
+
+eqN : unquote (deriveEqType (quote N))
+instance
+  EqN : Eq N
+  EqN = record { _==_ = eqN }
+unquoteDef eqN = deriveEqDef (quote N)
