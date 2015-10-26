@@ -103,6 +103,15 @@ sum = foldr _+_ 0
 product : List Nat → Nat
 product = foldr _*_ 1
 
+module _ {a} {A : Set a} {{_ : Ord A}} where
+  insert : A → List A → List A
+  insert x [] = x ∷ []
+  insert x (y ∷ xs) = if x <? y then x ∷ y ∷ xs else y ∷ insert x xs
+
+  sort : List A → List A
+  sort [] = []
+  sort (x ∷ xs) = insert x (sort xs)
+
 private
   fromto : Nat → Nat → List Nat
   fromto 0  0   = []  -- make strict
