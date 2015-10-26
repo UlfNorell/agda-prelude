@@ -12,7 +12,7 @@ record Number {a} (A : Set a) : Set (lsuc a) where
 open Number {{...}} public using (fromNat)
 
 {-# BUILTIN FROMNAT fromNat #-}
-{-# DISPLAY Number.fromNat _ n = n #-}
+{-# DISPLAY Number.fromNat _ n = fromNat n #-}
 
 record Negative {a} (A : Set a) : Set (lsuc a) where
   field
