@@ -1,25 +1,33 @@
 
 module Builtin.Float where
 
-open import Prelude.Bool
-open import Prelude.Equality
+open import Prelude
 open import Prelude.Equality.Unsafe
-open import Prelude.Equality.Inspect
-open import Prelude.Decidable
-open import Prelude.Ord
 
 postulate Float : Set
 
 {-# BUILTIN FLOAT Float #-}
 
-primitive
+private
+ primitive
   primFloatEquality : Float → Float → Bool
-  primFloatLess     : Float → Float → Bool 
+  primFloatLess     : Float → Float → Bool
+  primNatToFloat    : Nat → Float
+  primFloatPlus     : Float → Float → Float
+  primFloatMinus    : Float → Float → Float
+  primFloatTimes    : Float → Float → Float
+  primFloatDiv      : Float → Float → Float
+  primExp           : Float → Float
+  primLog           : Float → Float
+  primSin           : Float → Float
+  primShowFloat     : Float → String
 
--- This is a little dangerous since NaN is not equal to itself, but the
--- type checker will accept refl : NaN ≡ NaN. Right now we don't export
--- any operations on floats so it's no problem, but there's some thinking
--- to be done if we want to.
+natToFloat : Nat → Float
+natToFloat = primNatToFloat
+
+infixl 7 _/_
+_/_ = primFloatDiv
+
 instance
   EqFloat : Eq Float
   EqFloat = record { _==_ = eqFloat }
@@ -41,4 +49,46 @@ instance
       ... | true  with≡ eq = less (less-float eq)
       ... | false with≡ _ with inspect (primFloatLess y x)
       ...   | true  with≡ eq = greater (less-float eq)
-      ...   | false with≡ _  = equal unsafeEqual   -- Same issue with NaN as for equality
+      ...   | false with≡ _  = equal unsafeEqual
+
+instance
+  ShowFloat : Show Float
+  ShowFloat = record { showsPrec = λ _ x → showString (primShowFloat x) }
+
+instance
+  NumFloat : Number Float
+  Number.Constraint NumFloat _ = ⊤
+  Number.fromNat    NumFloat x = primNatToFloat x
+
+  SemiringFloat : Semiring Float
+  Semiring.zro SemiringFloat = 0.0
+  Semiring.one SemiringFloat = 1.0
+  Semiring._+_ SemiringFloat = primFloatPlus
+  Semiring._*_ SemiringFloat = primFloatTimes
+
+  SubFloat : Subtractive Float
+  Subtractive._-_    SubFloat   = primFloatMinus
+  Subtractive.negate SubFloat x = 0.0 - x
+
+  NegFloat : Negative Float
+  Negative.Constraint NegFloat _ = ⊤
+  Negative.fromNeg    NegFloat x = negate (primNatToFloat x)
+
+exp = primExp
+ln  = primLog
+sin = primSin
+
+π : Float
+π = 3.141592653589793
+
+cos : Float → Float
+cos x = sin (π / 2.0 - x)
+
+tan : Float → Float
+tan x = sin x / cos x
+
+log : Float → Float → Float
+log base x = ln x / ln base
+
+_**_ : Float → Float → Float
+a ** x = exp (x * ln a)
