@@ -25,9 +25,6 @@ private
 natToFloat : Nat → Float
 natToFloat = primNatToFloat
 
-infixl 7 _/_
-_/_ = primFloatDiv
-
 instance
   EqFloat : Eq Float
   EqFloat = record { _==_ = eqFloat }
@@ -73,6 +70,10 @@ instance
   NegFloat : Negative Float
   Negative.Constraint NegFloat _ = ⊤
   Negative.fromNeg    NegFloat x = negate (primNatToFloat x)
+
+  FracFloat : Fractional Float
+  Fractional.Constraint FracFloat _ _ = ⊤
+  Fractional._/_ FracFloat x y = primFloatDiv x y
 
 exp = primExp
 ln  = primLog

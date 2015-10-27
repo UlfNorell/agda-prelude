@@ -33,7 +33,7 @@ private
   mkratio-lem : ∀ p q d p′ q′ {{_ : NonZero q}} →
                 p′ * d ≡ p →
                 q′ * d ≡ q →
-                (∀ k → k Divides p → k Divides q → k Divides d) →                
+                (∀ k → k Divides p → k Divides q → k Divides d) →
                 gcd! p′ q′ ≡ 1
   mkratio-lem p q d p′ q′ eqp eqq g with gcd p′ q′
   mkratio-lem ._ ._ d ._ ._ refl refl g
@@ -73,7 +73,7 @@ NonZeroQ (ratio 0 _ _) = ⊥
 NonZeroQ (ratio (suc n) _ _) = ⊤
 
 infixl 6 _+Q_ _-Q_
-infixl 7 _*Q_ _/_
+infixl 7 _*Q_ _/Q_
 
 _+Q_ : Rational → Rational → Rational
 ratio p q _ +Q ratio p₁ q₁ _ = mkratio (p * q₁ + p₁ * q) (q * q₁) {{lem-nonzero-mul q q₁}}
@@ -88,14 +88,18 @@ recip : (x : Rational) {{_ : NonZeroQ x}} → Rational
 recip (ratio 0 q eq) {{}}
 recip (ratio (suc p) q eq) = ratio q (suc p) (gcd-commute q (suc p) ⟨≡⟩ eq)
 
-_/_ : (x y : Rational) {{_ : NonZeroQ y}} → Rational
-x / y = x *Q recip y
+_/Q_ : (x y : Rational) {{_ : NonZeroQ y}} → Rational
+x /Q y = x *Q recip y
+
+instance
+  FracQ : Fractional Rational
+  Fractional.Constraint FracQ _ y = NonZeroQ y
+  Fractional._/_        FracQ x y = x /Q y
 
 {-# DISPLAY _+Q_ a b = a + b #-}
 {-# DISPLAY _-Q_ a b = a - b #-}
 {-# DISPLAY _*Q_ a b = a * b #-}
 {-# DISPLAY ratio a b refl = a / b #-}
-{-# DISPLAY ratio a 1 refl = a #-}
 
 instance
   NumberRational : Number Rational
