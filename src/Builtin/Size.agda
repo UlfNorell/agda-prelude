@@ -1,7 +1,9 @@
 
 module Builtin.Size where
 
-{-# BUILTIN SIZE    Size   #-}
-{-# BUILTIN SIZELT  Size<_ #-}
-{-# BUILTIN SIZESUC ↑_     #-}
-{-# BUILTIN SIZEINF ω      #-}
+{-# BUILTIN SIZEUNIV SizeU #-}
+{-# BUILTIN SIZE     Size   #-}
+{-# BUILTIN SIZELT   Size<_ #-}
+{-# BUILTIN SIZESUC  ↑_     #-}
+{-# BUILTIN SIZEINF  ω      #-}
+{-# BUILTIN SIZEMAX  _⊔ˢ_  #-}
