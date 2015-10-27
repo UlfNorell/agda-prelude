@@ -145,7 +145,7 @@ mutual
     lam           : (v : Visibility) (t : Abs Term) → Term
     pat-lam       : (cs : List Clause) (args : List (Arg Term)) → Term
     pi            : (a : Arg Type) (b : Abs Type) → Term
-    sort          : (s : Sort) → Term
+    agda-sort     : (s : Sort) → Term
     lit           : (l : Literal) → Term
     quote-goal    : (t : Abs Term) → Term
     quote-term    : (t : Term) → Term
@@ -191,7 +191,7 @@ absurd-lam = pat-lam (absurd-clause (vArg absurd ∷ []) ∷ []) []
 {-# BUILTIN AGDATERMLAM         lam     #-}
 {-# BUILTIN AGDATERMEXTLAM      pat-lam #-}
 {-# BUILTIN AGDATERMPI          pi      #-}
-{-# BUILTIN AGDATERMSORT        sort    #-}
+{-# BUILTIN AGDATERMSORT        agda-sort #-}
 {-# BUILTIN AGDATERMLIT         lit     #-}
 {-# BUILTIN AGDATERMQUOTETERM    quote-term    #-}
 {-# BUILTIN AGDATERMQUOTEGOAL    quote-goal    #-}
@@ -346,7 +346,7 @@ pi-inj₁ refl = refl
 pi-inj₂ : ∀ {t₁ t₁′ t₂ t₂′} → pi t₁ t₂ ≡ pi t₁′ t₂′ → t₂ ≡ t₂′
 pi-inj₂ refl = refl
 
-sort-inj : ∀ {x y} → sort x ≡ sort y → x ≡ y
+sort-inj : ∀ {x y} → agda-sort x ≡ agda-sort y → x ≡ y
 sort-inj refl = refl
 
 lit-inj : ∀ {x y} → Term.lit x ≡ lit y → x ≡ y

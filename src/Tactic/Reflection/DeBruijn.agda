@@ -59,7 +59,7 @@ private
   strTerm lo n (def f args)  = def f <$> strArgs lo n args
   strTerm lo n (lam v t)     = lam v <$> strAbsTerm lo n t
   strTerm lo n (pi a b)      = pi    <$> strArgType lo n a <*> strAbsType lo n b
-  strTerm lo n (sort s)      = sort  <$> strSort lo n s
+  strTerm lo n (agda-sort s) = agda-sort <$> strSort lo n s
   strTerm lo n (lit l)       = just (lit l)
   strTerm lo n (quote-goal t)   = quote-goal <$> strAbsTerm lo n t
   strTerm lo n (quote-term t)   = quote-term <$> strTerm lo n t
@@ -108,7 +108,7 @@ private
   wk lo k (def f args)  = def f (wkArgs lo k args)
   wk lo k (lam v t)     = lam v (wkAbsTerm lo k t)
   wk lo k (pi a b)      = pi (wkArgType lo k a) (wkAbsType lo k b)
-  wk lo k (sort s)      = sort (wkSort lo k s)
+  wk lo k (agda-sort s) = agda-sort (wkSort lo k s)
   wk lo k (lit l)       = lit l
   wk lo k (quote-goal t)    = quote-goal (wkAbsTerm lo k t)
   wk lo k (quote-term t)    = quote-term (wk lo k t)

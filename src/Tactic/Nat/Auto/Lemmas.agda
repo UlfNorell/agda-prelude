@@ -80,18 +80,18 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
       ≡⟨ mul-distr-l (⟦ t ⟧t ρ) _ _ ⟩ʳ
     ⟦ t ⟧t ρ * ⟦ t′ ∷ v ⟧n ρ ∎
 
-  sort-sound : ∀ xs ρ → ⟦ sort xs ⟧n ρ ≡ ⟦ xs ⟧n ρ
+  sort-sound : ∀ xs ρ → ⟦ nf-sort xs ⟧n ρ ≡ ⟦ xs ⟧n ρ
   sort-sound [] ρ = refl
-  sort-sound (x ∷ xs) ρ rewrite ⟨+⟩-sound [ x ] (sort xs) ρ
+  sort-sound (x ∷ xs) ρ rewrite ⟨+⟩-sound [ x ] (nf-sort xs) ρ
                               | sort-sound xs ρ
                               | add-0-r (⟦ x ⟧t ρ) = refl
 
   ⟨*⟩-sound : ∀ v₁ v₂ (ρ : Env Atom) → ⟦ v₁ *nf v₂ ⟧n ρ ≡ ⟦ v₁ ⟧n ρ * ⟦ v₂ ⟧n ρ
   ⟨*⟩-sound [] v₂ ρ = refl
   ⟨*⟩-sound (t ∷ v₁) v₂ ρ =
-    ⟦ sort (map (mulTm t) v₂) +nf (v₁ *nf v₂) ⟧n ρ
-      ≡⟨ ⟨+⟩-sound (sort (map (mulTm t) v₂)) (v₁ *nf v₂) ρ ⟩
-    ⟦ sort (map (mulTm t) v₂) ⟧n ρ + ⟦ v₁ *nf v₂ ⟧n ρ
+    ⟦ nf-sort (map (mulTm t) v₂) +nf (v₁ *nf v₂) ⟧n ρ
+      ≡⟨ ⟨+⟩-sound (nf-sort (map (mulTm t) v₂)) (v₁ *nf v₂) ρ ⟩
+    ⟦ nf-sort (map (mulTm t) v₂) ⟧n ρ + ⟦ v₁ *nf v₂ ⟧n ρ
       ≡⟨ cong (flip _+_ (⟦ v₁ *nf v₂ ⟧n ρ)) (sort-sound (map (mulTm t) v₂) ρ) ⟩
     ⟦ map (mulTm t) v₂ ⟧n ρ + ⟦ v₁ *nf v₂ ⟧n ρ
       ≡⟨ cong (_+_ (⟦ map (mulTm t) v₂ ⟧n ρ)) (⟨*⟩-sound v₁ v₂ ρ) ⟩
@@ -129,7 +129,7 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
       lem-eval-env-a []       = refl
       lem-eval-env-a (x ∷ xs) = _*_ $≡ eq x *≡ lem-eval-env-a xs
 
-      lem-eval-env-t : ∀ t → ⟦ t ⟧t ρ₁ ≡ ⟦ t ⟧t ρ₂ 
+      lem-eval-env-t : ∀ t → ⟦ t ⟧t ρ₁ ≡ ⟦ t ⟧t ρ₂
       lem-eval-env-t (k , a) = _*_ k $≡ lem-eval-env-a a
 
     lem-eval-env : ∀ n → ⟦ n ⟧n ρ₁ ≡ ⟦ n ⟧n ρ₂

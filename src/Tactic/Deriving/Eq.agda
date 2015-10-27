@@ -103,9 +103,9 @@ private
   apply : Term → List (Arg Term) → Term
   substArgs : Substitution → List (Arg Term) → List (Arg Term)
 
-  subst sub (var x args) = case (lookup sub x) of λ 
-    { (just s) → apply s (substArgs sub args) 
-    ; nothing  → var x (substArgs sub args) 
+  subst sub (var x args) = case (lookup sub x) of λ
+    { (just s) → apply s (substArgs sub args)
+    ; nothing  → var x (substArgs sub args)
     }
   subst sub (con c args) = con c (substArgs sub args)
   subst sub (def f args) = def f (substArgs sub args)
@@ -384,7 +384,7 @@ private
   makeArgs n xs = reverse $ map (fmap (λ i → var (n - i - 1) [])) xs
 
   computeInstanceType : Nat → List (Arg Nat) → Type → Maybe Term
-  computeInstanceType n xs (el _ (sort _)) =
+  computeInstanceType n xs (el _ (agda-sort _)) =
     just (`Eq (var n (makeArgs n xs)))
   computeInstanceType n xs (el _ (pi a (abs s b))) =
     pi (hArg (unArg a)) ∘ abs s ∘ el unknown <$> computeInstanceType (suc n) ((n <$ a) ∷ xs) b
@@ -397,7 +397,7 @@ private
     def₁ (quote Dec) (var 1 [] `≡ var 0 [])
     where k = length is
   computeType d n xs is (a ∷ tel) =
-    unEl (unArg a) `→ʰ 
+    unEl (unArg a) `→ʰ
     (case computeInstanceType 0 [] (weaken 1 $ unArg a) of
      λ { (just i) → computeType d (1 + n) ((n <$ a) ∷ xs) (iArg (el unknown $ weaken (length is) i) ∷ weaken 1 is) tel
        ; nothing →  computeType d (1 + n) ((n <$ a) ∷ xs) (weaken 1 is) tel })

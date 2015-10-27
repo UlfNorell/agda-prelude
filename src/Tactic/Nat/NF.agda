@@ -29,16 +29,16 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
     if i <? j then i ∷ merge x (j ∷ y)
               else j ∷ merge (i ∷ x) y
 
-  sort : NF Atom → NF Atom
-  sort [] = []
-  sort (x ∷ nf) = union [ x ] (sort nf)
+  nf-sort : NF Atom → NF Atom
+  nf-sort [] = []
+  nf-sort (x ∷ nf) = union [ x ] (nf-sort nf)
 
   mulTm : Nat × Tm Atom → Nat × Tm Atom → Nat × Tm Atom
   mulTm (a , x) (b , y) = a * b , merge x y
 
   _*nf_ : NF Atom → NF Atom → NF Atom
   []      *nf b = []
-  (t ∷ a) *nf b = sort (map (mulTm t) b) +nf (a *nf b)
+  (t ∷ a) *nf b = nf-sort (map (mulTm t) b) +nf (a *nf b)
 
 
   -- Normalising expressions --
