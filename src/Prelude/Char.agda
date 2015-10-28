@@ -12,7 +12,6 @@ open import Prelude.Ord
 postulate Char : Set
 
 {-# BUILTIN CHAR Char #-}
-{-# COMPILED_TYPE Char Char #-}
 
 --- Primitive operations ---
 
