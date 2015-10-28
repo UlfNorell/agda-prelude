@@ -152,7 +152,7 @@ private
   lemNoLessEqual (suc n) zero h₁ h₂ = ⊥-elim (h₂ true)
   lemNoLessEqual (suc n) (suc m) h₁ h₂ = cong suc (lemNoLessEqual n m h₁ h₂)
 
-  -- Using eraseEquality here let's us not worry about the performance of the
+  -- Using eraseEquality here lets us not worry about the performance of the
   -- proofs.
   compareNat : ∀ n m → Comparison LessNat n m
   compareNat n m with decBool (lessNat n m)

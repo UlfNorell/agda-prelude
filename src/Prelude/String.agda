@@ -1,6 +1,8 @@
 
 module Prelude.String where
 
+open import Agda.Primitive
+open import Prelude.Unit
 open import Prelude.Char
 open import Prelude.Bool
 open import Prelude.Nat
@@ -73,3 +75,24 @@ instance
 instance
   OrdString : Ord String
   OrdString = OrdBy unpackString-inj
+
+-- Overloaded literals --
+
+record IsString {a} (A : Set a) : Set (lsuc a) where
+  field
+    Constraint : String → Set a
+    fromString : (s : String) {{_ : Constraint s}} → A
+
+open IsString {{...}} public using (fromString)
+
+{-# BUILTIN FROMSTRING fromString #-}
+{-# DISPLAY IsString.fromString _ s = fromString s #-}
+
+instance
+  StringIsString : IsString String
+  IsString.Constraint StringIsString _ = ⊤
+  IsString.fromString StringIsString s = s
+
+  ListIsString : IsString (List Char)
+  IsString.Constraint ListIsString _ = ⊤
+  IsString.fromString ListIsString s = unpackString s
