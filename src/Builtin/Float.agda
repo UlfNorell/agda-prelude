@@ -50,7 +50,7 @@ instance
 
 instance
   ShowFloat : Show Float
-  ShowFloat = record { showsPrec = λ _ x → showString (primShowFloat x) }
+  ShowFloat = simpleShowInstance primShowFloat
 
 instance
   NumFloat : Number Float

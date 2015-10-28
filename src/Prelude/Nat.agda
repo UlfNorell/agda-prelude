@@ -40,7 +40,8 @@ suc n *N m = n *N m +N m
 
 instance
   NumberNat : Number Nat
-  NumberNat = record { Constraint = λ _ → ⊤ ; fromNat = λ x → x }
+  Number.Constraint NumberNat _ = ⊤
+  Number.fromNat    NumberNat n = n
 
   SemiringNat : Semiring Nat
   SemiringNat = record { zro = zero ; one = suc zero
