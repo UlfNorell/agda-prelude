@@ -96,6 +96,8 @@ NonZeroInt : Int → Set
 NonZeroInt (pos zero) = ⊥
 NonZeroInt _ = ⊤
 
+infixl 7 quotInt-by remInt-by
+
 syntax quotInt-by b a = a quot b
 quotInt-by : (b : Int) {{_ : NonZeroInt b}} → Int → Int
 quotInt-by (pos zero) {{}} _
