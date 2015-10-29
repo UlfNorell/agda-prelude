@@ -22,8 +22,8 @@ sub-leq ._ b | greater (diff! k) = diff b auto
 
 --- LessNat ---
 
-fast-diff : ∀ {a b} → a < b → a < b
-fast-diff {a} {b} a<b = diff (b - suc a) $ eraseEquality $ by (sub-less {suc a} {b} (by a<b))
+fast-diff : {a b : Nat} → a < b → a < b
+fast-diff {a} {b} a<b = diff (b - suc a) (eraseEquality $ by (sub-less {suc a} {b} (by a<b)))
 
 infixr 0 _⟨<⟩_ _⟨≤⟩_
 

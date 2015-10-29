@@ -11,8 +11,8 @@ open import Tactic.Nat.Simpl.Lemmas
 open import Tactic.Nat.Subtract.Lemmas
 
 liftNFSubLess : ∀ e₁ e₂ ρ → ⟦ normSub e₁ ⟧sn ρ < ⟦ normSub e₂ ⟧sn ρ → ⟦ e₁ ⟧se ρ < ⟦ e₂ ⟧se ρ
-liftNFSubLess e₁ e₂ ρ (diff k eq) = diff k $ eraseEquality $
-  sound-sub e₂ ρ ⟨≡⟩ eq ⟨≡⟩ʳ (suc k +_) $≡ sound-sub e₁ ρ
+liftNFSubLess e₁ e₂ ρ (diff k eq) = diff k (eraseEquality $
+  sound-sub e₂ ρ ⟨≡⟩ eq ⟨≡⟩ʳ (suc k +_) $≡ sound-sub e₁ ρ)
 
 SubExpLess : SubExp → SubExp → Env Var → Set
 SubExpLess e₁ e₂ ρ = ⟦ e₁ ⟧se ρ < ⟦ e₂ ⟧se ρ
@@ -41,11 +41,11 @@ simplifySubLess e₁ e₂ ρ (diff k H) | v₁ , v₂ | sound =
 complicateSubLess : ∀ e₁ e₂ ρ → SubExpLess e₁ e₂ ρ → CancelSubLess e₁ e₂ ρ
 complicateSubLess e₁ e₂ ρ H with cancel (normSub e₁) (normSub e₂)
                                    | λ a b → cancel-complete′ a b (normSub e₁) (normSub e₂) (atomEnvS ρ)
-complicateSubLess e₁ e₂ ρ (diff k H) | v₁ , v₂ | complete = diff k $ eraseEquality $
+complicateSubLess e₁ e₂ ρ (diff k H) | v₁ , v₂ | complete = diff k (eraseEquality $
   ns-sound v₂ (atomEnvS ρ) ⟨≡⟩
   complete (suc k) 0
     ((suc k +_) $≡ lem-eval-sn-nS (normSub e₁) ρ ʳ⟨≡⟩
      (suc k +_) $≡ sound-sub e₁ ρ ʳ⟨≡⟩
      H ʳ⟨≡⟩ sound-sub e₂ ρ ⟨≡⟩
      lem-eval-sn-nS (normSub e₂) ρ) ʳ⟨≡⟩ʳ
-  (suc k +_) $≡ ns-sound v₁ (atomEnvS ρ)
+  (suc k +_) $≡ ns-sound v₁ (atomEnvS ρ))

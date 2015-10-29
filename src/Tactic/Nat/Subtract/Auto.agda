@@ -23,7 +23,7 @@ autosub-proof (e₁ :< e₂) ρ | [] , (suc n , []) ∷ nf | simp =
   let sk : SubNF
       sk = (suc n , []) ∷ nf
       k  = (    n , []) ∷ nf in
-  just $ simp $ diff (⟦ k ⟧sns ρ) $
+  just $ simp $ LessNat.diff (⟦ k ⟧sns ρ) $
     ns-sound sk (atomEnvS ρ) ⟨≡⟩
     auto ⟨≡⟩ʳ (λ z → suc (z + 0)) $≡ lem-eval-sns-nS k ρ
 autosub-proof (e₁ :< e₂) ρ | _  , _ | simp = nothing

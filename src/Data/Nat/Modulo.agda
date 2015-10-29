@@ -10,7 +10,7 @@ open import Tactic.Nat
 data IntMod (n : Nat) : Set where
   modn : ∀ k → k < n → IntMod n
 
-{-# DISPLAY modn k (diff _ refl) = k #-}
+{-# DISPLAY modn k (LessNat.diff _ refl) = k #-}
 
 negIntMod : ∀ {n} → IntMod n → IntMod n
 negIntMod (modn 0 lt) = modn 0 lt

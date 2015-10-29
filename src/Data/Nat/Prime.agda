@@ -87,7 +87,7 @@ data _∈[_,_]? k a b : Set where
   below  : k < a → k ∈[ a , b ]?
   above  : k > b → k ∈[ a , b ]?
 
-cmp-leq : ∀ a b → Either (a < b) (b ≤ a)
+cmp-leq : (a b : Nat) → Either (a < b) (b ≤ a)
 cmp-leq a b with compare a b
 cmp-leq a b | less    a<b = left a<b
 cmp-leq a b | equal   a=b = right (diff 0 (cong suc a=b))

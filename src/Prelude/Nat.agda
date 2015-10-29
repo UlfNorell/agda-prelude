@@ -128,7 +128,7 @@ lessNat (suc n) (suc m) = lessNat n m
 {-# BUILTIN NATLESS lessNat #-}
 
 data LessNat n m : Set where
-  diff : ∀ k → m ≡ suc k +N n → LessNat n m
+  diff : ∀ k (eq : m ≡ suc k +N n) → LessNat n m
 
 pattern diff! k = diff k refl
 {-# DISPLAY diff k refl = diff! k #-}
