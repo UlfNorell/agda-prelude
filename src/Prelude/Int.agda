@@ -7,7 +7,9 @@ open import Prelude.Number
 open import Prelude.String
 open import Prelude.Show
 open import Prelude.Semiring
+open import Prelude.Equality
 open import Prelude.Ord
+open import Prelude.Decidable
 
 data Int : Set where
   pos    : (n : Nat) → Int
@@ -85,3 +87,36 @@ instance
   SubInt : Subtractive Int
   Subtractive._-_    SubInt = _-Z_
   Subtractive.negate SubInt = negateInt
+
+-- Eq --
+
+pos-inj : ∀ {a b} → pos a ≡ pos b → a ≡ b
+pos-inj refl = refl
+
+negsuc-inj : ∀ {a b} → negsuc a ≡ negsuc b → a ≡ b
+negsuc-inj refl = refl
+
+instance
+  EqInt : Eq Int
+  Eq._==_ EqInt = eqInt
+    where
+      eqInt : ∀ x y → Dec (x ≡ y)
+      eqInt (pos    n) (pos    m) = decEq₁ pos-inj (n == m)
+      eqInt (pos    n) (negsuc m) = no λ ()
+      eqInt (negsuc n) (pos    m) = no λ ()
+      eqInt (negsuc n) (negsuc m) = decEq₁ negsuc-inj (n == m)
+
+data LessInt : Int → Int → Set where
+  neg<pos : ∀ {n m} → LessInt (negsuc n) (pos m)
+  pos<pos : ∀ {n m} → n < m → LessInt (pos n) (pos m)
+  neg<neg : ∀ {n m} → n < m → LessInt (negsuc m) (negsuc n)
+
+compareInt : (a b : Int) → Comparison LessInt a b
+compareInt (pos    n) (pos    m) = mapComparison pos<pos (compare n m)
+compareInt (pos    n) (negsuc m) = greater neg<pos
+compareInt (negsuc n) (pos    m) = less    neg<pos
+compareInt (negsuc n) (negsuc m) = mapComparison neg<neg (flipComparison (compare n m))
+
+instance
+  OrdInt : Ord Int
+  OrdInt = defaultOrd compareInt
