@@ -97,11 +97,12 @@ replicate : ∀ {a} {A : Set a} → Nat → A → List A
 replicate zero x = []
 replicate (suc n) x = x ∷ replicate n x
 
-sum : List Nat → Nat
-sum = foldr _+_ 0
+module _ {a} {A : Set a} {{_ : Semiring A}} where
+  sum : List A → A
+  sum = foldr _+_ zro
 
-product : List Nat → Nat
-product = foldr _*_ 1
+  product : List A → A
+  product = foldr _*_ one
 
 module _ {a} {A : Set a} {{_ : Ord A}} where
   insert : A → List A → List A
