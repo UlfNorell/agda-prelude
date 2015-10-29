@@ -169,10 +169,15 @@ private
   nat-eq-to-leq : ∀ {x y} → x ≡ y → LessNat x (suc y)
   nat-eq-to-leq eq = diff 0 (cong suc (sym eq))
 
+  nat-from-leq : ∀ {x y} → LessNat x (suc y) → LessEq LessNat x y
+  nat-from-leq (diff zero eq)    = equal (sym (suc-inj eq))
+  nat-from-leq (diff (suc k) eq) = less (diff k (suc-inj eq))
+
 instance
   OrdNat : Ord Nat
-  OrdNat = record { _≤_ = λ a b → LessNat a (suc b)
-                  ; compare   = compareNat
-                  ; lt-to-leq = nat-lt-to-leq
-                  ; eq-to-leq = nat-eq-to-leq
-                  }
+  Ord._<_         OrdNat = LessNat
+  Ord._≤_         OrdNat a b = LessNat a (suc b)
+  Ord.compare     OrdNat = compareNat
+  Ord.eq-to-leq   OrdNat = nat-eq-to-leq
+  Ord.lt-to-leq   OrdNat = nat-lt-to-leq
+  Ord.leq-to-lteq OrdNat = nat-from-leq

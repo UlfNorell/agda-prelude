@@ -22,14 +22,20 @@ isGreater (less    _) = false
 isGreater (equal   _) = false
 isGreater (greater _) = true
 
+data LessEq {a} {A : Set a} (_<_ : A → A → Set a) (x y : A) : Set a where
+  instance
+    less  : x < y → LessEq _<_ x y
+    equal : x ≡ y → LessEq _<_ x y
+
 record Ord {a} (A : Set a) : Set (lsuc a) where
   infix 4 _<_ _≤_
   field
     _<_ : A → A → Set a
     _≤_ : A → A → Set a
-    compare   : ∀ x y → Comparison _<_ x y
-    eq-to-leq : ∀ {x y} → x ≡ y → x ≤ y
-    lt-to-leq : ∀ {x y} → x < y → x ≤ y
+    compare     : ∀ x y → Comparison _<_ x y
+    eq-to-leq   : ∀ {x y} → x ≡ y → x ≤ y
+    lt-to-leq   : ∀ {x y} → x < y → x ≤ y
+    leq-to-lteq : ∀ {x y} → x ≤ y → LessEq _<_ x y
 
 open Ord {{...}} public
 
@@ -65,34 +71,37 @@ module _ {a} {A : Set a} {{_ : Ord A}} where
 
 -- Default implementation of _≤_ --
 
-data LessEq {a} {A : Set a} (_<_ : A → A → Set a) (x y : A) : Set a where
-  instance
-    less  : x < y → LessEq _<_ x y
-    equal : x ≡ y → LessEq _<_ x y
-
 defaultOrd : ∀ {a} {A : Set a} {_<_ : A → A → Set a} → (∀ x y → Comparison _<_ x y) → Ord A
-defaultOrd {_<_ = _<_} compare =
-  record { _≤_ = LessEq _<_
-         ; compare   = compare
-         ; eq-to-leq = equal
-         ; lt-to-leq = less
-         }
+Ord._<_         (defaultOrd compare) = _
+Ord._≤_        (defaultOrd {_<_ = _<_} compare) = LessEq _<_
+Ord.compare     (defaultOrd compare) = compare
+Ord.eq-to-leq   (defaultOrd compare) = equal
+Ord.lt-to-leq   (defaultOrd compare) = less
+Ord.leq-to-lteq (defaultOrd compare) = id
 
 -- Generic instance by injection --
 
-mapComparison : ∀ {a b} {A : Set a} {B : Set b} {S : A → A → Set a} {T : B → B → Set b} {f : A → B} → 
-                (∀ {x y} → S x y → T (f x) (f y)) → ∀ {x y} → Comparison S x y → Comparison T (f x) (f y)
-mapComparison f (less lt)    = less (f lt)
-mapComparison f (equal refl) = equal refl
-mapComparison f (greater gt) = greater (f gt)
+module _ {a b} {A : Set a} {B : Set b} {S : A → A → Set a} {T : B → B → Set b} where
 
-injectComparison : ∀ {a b} {A : Set a} {B : Set b} {LessA : A → A → Set a} {LessB : B → B → Set b}
-                  {f : B → A} → (∀ {x y} → f x ≡ f y → x ≡ y) →
-                  (∀ {x y} → LessA (f x) (f y) → LessB x y) →
-                  ∀ {x y} → Comparison LessA (f x) (f y) → Comparison LessB x y
-injectComparison _   g (less    p) = less (g p)
-injectComparison inj g (equal   p) = equal (inj p)
-injectComparison _   g (greater p) = greater (g p)
+  mapComparison : {f : A → B} →
+                  (∀ {x y} → S x y → T (f x) (f y)) →
+                  ∀ {x y} → Comparison S x y → Comparison T (f x) (f y)
+  mapComparison f (less lt)    = less (f lt)
+  mapComparison f (equal refl) = equal refl
+  mapComparison f (greater gt) = greater (f gt)
+
+  injectComparison : {f : B → A} → (∀ {x y} → f x ≡ f y → x ≡ y) →
+                     (∀ {x y} → S (f x) (f y) → T x y) →
+                     ∀ {x y} → Comparison S (f x) (f y) → Comparison T x y
+  injectComparison _   g (less    p) = less (g p)
+  injectComparison inj g (equal   p) = equal (inj p)
+  injectComparison _   g (greater p) = greater (g p)
+
+flipComparison : ∀ {a} {A : Set a} {S : A → A → Set a} {x y} →
+                 Comparison S x y → Comparison (flip S) x y
+flipComparison (less    lt) = greater lt
+flipComparison (equal   eq) = equal   eq
+flipComparison (greater gt) = less    gt
 
 OrdBy : ∀ {a} {A B : Set a} {{OrdA : Ord A}} {f : B → A} →
           (∀ {x y} → f x ≡ f y → x ≡ y) → Ord B

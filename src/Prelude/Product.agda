@@ -91,27 +91,35 @@ data LexiographicOrder {a b} {A : Set a} {B : A → Set b}
   fst< : ∀ {x₁ x₂} {y₁ : B x₁} {y₂ : B x₂} → x₁ <A x₂ → LexiographicOrder _<A_ _<B_ (x₁ , y₁) (x₂ , y₂)
   snd< : ∀ {x} {y₁ y₂ : B x} → y₁ <B y₂ → LexiographicOrder _<A_ _<B_ (x , y₁) (x , y₂)
 
-instance
-  OrdSigma : ∀ {a b} {A : Set a} {B : A → Set b} {{OrdA : Ord A}} {{OrdB : ∀ {x} → Ord (B x)}} → Ord (Σ A B)
-  OrdSigma {A = A} {B} =
-    record { compare = cmpSigma
-           ; _≤_ = LexiographicOrder _<_ _≤_
-           ; eq-to-leq = from-eq _ _
-           ; lt-to-leq = from-lt _ _
-           }
-    where
-      cmpSigma : (x y : Σ A B) → Comparison (LexiographicOrder _<_ _<_) x y
-      cmpSigma (x , y)  (x₁ , y₁)  with compare x x₁
-      cmpSigma (x , y)  (x₁ , y₁)  | less x<x₁    = less    (fst< x<x₁)
-      cmpSigma (x , y)  (x₁ , y₁)  | greater x₁<x = greater (fst< x₁<x)
-      cmpSigma (x , y)  (.x , y₁)  | equal refl with compare y y₁
-      cmpSigma (x₁ , y) (.x₁ , y₁) | equal refl | less y<y₁    = less    (snd< y<y₁)
-      cmpSigma (x₁ , y) (.x₁ , y₁) | equal refl | greater y₁<y = greater (snd< y₁<y)
-      cmpSigma (x₁ , y) (.x₁ , .y) | equal refl | equal refl   = equal refl
+module _ {a b} {A : Set a} {B : A → Set b} {{OrdA : Ord A}} {{OrdB : ∀ {x} → Ord (B x)}} where
+  private
+    cmpSigma : (x y : Σ A B) → Comparison (LexiographicOrder _<_ _<_) x y
+    cmpSigma (x , y)  (x₁ , y₁)  with compare x x₁
+    cmpSigma (x , y)  (x₁ , y₁)  | less x<x₁    = less    (fst< x<x₁)
+    cmpSigma (x , y)  (x₁ , y₁)  | greater x₁<x = greater (fst< x₁<x)
+    cmpSigma (x , y)  (.x , y₁)  | equal refl with compare y y₁
+    cmpSigma (x₁ , y) (.x₁ , y₁) | equal refl | less y<y₁    = less    (snd< y<y₁)
+    cmpSigma (x₁ , y) (.x₁ , y₁) | equal refl | greater y₁<y = greater (snd< y₁<y)
+    cmpSigma (x₁ , y) (.x₁ , .y) | equal refl | equal refl   = equal refl
 
-      from-eq : (x y : Σ A B) → x ≡ y → LexiographicOrder _<_ _≤_ x y
-      from-eq (x , y) (.x , .y) refl = snd< (eq-to-leq (refl {x = y}))
+    from-eq : (x y : Σ A B) → x ≡ y → LexiographicOrder _<_ _≤_ x y
+    from-eq (x , y) (.x , .y) refl = snd< (eq-to-leq (refl {x = y}))
 
-      from-lt : (x y : Σ A B) → LexiographicOrder _<_ _<_ x y → LexiographicOrder _<_ _≤_ x y
-      from-lt (x₁ , y₁) (x₂ , y₂) (fst< lt) = fst< lt
-      from-lt (x  , y₁) (.x , y₂) (snd< lt) = snd< (lt-to-leq {x = y₁} lt)
+    from-lt : (x y : Σ A B) → LexiographicOrder _<_ _<_ x y → LexiographicOrder _<_ _≤_ x y
+    from-lt (x₁ , y₁) (x₂ , y₂) (fst< lt) = fst< lt
+    from-lt (x  , y₁) (.x , y₂) (snd< lt) = snd< (lt-to-leq {x = y₁} lt)
+
+    from-leq : (x y : Σ A B) → LexiographicOrder _<_ _≤_ x y → LessEq (LexiographicOrder _<_ _<_) x y
+    from-leq (a , b) (a₁ , b₁) (fst< a<a₁) = less (fst< a<a₁)
+    from-leq (a , b) (.a , b₁) (snd< b≤b₁) with leq-to-lteq {{OrdB}} b≤b₁
+    ... | less b<b₁  = less (snd< b<b₁)
+    ... | equal b=b₁ = equal ((a ,_) $≡ b=b₁)
+
+  instance
+    OrdSigma : Ord (Σ A B)
+    Ord._<_         OrdSigma = _
+    Ord._≤_         OrdSigma = LexiographicOrder _<_ _≤_
+    Ord.compare     OrdSigma = cmpSigma
+    Ord.eq-to-leq   OrdSigma = from-eq _ _
+    Ord.lt-to-leq   OrdSigma = from-lt _ _
+    Ord.leq-to-lteq OrdSigma = from-leq _ _
