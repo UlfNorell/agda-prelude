@@ -92,6 +92,26 @@ instance
   Subtractive._-_    SubInt = _-Z_
   Subtractive.negate SubInt = negateInt
 
+NonZeroInt : Int → Set
+NonZeroInt (pos zero) = ⊥
+NonZeroInt _ = ⊤
+
+syntax quotInt-by b a = a quot b
+quotInt-by : (b : Int) {{_ : NonZeroInt b}} → Int → Int
+quotInt-by (pos zero) {{}} _
+quotInt-by (pos (suc n)) (pos m)    = pos (m div suc n)
+quotInt-by (pos (suc n)) (negsuc m) = neg (suc m div suc n)
+quotInt-by (negsuc n)    (pos m)    = neg (m div suc n)
+quotInt-by (negsuc n)    (negsuc m) = pos (suc m div suc n)
+
+syntax remInt-by b a = a rem b
+remInt-by : (b : Int) {{_ : NonZeroInt b}} → Int → Int
+remInt-by (pos zero) {{}} _
+remInt-by (pos (suc n)) (pos m)    = pos (m mod suc n)
+remInt-by (pos (suc n)) (negsuc m) = pos (suc m mod suc n)
+remInt-by (negsuc n)    (pos m)    = neg (m mod suc n)
+remInt-by (negsuc n)    (negsuc m) = neg (suc m mod suc n)
+
 -- Eq --
 
 pos-inj : ∀ {a b} → pos a ≡ pos b → a ≡ b
