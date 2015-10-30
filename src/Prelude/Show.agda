@@ -39,7 +39,7 @@ record Show {a} (A : Set a) : Set a where
 open Show {{...}} public
 
 simpleShowInstance : ∀ {a} {A : Set a} → (A → String) → Show A
-Show.showsPrec (simpleShowInstance s) _ x r = s x & r
+Show.showsPrec (simpleShowInstance s) _ x = showString (s x)
 
 ShowBy : ∀ {a b} {A : Set a} {B : Set b} {{ShowB : Show B}} → (A → B) → Show A
 ShowBy f = record { showsPrec = λ p → showsPrec p ∘ f }
