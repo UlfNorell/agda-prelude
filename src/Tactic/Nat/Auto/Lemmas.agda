@@ -12,7 +12,7 @@ map++ : ∀ {a b} {A : Set a} {B : Set b} (f : A → B) (xs ys : List A) →
 map++ f [] ys = refl
 map++ f (x ∷ xs) ys rewrite map++ f xs ys = refl
 
-prod++ : ∀ xs ys → product (xs ++ ys) ≡ product xs * product ys
+prod++ : (xs ys : List Nat) → product (xs ++ ys) ≡ product xs * product ys
 prod++ [] ys = refl
 prod++ (x ∷ xs) ys rewrite prod++ xs ys = mul-assoc x _ _
 

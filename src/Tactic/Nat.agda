@@ -51,7 +51,7 @@ private
 -}
 
 private
-  by-example₁ : ∀ xs ys → sum (xs ++ ys) ≡ sum ys + sum xs
+  by-example₁ : (xs ys : List Nat) → sum (xs ++ ys) ≡ sum ys + sum xs
   by-example₁ []       ys = auto
   by-example₁ (x ∷ xs) ys = by (by-example₁ xs ys)
 
