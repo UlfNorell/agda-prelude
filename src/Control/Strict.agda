@@ -32,7 +32,7 @@ pattern any  = el′ unknown
 
 private
   derivedType′ : Nat → Telescope → Name → List (Arg Term) → Type
-  derivedType′ (suc n) (a ∷ Γ) d vs = el′ $ pi (hArg (unArg a)) $ abs "_" $ derivedType′ n Γ d ((var n [] <$ a) ∷ vs) 
+  derivedType′ (suc n) (a ∷ Γ) d vs = el′ $ pi (hArg (unArg a)) $ abs "_" $ derivedType′ n Γ d ((var n [] <$ a) ∷ vs)
   derivedType′ zero    [] d vs =
     el′ $ pi (hArg any) $ abs "b" $
     el′ $ def (quote Forceable) $
@@ -66,6 +66,7 @@ deriveForceable d =
 
 instance
   unquoteDecl ForceNat    = deriveForceable (quote Nat)
+  unquoteDecl ForceInt    = deriveForceable (quote Int)
   unquoteDecl ForceList   = deriveForceable (quote List)
   unquoteDecl ForceMaybe  = deriveForceable (quote Maybe)
   unquoteDecl ForceEither = deriveForceable (quote Either)
