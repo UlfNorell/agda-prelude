@@ -75,6 +75,12 @@ instance
   Fractional.Constraint FracFloat _ _ = ⊤
   Fractional._/_ FracFloat x y = primFloatDiv x y
 
+  {-# STATIC NumFloat #-}
+  {-# STATIC SemiringFloat #-}
+  {-# STATIC SubFloat #-}
+  {-# STATIC NegFloat #-}
+  {-# STATIC FracFloat #-}
+
 exp = primExp
 ln  = primLog
 sin = primSin

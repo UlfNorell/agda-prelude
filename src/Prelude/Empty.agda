@@ -18,6 +18,7 @@ erase-⊥ _ = erasedBottom
 infix 4 ¬_
 ¬_ : ∀ {a} (A : Set a) → Set a
 ¬ A = A → ⊥
+{-# STATIC ¬_ #-}
 
 eraseNegation : ∀ {a} {A : Set a} → ¬ A → ¬ A
 eraseNegation !a a = erase-⊥ (!a a)
