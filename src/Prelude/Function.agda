@@ -23,7 +23,7 @@ _∘_ : ∀ {a b c} {A : Set a} {B : A → Set b} {C : ∀ x → B x → Set c}
 (f ∘ g) x = f (g x)
 {-# STATIC _∘_ #-}
 
-infixr 0 _$_ _$′_ case_of_
+infixr 0 _$_ _$′_ case_of_ case_return_of_
 _$_ : ∀ {a b} {A : Set a} {B : A → Set b} → (∀ x → B x) → ∀ x → B x
 f $ x = f x
 
@@ -33,9 +33,13 @@ f $′ x = f x
 case_of_ : ∀ {a b} {A : Set a} {B : Set b} → A → (A → B) → B
 case x of f = f x
 
+case_return_of_ : ∀ {a b} {A : Set a} (x : A) (B : A → Set b) → (∀ x → B x) → B x
+case x return B of f = f x
+
 {-# STATIC _$_ #-}
 {-# STATIC _$′_ #-}
 {-# STATIC case_of_ #-}
+{-# STATIC case_return_of_ #-}
 
 infixl 8 _on_
 _on_ : ∀ {a b c} {A : Set a} {B : A → Set b} {C : ∀ x y → B x → B y → Set c} →
