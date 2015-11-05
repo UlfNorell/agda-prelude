@@ -47,10 +47,13 @@ postulate
   putStr   : String → IO Unit
   putStrLn : String → IO Unit
 
-{-# COMPILED getChar getChar   #-}
-{-# COMPILED putChar putChar   #-}
-{-# COMPILED putStr  putStr    #-}
-{-# COMPILED putStrLn putStrLn #-}
+{-# IMPORT Data.Text    #-}
+{-# IMPORT Data.Text.IO #-}
+
+{-# COMPILED getChar  getChar   #-}
+{-# COMPILED putChar  putChar   #-}
+{-# COMPILED putStr   Data.Text.IO.putStr   #-}
+{-# COMPILED putStrLn Data.Text.IO.putStrLn #-}
 
 {-# COMPILED_UHC putStr   (UHC.Agda.Builtins.primPutStr) #-}
 {-# COMPILED_UHC putStrLn (UHC.Agda.Builtins.primPutStrLn) #-}
@@ -66,8 +69,8 @@ postulate
   readFile  : FilePath → IO String
   writeFile : FilePath → String → IO Unit
 
-{-# COMPILED readFile  readFile  #-}
-{-# COMPILED writeFile writeFile #-}
+{-# COMPILED readFile  Data.Text.IO.readFile  . Data.Text.unpack #-}
+{-# COMPILED writeFile Data.Text.IO.writeFile . Data.Text.unpack #-}
 
 {-# COMPILED_UHC readFile  (UHC.Agda.Builtins.primReadFile) #-}
 {-# COMPILED_UHC writeFile (UHC.Agda.Builtins.primWriteFile) #-}
@@ -80,5 +83,5 @@ postulate
   getArgs : IO (List String)
   getProgName : IO String
 
-{-# COMPILED getArgs System.Environment.getArgs #-}
-{-# COMPILED getProgName System.Environment.getProgName #-}
+{-# COMPILED getArgs     fmap (map Data.Text.pack) System.Environment.getArgs #-}
+{-# COMPILED getProgName fmap Data.Text.pack System.Environment.getProgName   #-}
