@@ -42,7 +42,6 @@ instance
   NumberNat : Number Nat
   Number.Constraint NumberNat _ = ⊤
   Number.fromNat    NumberNat n = n
-  {-# STATIC NumberNat #-}
 
   SemiringNat : Semiring Nat
   SemiringNat = record { zro = zero ; one = suc zero
@@ -182,4 +181,3 @@ instance
   Ord.eq-to-leq   OrdNat = nat-eq-to-leq
   Ord.lt-to-leq   OrdNat = nat-lt-to-leq
   Ord.leq-to-lteq OrdNat = nat-from-leq
-  {-# STATIC OrdNat #-}

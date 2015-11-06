@@ -9,6 +9,7 @@ on-goal tac = quote-goal $ abs "g" $ unquote-term (def tac (vArg (var 0 []) ∷ 
 
 use : ∀ {a b} {A : Set a} {B : Set b} → A → (A → B) → B
 use x f = f x
+{-# STATIC use #-}
 
 on-type-of-term : Name → Term → Term
 on-type-of-term tac t =

@@ -33,12 +33,10 @@ instance
   NumInt : Number Int
   Number.Constraint NumInt _ = ⊤
   Number.fromNat    NumInt n = pos n
-  {-# STATIC NumInt #-}
 
   NegInt : Negative Int
   Negative.Constraint NegInt _ = ⊤
   Negative.fromNeg    NegInt n = neg n
-  {-# STATIC NegInt #-}
 
 -- Arithmetic --
 
@@ -79,12 +77,10 @@ instance
   Semiring.one SemiringInt = 1
   Semiring._+_ SemiringInt = _+Z_
   Semiring._*_ SemiringInt = _*Z_
-  {-# STATIC SemiringInt #-}
 
   SubInt : Subtractive Int
   Subtractive._-_    SubInt = _-Z_
   Subtractive.negate SubInt = negateInt
-  {-# STATIC SubInt #-}
 
 NonZeroInt : Int → Set
 NonZeroInt (pos zero) = ⊥
