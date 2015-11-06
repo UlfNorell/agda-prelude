@@ -83,6 +83,8 @@ divMod : ∀ b {{_ : NonZero b}} a → DivMod a b
 divMod zero {{}} a
 divMod (suc b) a = qr (a div suc b) (a mod suc b) (modLess a b) (divmod-spec a b)
 
+{-# STATIC divMod #-}
+
 --- Properties ---
 
 mod-less : ∀ b {{_ : NonZero b}} a → a mod b < b
