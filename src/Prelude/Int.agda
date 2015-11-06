@@ -6,7 +6,6 @@ open import Prelude.Empty
 open import Prelude.Nat
 open import Prelude.Number
 open import Prelude.String
-open import Prelude.Show
 open import Prelude.Semiring
 open import Prelude.Equality
 open import Prelude.Equality.Inspect
@@ -40,16 +39,6 @@ instance
   Negative.Constraint NegInt _ = ⊤
   Negative.fromNeg    NegInt n = neg n
   {-# STATIC NegInt #-}
-
--- Primitive show saves us a bit of code --
-
-private
- primitive
-  primShowInteger : Int → String
-
-instance
-  ShowInt : Show Int
-  ShowInt = simpleShowInstance primShowInteger
 
 -- Arithmetic --
 

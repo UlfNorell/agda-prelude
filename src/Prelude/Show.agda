@@ -4,6 +4,7 @@ module Prelude.Show where
 open import Prelude.String
 open import Prelude.Char
 open import Prelude.Nat
+open import Prelude.Int
 open import Prelude.Function
 open import Prelude.List
 open import Prelude.Fin
@@ -52,29 +53,23 @@ instance
   ShowBool : Show Bool
   ShowBool = simpleShowInstance λ b → if b then "true" else "false"
 
+-- Int --
+
+private primitive primShowInteger : Int → String
+
+instance
+  ShowInt : Show Int
+  ShowInt = simpleShowInstance primShowInteger
+
 -- Nat --
-
-private
-  digit : Nat → Char
-  digit n = natToChar (n + charToNat '0')
-
-  {-# TERMINATING #-}
-  showNat′ : Nat → List Char → List Char
-  showNat′ 0 ds = ds
-  showNat′ n ds = showNat′ (n div 10) (digit (n mod 10) ∷ ds)
-
-  showNat : Nat → String
-  showNat zero = "0"
-  showNat n = packString $ showNat′ n []
 
 instance
   ShowNat : Show Nat
-  ShowNat = simpleShowInstance showNat
+  ShowNat = simpleShowInstance (primShowInteger ∘ pos)
 
 -- Char --
 
-primitive
-  primShowChar : Char → String
+private primitive primShowChar : Char → String
 
 instance
   ShowChar : Show Char
@@ -82,8 +77,7 @@ instance
 
 -- String --
 
-primitive
-  primShowString : String → String
+private primitive primShowString : String → String
 
 instance
   ShowString : Show String
