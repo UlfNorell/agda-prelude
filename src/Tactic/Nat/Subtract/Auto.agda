@@ -28,12 +28,17 @@ autosub-proof (e₁ :< e₂) ρ | [] , (suc n , []) ∷ nf | simp =
     auto ⟨≡⟩ʳ (λ z → suc (z + 0)) $≡ lem-eval-sns-nS k ρ
 autosub-proof (e₁ :< e₂) ρ | _  , _ | simp = nothing
 
+private
+  get-proof-fun : Eqn → Name
+  get-proof-fun (_ :≡ _) = quote get-eq-proof
+  get-proof-fun (_ :< _) = quote get-proof
+
 autosub-tactic : Term → Term
 autosub-tactic t =
   case termToSubEqn t of
   λ { nothing → failedProof (quote invalidGoal) t
     ; (just (eqn , Γ)) →
-      getProof (quote cantProve) t $
+      getProof′ (get-proof-fun eqn) (quote cantProve) t $
         def (quote autosub-proof)
             ( vArg (` eqn)
             ∷ vArg (quotedEnv Γ)
