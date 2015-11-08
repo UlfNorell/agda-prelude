@@ -118,8 +118,8 @@ natMod : (m : Nat) {{nz : NonZero m}} → Nat → Nat
 natMod zero {{}} n
 natMod (suc m) n = modAux 0 m n m
 
-{-# STATIC natMod #-}
-{-# STATIC natDiv #-}
+{-# INLINE natMod #-}
+{-# INLINE natDiv #-}
 
 --- Comparison ---
 
@@ -164,7 +164,7 @@ private
   ... | no np₁ with decBool (lessNat m n)
   ...             | yes p  = greater (diff (n -N suc m) (eraseEquality (lemLessNatMinus m n p)))
   ...             | no np₂ = equal (eraseEquality (lemNoLessEqual n m np₁ np₂))
-  {-# STATIC compareNat #-}
+  {-# INLINE compareNat #-}
 
 private
   nat-lt-to-leq : ∀ {x y} → LessNat x y → LessNat x (suc y)

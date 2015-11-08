@@ -55,7 +55,7 @@ instance
 decBool : ∀ b → Dec (IsTrue b)
 decBool false = no λ ()
 decBool true  = yes true
-{-# STATIC decBool #-}
+{-# INLINE decBool #-}
 
 isYes : ∀ {a} {A : Set a} → Dec A → Bool
 isYes (yes _) = true

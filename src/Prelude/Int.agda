@@ -27,7 +27,7 @@ data Int : Set where
 neg : Nat → Int
 neg zero    = pos zero
 neg (suc n) = negsuc n
-{-# STATIC neg #-}
+{-# INLINE neg #-}
 
 instance
   NumInt : Number Int
