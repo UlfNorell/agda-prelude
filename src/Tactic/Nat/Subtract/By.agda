@@ -150,16 +150,11 @@ private
     for prf ← by-proof-less a (lit 1 ⟨+⟩ a₁) b b₁ ρ do
       λ eq → prf (diff 0 (cong suc (sym eq)))
 
-private
-  get-proof-fun : Eqn → Name
-  get-proof-fun (_ :≡ _) = quote get-hyp-eq-proof
-  get-proof-fun (_ :< _) = quote get-proof
-
 by-tactic : Term → Term
 by-tactic t =
   case termToSubHyps t of
   λ { (just (hyp ∷ goal ∷ [] , Γ)) →
-        getProof′ (get-proof-fun goal) (quote cantProve) t $
+        getProof (quote cantProve) t $
         def (quote by-proof)
             ( vArg (` hyp)
             ∷ vArg (` goal)

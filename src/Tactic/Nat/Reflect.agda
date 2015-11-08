@@ -155,22 +155,14 @@ QED {x = x} = IsJust x
 get-proof : ∀ {a} {A : Set a} (prf : Maybe A) → QED {x = prf} → A
 get-proof (just eq) _ = eq
 get-proof nothing ()
+{-# STATIC get-proof #-}
 
-get-hyp-eq-proof : ∀ {c} {A : Set c} {a b : Nat} (prf : Maybe (A → a ≡ b)) → QED {x = prf} → A → a ≡ b
-get-hyp-eq-proof eq = get-proof eq
-
-get-eq-proof : {a b : Nat} (prf : Maybe (a ≡ b)) → QED {x = prf} → a ≡ b
-get-eq-proof eq = get-proof eq
-
-getProof′ : Name → Name → Term → Term → Term
-getProof′ getprf err t proof =
-  def getprf
+getProof : Name → Term → Term → Term
+getProof err t proof =
+  def (quote get-proof)
   $ vArg proof
   ∷ vArg (def err $ vArg (stripImplicit t) ∷ [])
   ∷ []
-
-getProof : Name → Term → Term → Term
-getProof = getProof′ (quote get-proof)
 
 failedProof : Name → Term → Term
 failedProof err t =

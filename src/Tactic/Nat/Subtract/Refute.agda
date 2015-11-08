@@ -47,6 +47,14 @@ refutation-proof (a :< b) ρ with cancel (normSub a) (normSub b) | complicateSub
 refutation-proof (a :< b) ρ | v , [] | compl = just λ eq → ⊥-elim $ erase-⊥ $ n≮0 (compl eq)
 refutation-proof (a :< b) ρ | _ , _  | _     = nothing
 
+-- Some trickery to make tactics call be erased
+get-absurd-proof : ∀ {a} {A : Set a} (prf : Maybe (A → ⊥)) → QED {x = prf} → A → ⊥
+get-absurd-proof = get-proof
+
+get-refute-proof : ∀ {a b} {A : Set a} {B : Set b} (prf : Maybe (A → ⊥)) → QED {x = prf} → A → B
+get-refute-proof eq x y = ⊥-elim (get-absurd-proof eq x y)
+{-# INLINE get-refute-proof #-}
+
 refutesub-tactic : Term → Term
 refutesub-tactic (pi (vArg (el _ a)) _) =
   case termToSubEqn a of λ
