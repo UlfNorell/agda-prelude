@@ -51,3 +51,8 @@ h on f = λ x y → h (f x) (f y)
 it : ∀ {a} {A : Set a} {{x : A}} → A
 it {{x}} = x
 {-# INLINE it #-}
+
+-- Can be used to force normalisation at compile time.
+static : ∀ {a} {A : Set a} → A → A
+static x = x
+{-# STATIC static #-}
