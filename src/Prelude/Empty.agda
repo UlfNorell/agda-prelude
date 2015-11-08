@@ -7,6 +7,7 @@ data ⊥ : Set where
 
 ⊥-elim : ∀ {a} {A : Set a} → ⊥ → A
 ⊥-elim ()
+{-# INLINE ⊥-elim #-}
 
 private postulate erasedBottom : ⊥
 
@@ -26,3 +27,4 @@ data ⊥′ {a} : Set a where
 
 ⊥′-elim : ∀ {a b} {A : Set a} → ⊥′ {b} → A
 ⊥′-elim ()
+{-# INLINE ⊥′-elim #-}
