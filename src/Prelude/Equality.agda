@@ -68,6 +68,9 @@ decEq₂ f-inj₁ f-inj₂ (no neq)    _         = no λ eq → neq (f-inj₁ eq
 decEq₂ f-inj₁ f-inj₂  _         (no neq)   = no λ eq → neq (f-inj₂ eq)
 decEq₂ f-inj₁ f-inj₂ (yes refl) (yes refl) = yes refl
 
+{-# INLINE decEq₁ #-}
+{-# INLINE decEq₂ #-}
+
 -- Equality reasoning --
 
 infixr 0 _≡⟨_⟩_ _≡⟨_⟩ʳ_

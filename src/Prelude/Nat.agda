@@ -87,6 +87,7 @@ private
   decEqNat n m with eqNat n m | eqNatSound n m | eqNatComplete n m
   ... | true  | eq | _   = yes (eraseEquality (eq true))
   ... | false | _  | neq = no  (eraseNegation (neq false))
+  {-# INLINE decEqNat #-}
 
 instance
   EqNat : Eq Nat

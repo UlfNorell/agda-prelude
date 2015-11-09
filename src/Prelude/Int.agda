@@ -43,25 +43,29 @@ instance
 _-NZ_ : Nat → Nat → Int
 a -NZ b with compare a b
 ... | less (diff k _)    = negsuc k
-... | equal _            = pos zero
+... | equal _            = pos (a - b)  -- a - b instead of 0 makes it compile to Integer minus
 ... | greater (diff k _) = pos (suc k)
+{-# INLINE _-NZ_ #-}
 
 _+Z_ : Int → Int → Int
 pos    a +Z pos    b = pos (a + b)
 pos    a +Z negsuc b = a -NZ suc b
 negsuc a +Z pos    b = b -NZ suc a
 negsuc a +Z negsuc b = negsuc (suc a + b)
+{-# INLINE _+Z_ #-}
 
 {-# DISPLAY _+Z_ a b = a + b #-}
 
 negateInt : Int → Int
 negateInt (pos    n) = neg n
 negateInt (negsuc n) = pos (suc n)
+{-# INLINE negateInt #-}
 
 {-# DISPLAY negateInt a = negate a #-}
 
 _-Z_ : Int → Int → Int
 a -Z b = a +Z negateInt b
+{-# INLINE _-Z_ #-}
 
 _*Z_ : Int → Int → Int
 pos    a *Z pos    b = pos (a * b)

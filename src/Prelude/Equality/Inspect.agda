@@ -22,6 +22,7 @@ module _ {a b} {A : Set a} {B : A → Set b} (f : ∀ x → B x) (x : A) where
 
   graphAt : Graph (f x)
   graphAt = ingraph refl
+  {-# INLINE graphAt #-}
 
 module _ {a} {A : Set a} where
 
@@ -29,7 +30,8 @@ module _ {a} {A : Set a} where
   Inspect x = Σ _ λ y → Graph id x y
 
   infix 4 _with≡_
-  pattern _with≡_ x eq = x , ingraph eq 
+  pattern _with≡_ x eq = x , ingraph eq
 
   inspect : ∀ x → Inspect x
   inspect x = x , ingraph refl
+  {-# INLINE inspect #-}
