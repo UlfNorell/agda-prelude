@@ -100,14 +100,16 @@ quotInt-by (pos (suc n)) (pos m)    = pos (m div suc n)
 quotInt-by (pos (suc n)) (negsuc m) = neg (suc m div suc n)
 quotInt-by (negsuc n)    (pos m)    = neg (m div suc n)
 quotInt-by (negsuc n)    (negsuc m) = pos (suc m div suc n)
+{-# INLINE quotInt-by #-}
 
 syntax remInt-by b a = a rem b
 remInt-by : (b : Int) {{_ : NonZeroInt b}} → Int → Int
 remInt-by (pos zero) {{}} _
-remInt-by (pos (suc n)) (pos m)    = pos (m mod suc n)
-remInt-by (pos (suc n)) (negsuc m) = pos (suc m mod suc n)
-remInt-by (negsuc n)    (pos m)    = neg (m mod suc n)
+remInt-by (pos (suc n)) (pos m)    = pos (    m mod suc n)
+remInt-by (pos (suc n)) (negsuc m) = neg (suc m mod suc n)
+remInt-by (negsuc n)    (pos m)    = pos (    m mod suc n)
 remInt-by (negsuc n)    (negsuc m) = neg (suc m mod suc n)
+{-# INLINE remInt-by #-}
 
 -- Eq --
 
