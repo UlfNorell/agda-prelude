@@ -71,7 +71,7 @@ _*Z_ : Int → Int → Int
 pos    a *Z pos    b = pos (a * b)
 pos    a *Z negsuc b = neg (a * suc b)
 negsuc a *Z pos    b = neg (suc a * b)
-negsuc a *Z negsuc b = neg (suc a * suc b)
+negsuc a *Z negsuc b = pos (suc a * suc b)
 
 {-# DISPLAY _*Z_ a b = a * b #-}
 
