@@ -17,6 +17,10 @@ private
   primFloatMinus    : Float → Float → Float
   primFloatTimes    : Float → Float → Float
   primFloatDiv      : Float → Float → Float
+  primFloatSqrt     : Float → Float
+  primRound         : Float → Int
+  primFloor         : Float → Int
+  primCeiling       : Float → Int
   primExp           : Float → Float
   primLog           : Float → Float
   primSin           : Float → Float
@@ -24,6 +28,10 @@ private
 
 natToFloat : Nat → Float
 natToFloat = primNatToFloat
+
+intToFloat : Int → Float
+intToFloat (pos    x) = natToFloat x
+intToFloat (negsuc x) = primFloatMinus -1.0 (natToFloat x)
 
 instance
   EqFloat : Eq Float
@@ -75,9 +83,13 @@ instance
   Fractional.Constraint FracFloat _ _ = ⊤
   Fractional._/_ FracFloat x y = primFloatDiv x y
 
-exp = primExp
-ln  = primLog
-sin = primSin
+floor   = primFloor
+round   = primRound
+ceiling = primCeiling
+exp     = primExp
+ln      = primLog
+sin     = primSin
+sqrt    = primFloatSqrt
 
 π : Float
 π = 3.141592653589793
