@@ -340,6 +340,7 @@ compareInt a b with inspect (a - b)
 compareInt a b | pos zero    with≡ eq = equal (eraseEquality (lem-equal a b eq))
 compareInt a b | pos (suc k) with≡ eq = greater (diff k (eraseEquality (lem-greater a b k eq)))
 compareInt a b | negsuc k    with≡ eq = less (diff k (eraseEquality (lem-less a b k eq)))
+{-# INLINE compareInt #-}
 
 private
   from-eq : ∀ x y → x ≡ y → LessInt x (1 + y)

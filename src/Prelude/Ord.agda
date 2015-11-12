@@ -16,11 +16,13 @@ isLess : ∀ {a} {A : Set a} {R : A → A → Set a} {x y} → Comparison R x y 
 isLess (less    _) = true
 isLess (equal   _) = false
 isLess (greater _) = false
+{-# INLINE isLess #-}
 
 isGreater : ∀ {a} {A : Set a} {R : A → A → Set a} {x y} → Comparison R x y → Bool
 isGreater (less    _) = false
 isGreater (equal   _) = false
 isGreater (greater _) = true
+{-# INLINE isGreater #-}
 
 data LessEq {a} {A : Set a} (_<_ : A → A → Set a) (x y : A) : Set a where
   instance

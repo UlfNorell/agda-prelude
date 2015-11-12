@@ -35,6 +35,7 @@ false && _ = false
 not : Bool → Bool
 not true  = false
 not false = true
+{-# INLINE not #-}
 
 data IsTrue : Bool → Set where
   instance true : IsTrue true
