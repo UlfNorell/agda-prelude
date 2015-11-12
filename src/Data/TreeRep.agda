@@ -86,8 +86,8 @@ data LessLeaf : Leaf → Leaf → Set where
   string       : ∀ {x y} → x < y → LessLeaf (string x) (string y)
   float        : ∀ {x y} → x < y → LessLeaf (float x) (float y)
   name         : ∀ {x y} → x < y → LessLeaf (name x) (name y)
-  char<string  : ∀ {x y} → LessLeaf (char x) (string y) 
-  char<float   : ∀ {x y} → LessLeaf (char x) (float y) 
+  char<string  : ∀ {x y} → LessLeaf (char x) (string y)
+  char<float   : ∀ {x y} → LessLeaf (char x) (float y)
   char<name    : ∀ {x y} → LessLeaf (char x) (name y)
   string<float : ∀ {x y} → LessLeaf (string x) (float y)
   string<name  : ∀ {x y} → LessLeaf (string x) (name y)
@@ -243,7 +243,7 @@ instance
 --     decodeTest (node 0 (x ∷ []))     = cA <$> decodeTest x
 --     decodeTest (node 1 (x ∷ y ∷ [])) = cB <$> decodeTest x <*> decodeTest y
 --     decodeTest (node 2 [])           = just cC
---     decodeTest (node 3 (x ∷ y ∷ [])) = cD <$> decodeTest x <*> decodeTest y 
+--     decodeTest (node 3 (x ∷ y ∷ [])) = cD <$> decodeTest x <*> decodeTest y
 --     decodeTest _ = nothing
 
 --     embeddingTest : ∀ x → decodeTest (encodeTest x) ≡ just x
