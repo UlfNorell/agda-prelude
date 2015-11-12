@@ -77,6 +77,11 @@ drop zero    xs       = xs
 drop (suc n) []       = []
 drop (suc n) (x ∷ xs) = drop n xs
 
+splitAt : ∀ {a} {A : Set a} → Nat → List A → List A × List A
+splitAt zero    xs       = [] , xs
+splitAt (suc n) []       = [] , []
+splitAt (suc n) (x ∷ xs) = first (x ∷_) (splitAt n xs)
+
 null : ∀ {a} {A : Set a} → List A → Bool
 null []      = true
 null (_ ∷ _) = false
