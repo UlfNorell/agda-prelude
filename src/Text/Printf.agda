@@ -2,6 +2,7 @@
 module Text.Printf where
 
 open import Prelude hiding (parseNat)
+open import Builtin.Float
 
 private
   data Padding : Set where
@@ -13,14 +14,16 @@ private
       padding   : Padding
       padChar   : Char
       alternate : Bool
+      precision : Maybe Nat
 
   defaultFlags : Flags
-  defaultFlags = record { padding = noPad ; padChar = ' ' ; alternate = false }
+  defaultFlags = record { padding = noPad ; padChar = ' ' ; alternate = false; precision = nothing }
 
   data Format : Set where
     natArg    : Flags → Format
     strArg    : Flags → Format
     ustrArg   : Flags → Format
+    floatArg  : Flags → Format
     charArg   : Format
     hexArg    : Bool → Flags → Format
     litString : String → Format
@@ -57,6 +60,9 @@ private
     if isDigit c then parseNat (λ n → record f { padding = rPad n }) (c ∷ s)
                  else badFormat (packString ('-' ∷ c ∷ [])) ∷ parseFormat s
   parsePadding f ('0' ∷ s) = parsePadding (record f { padChar = '0' }) s
+  parsePadding f ('.' ∷ c ∷ s) =
+    if isDigit c then parseNat (λ n → record f { precision = just n }) (c ∷ s)
+                 else badFormat (packString ('.' ∷ c ∷ [])) ∷ parseFormat s
   parsePadding f (c ∷ s) =
     if isDigit c then parseNat (λ n → record f { padding = lPad n }) (c ∷ s)
                  else parseFormatWithFlags f (c ∷ s)
@@ -72,9 +78,10 @@ private
   parseFormatWithFlags f ('c' ∷ s) = charArg ∷ parseFormat s
   parseFormatWithFlags f ('s' ∷ s) = strArg f ∷ parseFormat s
   parseFormatWithFlags f ('S' ∷ s) = ustrArg f ∷ parseFormat s
+  parseFormatWithFlags f ('f' ∷ s) = floatArg f ∷ parseFormat s
   parseFormatWithFlags f ('%' ∷ s) = consLit "%" $ parseFormat s
   parseFormatWithFlags f ( c  ∷ s) = badFormat (packString ('%' ∷ c ∷ [])) ∷ parseFormat s
-    
+
   parseFormat [] = []
   parseFormat ('%' ∷ fmt) = parseFlags defaultFlags fmt
   parseFormat (c   ∷ fmt) = consLit (packString [ c ]) $ parseFormat fmt
@@ -112,6 +119,26 @@ private
   showHex f _ 0 = add0x f $ pad0 f $ "0"
   showHex f u n = add0x f $ pad0 f $ showHex′ (if u then 'A' else 'a') n
 
+  showFrac : Nat → Float → String
+  showFrac 0       _ = ""
+  showFrac 1       x = show (round (10 * x))
+  showFrac (suc p) x = show n & showFrac p (x′ - intToFloat n)
+    where x′ = 10 * x
+          n  = floor x′
+
+  showPosFloat : Flags → Float → String
+  showPosFloat f x =
+    case Flags.precision f of λ
+    { nothing  → show x
+    ; (just 0) → show (floor x)
+    ; (just p) → show (floor x) & "." & showFrac p (x - intToFloat (floor x))
+    }
+
+  showFloat : Flags → Float → String
+  showFloat f x with x <? 0.0
+  ... | true = "-" & showPosFloat f (negate x)
+  ... | false = showPosFloat f x
+
   withPad : Flags → String → ShowS
   withPad flags s =
     let c = Flags.padChar flags in
@@ -129,6 +156,7 @@ private
   Printf′ (strArg _    ∷ fmt) = String → Printf′ fmt
   Printf′ (ustrArg _   ∷ fmt) = List Char → Printf′ fmt
   Printf′ (charArg     ∷ fmt) = Char → Printf′ fmt
+  Printf′ (floatArg _  ∷ fmt) = Float → Printf′ fmt
   Printf′ (litString _ ∷ fmt) = Printf′ fmt
   Printf′ (badFormat e ∷ fmt) = BadFormat′ e → Printf′ fmt
 
@@ -138,6 +166,7 @@ private
   printf′ (hexArg u p  ∷ fmt) acc n = printf′ fmt (acc ∘ withPad p (showHex p u n))
   printf′ (strArg p    ∷ fmt) acc s = printf′ fmt (acc ∘ withPad p s)
   printf′ (ustrArg p   ∷ fmt) acc s = printf′ fmt (acc ∘ withPad p (packString s))
+  printf′ (floatArg p  ∷ fmt) acc x = printf′ fmt (acc ∘ withPad p (showFloat p x))
   printf′ (charArg     ∷ fmt) acc c = printf′ fmt (acc ∘ showString (packString [ c ]))
   printf′ (litString s ∷ fmt) acc   = printf′ fmt (acc ∘ showString s)
   printf′ (badFormat _ ∷ fmt) acc _ = printf′ fmt acc
