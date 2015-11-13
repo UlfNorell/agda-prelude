@@ -32,19 +32,19 @@ open import Data.Nat.Pow
 open import Data.Smashed
 
 Hello = printf "%c%s" 'H' "ello"
-World = printf "%6s" "World"
+World = printf "%-7s(%.6f)" "World" π
 
 M = StateT Nat IO
 
 putStrI : String → StateT Nat IO Unit
 putStrI s = get >>= λ n →
             put (suc n) >>
-            lift (putStr (printf "%d%s" n s))
+            lift (putStr (printf "[%d] %s\n" n s))
 
 main : IO ⊤
 main = _ <$ (runStateT (mapM putStrI (Hello ∷ World ∷ " " ∷ [])) 0 >>
              putStr (show (432429 divmod 41)) >>
-             putStr (" " & show (gcd! (19 * 17 * 31) (31 * 5))) >>
+             putStr ("\n" & show (gcd! (19 * 17 * 31) (31 * 5))) >>
              putStrLn "")
 
 downFrom : Nat → List Nat

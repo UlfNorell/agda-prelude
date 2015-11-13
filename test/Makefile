@@ -2,16 +2,14 @@
 agda = agda
 
 default :
-	$(agda) -i. -i../src Main.agda --compile --ghc-flag=-o --ghc-flag=hello $(agda-flags)
-
-expected="0Hello1 World2 432429 == 10547 * 41 + 2 31"
+	$(agda) -i. -i../src Main.agda --compile $(agda-flags)
 
 test :
 	make agda-flags=--ignore-interfaces
-	@if [ "`./hello`" == $(expected) ]; \
+	@if [ "`./Main`" == "`cat expected.out`" ]; \
 			then echo "OK"; \
-			else echo "Expected :" $(expected); \
-					 echo "Output   : `./hello`"; \
+			else echo "Expected :\n`cat expected.out`"; \
+					 echo "Output   :\n`./Main`"; \
 					 false; \
 	 fi
 
