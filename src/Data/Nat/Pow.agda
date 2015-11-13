@@ -6,10 +6,9 @@ module Data.Nat.Pow where
 open import Prelude
 open import Data.Nat.DivMod
 open import Control.WellFounded
-open import Control.Strict
 open import Tactic.Nat
 
-module _ {a} {A : Set a} {{_ : Forceable A}} {{_ : Semiring A}} where
+module _ {a} {A : Set a} {{_ : Semiring A}} where
   private
     expAcc : A → (n : Nat) → Acc _<_ n → A
     expAcc a  zero    wf = one
@@ -27,6 +26,10 @@ module _ {a} {A : Set a} {{_ : Forceable A}} {{_ : Semiring A}} where
            (idl   : (a : A) → one * a ≡ a) where
 
     private
+      force-eq : ∀ {a b} {A : Set a} {B : A → Set b} (x : A) {f : ∀ x → B x} {y : B x} →
+                   f x ≡ y → force x f ≡ y
+      force-eq x eq = forceLemma x _ ⟨≡⟩ eq
+
       on-assoc-l : {a b c a₁ b₁ c₁ : A} → (a * b) * c ≡ (a₁ * b₁) * c₁ → a * (b * c) ≡ a₁ * (b₁ * c₁)
       on-assoc-l eq = assoc _ _ _ ⟨≡⟩ eq ⟨≡⟩ʳ assoc _ _ _
 

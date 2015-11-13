@@ -122,8 +122,7 @@ private
   find! a  zero   check = none
   find! a (suc d) check with check a
   find! a (suc d) check | yes pa = here a pa
-  find! 0 (suc d) check | no _ = find! 1 d check   -- strict in a (blows up without sharing otherwise)
-  find! a (suc d) check | no _ = find! (suc a) d check
+  find! a (suc d) check | no _ = force a λ a → find! (suc a) d check
 
   found-in-range : ∀ {ℓ} {P : Nat → Set ℓ} a b d (eq : d + a ≡ suc b) (check : ∀ k → Dec (P k)) →
                      ∀ k (pk : P k) → find! a d check ≡ here k pk → k ∈[ a , b ]

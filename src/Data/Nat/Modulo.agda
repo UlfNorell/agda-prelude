@@ -4,7 +4,6 @@ module Data.Nat.Modulo where
 
 open import Prelude
 open import Data.Nat.DivMod
-open import Control.Strict
 open import Tactic.Nat
 
 data IntMod (n : Nat) : Set where
@@ -49,5 +48,3 @@ instance
 
   SubtractiveIntMod : ∀ {n} → Subtractive (IntMod (suc n))
   SubtractiveIntMod {n} = record { _-_ = subIntMod ; negate = negIntMod }
-
-  unquoteDecl ForceIntMod = deriveForceable (quote IntMod)

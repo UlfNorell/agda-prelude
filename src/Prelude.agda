@@ -21,6 +21,7 @@ open import Prelude.Semiring    public
 open import Prelude.Number      public
 open import Prelude.Fractional  public
 open import Prelude.Erased      public
+open import Prelude.Strict      public
 
 open import Prelude.Equality    public
 open import Prelude.Decidable   public
