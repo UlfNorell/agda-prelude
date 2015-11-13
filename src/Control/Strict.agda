@@ -3,6 +3,8 @@ module Control.Strict where
 
 open import Prelude
 
+-- Compile-time strictness ---------------------------------
+
 record Forceable {b a} (A : Set a) : Set (a ⊔ lsuc b) where
   constructor forceableDict
   field
@@ -71,3 +73,25 @@ instance
   unquoteDecl ForceMaybe  = deriveForceable (quote Maybe)
   unquoteDecl ForceEither = deriveForceable (quote Either)
   unquoteDecl ForceSigma  = deriveForceable (quote Σ)
+
+-- Run-time strictness -------------------------------------
+
+{-# IMPORT Agda.FFI #-}
+
+private
+  data Strict {a} (A : Set a) : Set a where
+    !_ : A → Strict A
+
+{-# COMPILED_DATA Strict Agda.FFI.Strict Agda.FFI.Strict #-}
+
+private
+  seqStrict : ∀ {a b} {A : Set a} {B : Set b} → Strict A → B → B
+  seqStrict (! x) y = y
+
+seq : ∀ {a b} {A : Set a} {B : Set b} → A → B → B
+seq x y = seqStrict (! x) y
+
+infixr 0 letStrict
+syntax letStrict (λ x → b) e = let! x ← e do b
+letStrict : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → A → B
+letStrict f x = seq x (f x)
