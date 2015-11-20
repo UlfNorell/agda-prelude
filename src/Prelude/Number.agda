@@ -9,6 +9,9 @@ record Number {a} (A : Set a) : Set (lsuc a) where
     Constraint : Nat → Set a
     fromNat : ∀ n → {{_ : Constraint n}} → A
 
+  NoConstraint : Set a
+  NoConstraint = ∀ {n} → Constraint n
+
 open Number {{...}} public using (fromNat)
 
 {-# BUILTIN FROMNAT fromNat #-}
@@ -18,6 +21,9 @@ record Negative {a} (A : Set a) : Set (lsuc a) where
   field
     Constraint : Nat → Set a
     fromNeg : ∀ n → {{_ : Constraint n}} → A
+
+  NoConstraint : Set a
+  NoConstraint = ∀ {n} → Constraint n
 
 open Negative {{...}} public using (fromNeg)
 
