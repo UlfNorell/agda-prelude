@@ -10,8 +10,6 @@ open import Tactic.Nat.Subtract public renaming
   ; simplifysub to simplify
   ; refutesub   to refute )
 
-open import Tactic.Reflection public using (apply-tactic; apply-goal-tactic)
-
 -- All tactics know about addition, multiplication and subtraction
 -- of natural numbers, and can prove equalities and inequalities (_<_).
 -- The available tactics are:
@@ -79,7 +77,7 @@ private
   refute-example₂ a b lt = refute lt
 
 {-
-  simplify-goal => ?
+  simplify-goal ?
 
     Simplify the current goal and let you keep working on the new goal.
     In most cases 'by prf' works better than
@@ -92,12 +90,12 @@ private
   simplify-goal-example  zero    b      eq = by eq
   simplify-goal-example (suc a)  zero   eq = refute eq
   simplify-goal-example (suc a) (suc b) eq =
-    simplify-goal => simplify-goal-example a b eq
+    simplify-goal (simplify-goal-example a b eq)
     -- Old goal: suc a ≡ suc b
     -- New goal:     a ≡ b
 
 {-
-  simplify eq to x => ?
+  simplify eq λ x → ?
 
     Simplify the given equation (and the current goal) and bind the simplified
     equation to x in the new goal.
@@ -109,7 +107,7 @@ private
   lemma (suc a) b eq = refute eq
 
   simplify-example : ∀ a b → (a + 1) * (b + 1) ≡ a * b + 1 → a ≡ 0
-  simplify-example a b eq = simplify eq to eq′ => lemma a b eq′
+  simplify-example a b eq = simplify eq λ eq′ → lemma a b eq′
 
 {-
   induction

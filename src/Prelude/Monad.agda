@@ -44,3 +44,6 @@ syntax do-seq   m m₁          = forM m do m₁
 do-bind = _>>=_
 do-seq = _>>_
 do-pbind = _>>=′_
+
+infixr 0 caseM_of_
+caseM_of_ = _>>=_

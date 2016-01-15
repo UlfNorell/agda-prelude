@@ -24,22 +24,18 @@ open import Tactic.Nat.Less.Lemmas
 -- Tactics --
 
 open import Tactic.Nat.Subtract.Auto public
-open import Tactic.Nat.Subtract.Simplify using (simplifysub-tactic) public
+open import Tactic.Nat.Subtract.Simplify using (simplify-goal; simplifysub ) public
 open import Tactic.Nat.Subtract.By public
 open import Tactic.Nat.Subtract.Refute public
 
 macro
-  autosub : Term
-  autosub = on-goal (quote autosub-tactic)
+  autosub : Tactic
+  autosub hole =
+    inferType hole >>= λ goal → unify hole =<< autosub-tactic goal
 
-  by : Term → Term
-  by = on-type-of-term (quote by-tactic)
+  by : Term → Tactic
+  by prf hole =
+    inferType hole >>= λ goal → unify hole =<< by-tactic prf goal
 
-  simplifysub : Term → Term
-  simplifysub = rewrite-argument-tactic (quote simplifysub-tactic)
-
-  simplify-goal : Term
-  simplify-goal = rewrite-goal-tactic (quote simplifysub-tactic)
-
-  refutesub : Term → Term
-  refutesub = on-type-of-term (quote refutesub-tactic)
+  refutesub : Term → Tactic
+  refutesub prf hole = unify hole =<< refutesub-tactic prf

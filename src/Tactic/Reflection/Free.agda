@@ -43,14 +43,11 @@ private
       }
   freeTerm n (con c args) = freeArgs n args
   freeTerm n (def f args) = freeArgs n args
+  freeTerm n (meta x args) = freeArgs n args
   freeTerm n (lam _ (abs _ v)) = freeTerm (suc n) v
   freeTerm n (pat-lam cs args) = freeClauses n cs ∪ freeArgs n args
   freeTerm n (pi a (abs _ b))  = freeArgType n a ∪ freeType (suc n) b
   freeTerm n (agda-sort s) = freeSort n s
-  freeTerm n (quote-goal (abs _ t)) = freeTerm (suc n) t
-  freeTerm n (quote-term t) = freeTerm n t
-  freeTerm n (unquote-term t args) = freeTerm n t ∪ freeArgs n args
-  freeTerm n quote-context = ∅
   freeTerm n (lit l) = ∅
   freeTerm n unknown = ∅
 

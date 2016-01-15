@@ -23,19 +23,19 @@ refutation : ∀ {a} {A : Set a} {Atom : Set} {{_ : Eq Atom}} {{_ : Ord Atom}} e
                ¬ CancelEq eq ρ → ExpEq eq ρ → A
 refutation exp ρ !eq eq = ⊥-elim (!eq (complicateEq exp ρ eq))
 
-refute-tactic : Term → Term
-refute-tactic (pi (vArg (el _ a)) _) =
-  case termToEq a of λ
-  { nothing → failedProof (quote invalidEquation) a
-  ; (just (eq , Γ)) →
+refute-tactic : Term → TC Term
+refute-tactic prf =
+  inferType prf >>= λ a →
+  caseM termToEq (unEl a) of λ
+  { nothing → pure $ failedProof (quote invalidEquation) (unEl a)
+  ; (just (eqn , Γ)) → pure $
     def (quote refutation)
-        $ vArg (` eq)
+        $ vArg (` eqn)
         ∷ vArg (quotedEnv Γ)
         ∷ vArg absurd-lam
-        ∷ []
+        ∷ vArg prf ∷ []
   }
-refute-tactic _ = def (quote Impossible) []
 
 macro
-  refute : Term → Term
-  refute = on-type-of-term (quote refute-tactic)
+  refute : Term → Tactic
+  refute prf hole = unify hole =<< refute-tactic prf

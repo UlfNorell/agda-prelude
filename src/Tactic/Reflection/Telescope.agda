@@ -14,17 +14,11 @@ telView a                       = [] , a
 telPi : Telescope → Type → Type
 telPi tel b = foldr (λ a b → el unknown (pi a (abs "_" b))) b tel
 
-dataParameters : Name → Nat
-dataParameters d =
-  case definitionOf d of
-   λ { (data-type npars cs) → npars
-     ; _ → 0 }
+arity : Name → TC Nat
+arity f = length ∘ fst ∘ telView <$> getType f
 
-arity : Name → Nat
-arity = length ∘ fst ∘ telView ∘ typeOf
-
-argTel : Name → Telescope
-argTel = fst ∘ telView ∘ typeOf
+argTel : Name → TC Telescope
+argTel f = fst ∘ telView <$> getType f
 
 telePat : Telescope → List (Arg Pattern)
 telePat = map (var "_" <$_)
@@ -37,15 +31,19 @@ private
 teleArgs : Telescope → List (Arg Term)
 teleArgs Γ = teleArgs′ (length Γ) Γ
 
-conParams : Name → Nat
+conParams : Name → TC Nat
 conParams c =
-  case definitionOf c of λ
-  { (data-cons d) → dataParameters d
-  ; _             → 0 }
+  forM def ← getDefinition c do
+  case def of λ
+  { (data-cons d) → getParameters d
+  ; _             → pure 0 }
 
-conPat : Name → Pattern
-conPat c = con c $ telePat $ drop (conParams c) (argTel c)
+conPat : Name → TC Pattern
+conPat c =
+  forM np ← conParams c do
+  con c ∘ telePat ∘ drop np <$> argTel c
 
-conTerm : Name → Term
-conTerm c = con c (teleArgs $ drop (conParams c) (argTel c))
-
+conTerm : Name → TC Term
+conTerm c =
+  forM np ← conParams c do
+  con c ∘ teleArgs ∘ drop np <$> argTel c

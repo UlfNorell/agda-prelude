@@ -3,6 +3,7 @@ module Tactic.Reflection.Quote where
 
 open import Prelude
 open import Builtin.Reflection
+open import Builtin.Float
 
 record Quotable {a} (A : Set a) : Set a where
   field
@@ -20,6 +21,24 @@ pattern `suc n = con (quote Nat.suc) (vArg n ∷ [])
 instance
   QuotableNat : Quotable Nat
   QuotableNat = record { ` = λ n → lit (nat n) }
+
+-- Float --
+
+instance
+  QuotableFloat : Quotable Float
+  ` {{QuotableFloat}} x = lit (float x)
+
+-- Char --
+
+instance
+  QuotableChar : Quotable Char
+  ` {{QuotableChar}} c = lit (char c)
+
+-- String --
+
+instance
+  QuotableString : Quotable String
+  ` {{QuotableString}} s = lit (string s)
 
 -- Bool --
 
@@ -93,10 +112,73 @@ instance
 
 instance
   QuotableName : Quotable Name
-  QuotableName = record { ` = λ x → lit (name x) }
+  ` {{QuotableName}} x = lit (name x)
 
 -- Term --
 
+private
+  pattern con₁ c x   = con c (vArg x ∷ [])
+  pattern con₂ c x y = con c (vArg x ∷ vArg y ∷ [])
+  dummy : Nat
+  dummy = 0
+
 instance
+  QuotableVisibility : Quotable Visibility
+  ` {{QuotableVisibility}} visible = con (quote visible) []
+  ` {{QuotableVisibility}} hidden = con (quote hidden) []
+  ` {{QuotableVisibility}} instance′ = con (quote instance′) []
+
+  QuotableRelevance : Quotable Relevance
+  ` {{QuotableRelevance}} relevant = con (quote relevant) []
+  ` {{QuotableRelevance}} irrelevant = con (quote irrelevant) []
+
+  QuotableArgInfo : Quotable ArgInfo
+  ` {{QuotableArgInfo}} (arg-info v r) = con₂ (quote arg-info) (` v) (` r)
+
+  QuotableArg : ∀ {A} {{_ : Quotable A}} → Quotable (Arg A)
+  ` {{QuotableArg}} (arg i x) = con₂ (quote arg) (` i) (` x)
+
+  QuotableAbs : ∀ {A} {{_ : Quotable A}} → Quotable (Abs A)
+  ` {{QuotableAbs}} (abs x b) = con₂ (quote abs) (` x) (` b)
+
+  QuotableLit : Quotable Literal
+  ` {{QuotableLit}} (nat x) = con₁ (quote nat) (` x)
+  ` {{QuotableLit}} (float x) = con₁ (quote float) (` x)
+  ` {{QuotableLit}} (char x) = con₁ (quote char) (` x)
+  ` {{QuotableLit}} (string x) = con₁ (quote string) (` x)
+  ` {{QuotableLit}} (name x) = con₁ (quote name) (` x)
+
+  {-# TERMINATING #-}
+  QuotablePattern : Quotable Pattern
+  ` {{QuotablePattern}} (con c ps) = con₂ (quote Pattern.con) (` c) (` ps)
+  ` {{QuotablePattern}} dot = con (quote dot) []
+  ` {{QuotablePattern}} (var x) = con₁ (quote Pattern.var) (` x)
+  ` {{QuotablePattern}} (lit l) = con₁ (quote Pattern.lit) (` l)
+  ` {{QuotablePattern}} (proj f) = con₁ (quote proj) (` f)
+  ` {{QuotablePattern}} absurd = con (quote absurd) []
+
+  {-# TERMINATING #-}
   QuotableTerm : Quotable Term
-  QuotableTerm = record { ` = quote-term }  -- cheating a little
+  QuotableClause : Quotable Clause
+  QuotableType : Quotable Type
+  QuotableSort : Quotable Sort
+
+  ` {{QuotableTerm}} (var x args) = con₂ (quote Term.var) (` x) (` args)
+  ` {{QuotableTerm}} (con c args) = con₂ (quote Term.con) (` c) (` args)
+  ` {{QuotableTerm}} (def f args) = con₂ (quote def) (` f) (` args)
+  ` {{QuotableTerm}} (lam v t) = con₂ (quote lam) (` v) (` t)
+  ` {{QuotableTerm}} (pat-lam cs args) = con₂ (quote pat-lam) (` cs) (` args)
+  ` {{QuotableTerm}} (pi a b) = con₂ (quote pi) (` a) (` b)
+  ` {{QuotableTerm}} (agda-sort s) = con₁ (quote agda-sort) (` s)
+  ` {{QuotableTerm}} (lit l) = con₁ (quote Term.lit) (` l)
+  ` {{QuotableTerm}} (meta x x₁) = con (quote Term.unknown) []   -- Note: no meta literals (yet)
+  ` {{QuotableTerm}} unknown = con (quote Term.unknown) []
+
+  ` {{QuotableType}} (el s v) = con₂ (quote el) (` s) (` v)
+
+  ` {{QuotableSort}} (set t) = con₁ (quote set) (` t)
+  ` {{QuotableSort}} (lit n) = con₁ (quote Sort.lit) (` n)
+  ` {{QuotableSort}} unknown = con (quote Sort.unknown) []
+
+  ` {{QuotableClause}} (clause x x₁)     = con₂ (quote clause) (` x) (` x₁)
+  ` {{QuotableClause}} (absurd-clause x) = con₁ (quote absurd-clause) (` x)

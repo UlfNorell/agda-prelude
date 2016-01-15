@@ -2,7 +2,6 @@
 module Tactic.Reflection.Substitute where
 
 open import Prelude
-open import Control.Strict
 open import Builtin.Reflection
 open import Tactic.Reflection.DeBruijn
 
@@ -21,7 +20,6 @@ patternArgsVars (arg _ p ∷ ps) = patternVars p + patternArgsVars ps
 
 IsSafe : Term → Set
 IsSafe (lam _ _) = ⊥
-IsSafe (quote-goal _) = ⊥
 IsSafe _ = ⊤
 
 data SafeTerm : Set where
@@ -31,15 +29,12 @@ maybeSafe : Term → Maybe SafeTerm
 maybeSafe (var x args) = just (safe (var x args) _)
 maybeSafe (con c args) = just (safe (con c args) _)
 maybeSafe (def f args) = just (safe (def f args) _)
+maybeSafe (meta x args) = just (safe (meta x args) _)
 maybeSafe (lam v t) = nothing
 maybeSafe (pat-lam cs args) = just (safe (pat-lam cs args) _)
 maybeSafe (pi a b) = just (safe (pi a b) _)
-maybeSafe (sort s) = just (safe (sort s) _)
+maybeSafe (agda-sort s) = just (safe (agda-sort s) _)
 maybeSafe (lit l) = just (safe (lit l) _)
-maybeSafe (quote-goal t) = nothing
-maybeSafe (quote-term v) = just (safe (quote-term v) _)
-maybeSafe quote-context = just (safe quote-context _)
-maybeSafe (unquote-term v args) = just (safe (unquote-term v args) _)
 maybeSafe unknown = just (safe unknown _)
 
 instance
@@ -52,7 +47,7 @@ instance
       str k n (safe v _) = forM v₁ ← strengthenFrom k n v do maybeSafe v₁
 
       wk : Nat → Nat → SafeTerm → SafeTerm
-      wk k n (safe v p) = maybe (safe unknown _) id (maybeSafe (weakenFrom k n v)) 
+      wk k n (safe v p) = maybe (safe unknown _) id (maybeSafe (weakenFrom k n v))
 
 safe-term : SafeTerm → Term
 safe-term (safe v _) = v
@@ -62,15 +57,12 @@ applyTerm v [] = safe-term v
 applyTerm (safe (var x args) _) args₁ = var x (args ++ args₁)
 applyTerm (safe (con c args) _) args₁ = con c (args ++ args₁)
 applyTerm (safe (def f args) _) args₁ = def f (args ++ args₁)
+applyTerm (safe (meta x args) _) args₁ = meta x (args ++ args₁)
 applyTerm (safe (lam v t) ()) args
 applyTerm (safe (pat-lam cs args) _) args₁ = pat-lam cs (args ++ args₁)
 applyTerm (safe (pi a b) _) _ = pi a b
-applyTerm (safe (sort s) _) _ = sort s
+applyTerm (safe (agda-sort s) _) _ = agda-sort s
 applyTerm (safe (lit l) _)  _ = lit l
-applyTerm (safe (quote-goal t) ()) args
-applyTerm (safe (quote-term v) _) _ = quote-term v
-applyTerm (safe quote-context _) _ = quote-context
-applyTerm (safe (unquote-term v args) _) args₁ = unquote-term v (args ++ args₁)
 applyTerm (safe unknown _) _ = unknown
 
 Subst : Set → Set
@@ -93,15 +85,12 @@ substTerm σ (var x args) =
   ; (just v) → applyTerm v (substArgs σ args) }
 substTerm σ (con c args) = con c (substArgs σ args)
 substTerm σ (def f args) = def f (substArgs σ args)
+substTerm σ (meta x args) = meta x (substArgs σ args)
 substTerm σ (lam v b) = lam v (substAbs σ b)
 substTerm σ (pat-lam cs args) = pat-lam (substClauses σ cs) (substArgs σ args)
 substTerm σ (pi a b) = pi (substArgType σ a) (substAbsType σ b)
-substTerm σ (sort s) = sort (substSort σ s)
+substTerm σ (agda-sort s) = agda-sort (substSort σ s)
 substTerm σ (lit l) = lit l
-substTerm σ (quote-goal b) = quote-goal (substAbs σ b)
-substTerm σ (quote-term v) = quote-term (substTerm σ v)
-substTerm σ quote-context = quote-context
-substTerm σ (unquote-term v args) = unquote-term (substTerm σ v) (substArgs σ args)
 substTerm σ unknown = unknown
 
 substSort σ (set t) = set (substTerm σ t)

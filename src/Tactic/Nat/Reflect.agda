@@ -10,18 +10,22 @@ open import Tactic.Reflection.Equality
 
 open import Tactic.Nat.Exp
 
-R = StateT (Nat × List (Term × Nat)) Maybe
+R = StateT (Nat × List (Term × Nat)) TC
 
 fail : ∀ {A} → R A
-fail = lift nothing
+fail = lift (typeError "reflection error")
 
 _catch_ : ∀ {A} → R A → R A → R A
-m catch h = stateT (λ s → maybe (runStateT h s) just (runStateT m s))
+m catch h = stateT (λ s → catchTC (runStateT h s) (runStateT m s))
 
-runR : ∀ {A} → R A → Maybe (A × List Term)
+liftMaybe : ∀ {A} → Maybe A → R A
+liftMaybe = maybe fail pure
+
+runR : ∀ {A} → R A → TC (Maybe (A × List Term))
 runR r =
-  second (reverse ∘ map fst ∘ snd) <$>
-  runStateT r (0 , [])
+  catchTC (just ∘ second (reverse ∘ map fst ∘ snd) <$>
+           runStateT r (0 , []))
+          (return nothing)
 
 pattern `Nat = def (quote Nat) []
 
@@ -52,6 +56,7 @@ termToExpR (a `* b) = _⟨*⟩_ <$> termToExpR a <*> termToExpR b
 termToExpR `0       = pure (lit 0)
 termToExpR (`suc a) = ⟨suc⟩ <$> termToExpR a
 termToExpR (lit (nat n)) = pure (lit n)
+termToExpR (meta x _) = lift (blockOnMeta x)
 termToExpR unknown  = fail
 termToExpR t =
   gets (flip lookup t ∘ snd) >>=
@@ -61,23 +66,26 @@ termToExpR t =
 private
   lower : Nat → Term → R Term
   lower 0 = pure
-  lower i = lift ∘ strengthen i
+  lower i = liftMaybe ∘ strengthen i
 
 termToEqR : Term → R (Exp Var × Exp Var)
 termToEqR (lhs `≡ rhs) = _,_ <$> termToExpR lhs <*> termToExpR rhs
+termToEqR (def (quote _≡_) (_ ∷ hArg (meta x _) ∷ _)) = lift (blockOnMeta x)
+termToEqR (meta x _) = lift (blockOnMeta x)
 termToEqR _ = fail
 
 termToHypsR′ : Nat → Term → R (List (Exp Var × Exp Var))
 termToHypsR′ i (hyp `-> a) = _∷_ <$> (termToEqR =<< lower i hyp) <*> termToHypsR′ (suc i) a
+termToHypsR′ _ (meta x _) = lift (blockOnMeta x)
 termToHypsR′ i a = [_] <$> (termToEqR =<< lower i a)
 
 termToHypsR : Term → R (List (Exp Var × Exp Var))
 termToHypsR = termToHypsR′ 0
 
-termToHyps : Term → Maybe (List (Exp Var × Exp Var) × List Term)
+termToHyps : Term → TC (Maybe (List (Exp Var × Exp Var) × List Term))
 termToHyps t = runR (termToHypsR t)
 
-termToEq : Term → Maybe ((Exp Var × Exp Var) × List Term)
+termToEq : Term → TC (Maybe ((Exp Var × Exp Var) × List Term))
 termToEq t = runR (termToEqR t)
 
 buildEnv : List Nat → Env Var
@@ -119,14 +127,11 @@ stripImplicit : Term → Term
 stripImplicit (var x args) = var x (stripImplicitArgs args)
 stripImplicit (con c args) = con c (stripImplicitArgs args)
 stripImplicit (def f args) = def f (stripImplicitArgs args)
+stripImplicit (meta x args) = meta x (stripImplicitArgs args)
 stripImplicit (lam v t) = lam v (stripImplicitAbsTerm t)
 stripImplicit (pi t₁ t₂) = pi (stripImplicitArgType t₁) (stripImplicitAbsType t₂)
 stripImplicit (agda-sort x) = agda-sort x
 stripImplicit (lit l) = lit l
-stripImplicit (quote-goal t) = quote-goal (stripImplicitAbsTerm t)
-stripImplicit (quote-term t) = quote-term (stripImplicit t)
-stripImplicit quote-context  = quote-context
-stripImplicit (unquote-term t args) = unquote-term (stripImplicit t) (stripImplicitArgs args)
 stripImplicit (pat-lam cs args) = pat-lam cs (stripImplicitArgs args)
 stripImplicit unknown = unknown
 

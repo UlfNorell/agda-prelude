@@ -2,7 +2,7 @@
 open import Prelude
 open import Data.List
 open import Data.Traversable
-open import Builtin.Reflection
+open import Builtin.Reflection renaming (unify to unifyTC)
 open import Tactic.Reflection.Free
 open import Tactic.Reflection.DeBruijn
 open import Tactic.Reflection.Equality
@@ -69,25 +69,22 @@ private
   weakenTel 0 = id
   weakenTel n = weakenTelFrom 0 n
 
-  #pars : (d : Name) → Nat
-  #pars d = case (definitionOf d) of λ
-    { (data-type n _) → n
-    ; _               → 0
+  #pars : (d : Name) → TC Nat
+  #pars = getParameters
+
+  argsTel : (c : Name) → TC Telescope
+  argsTel c = caseM telView <$> getType c of λ
+    { (tel , el _ (def d ixs)) → flip drop tel <$> #pars d
+    ; (tel , _               ) → pure tel
     }
 
-  argsTel : (c : Name) → Telescope
-  argsTel c = case (telView (typeOf c)) of λ
-    { (tel , el _ (def d ixs)) → drop (#pars d) tel
-    ; (tel , _               ) → tel
-    }
+  #args : (c : Name) → TC Nat
+  #args c = length <$> argsTel c
 
-  #args : (c : Name) → Nat
-  #args c = length (argsTel c)
-
-  params : (c : Name) → List (Arg Type)
-  params c = case (telView (typeOf c)) of λ
-    { (tel , el _ (def d ixs)) → take (#pars d) tel
-    ; _                        → []
+  params : (c : Name) → TC (List (Arg Type))
+  params c = telView <$> getType c >>= λ
+    { (tel , el _ (def d ixs)) → flip take tel <$> #pars d
+    ; _                        → pure []
     }
 
   -- Parallel substitution --
@@ -130,58 +127,60 @@ private
   data Unify : Set where
     positive : List (Nat × Term) → Unify
     negative : Unify
-    failure  : String → Unify
+
+  failure : ∀ {a} {A : Set a} → String → TC A
+  failure s = typeError ("Unification error when deriving Eq: " & s)
 
   _&U_ : Unify → Unify → Unify
   (positive xs) &U (positive ys) = positive (xs ++ ys)
   (positive _)  &U negative      = negative
   negative      &U (positive _)  = negative
   negative      &U negative      = negative
-  (failure msg) &U _             = failure msg
-  _             &U (failure msg) = failure msg
 
   {-# TERMINATING #-}
-  unify : Term → Term → Unify
-  unifyArgs : List (Arg Term) → List (Arg Term) → Unify
+  unify : Term → Term → TC Unify
+  unifyArgs : List (Arg Term) → List (Arg Term) → TC Unify
 
   unify s            t            with s == t
-  unify s            t            | yes _ = positive []
+  unify s            t            | yes _ = pure (positive [])
   unify (var x [])   (var y [])   | no  _ =
     if (x <? y) -- In var-var case, instantiate the one that is bound the closest to us.
-    then (positive ((x , var y []) ∷ []))
-    else (positive ((y , var x []) ∷ []))
+    then pure $ positive ((x , var y []) ∷ [])
+    else pure $ positive ((y , var x []) ∷ [])
   unify (var x [])   t            | no  _ =
     if (elem x (freeVars t))
-    then (failure "cyclic occurrence") -- We don't currently know if the occurrence is rigid or not
-    else (positive ((x , t) ∷ []))
+    then failure "cyclic occurrence" -- We don't currently know if the occurrence is rigid or not
+    else pure $ positive ((x , t) ∷ [])
   unify t            (var x [])   | no  _ =
     if (elem x (freeVars t))
-    then (failure "cyclic occurrence")
-    else (positive ((x , t) ∷ []))
+    then failure "cyclic occurrence"
+    else pure $ positive ((x , t) ∷ [])
   unify (con c₁ xs₁) (con c₂ xs₂) | no  _ =
     if (isYes (c₁ == c₂))
     then unifyArgs xs₁ xs₂
-    else negative
+    else pure negative
   unify _ _                       | no  _ = failure "not a constructor or a variable"
 
-  unifyArgs [] [] = positive []
+  unifyArgs [] [] = pure (positive [])
   unifyArgs [] (_ ∷ _) = failure "panic: different number of arguments"
   unifyArgs (_ ∷ _) [] = failure "panic: different number of arguments"
   unifyArgs (arg v₁ x ∷ xs) (arg v₂ y ∷ ys) =
-    if (isYes (_==_ {{EqArgInfo}} v₁ v₂))
-    then (case (unify x y) of λ
-      { (positive sub) → positive sub &U unifyArgs (substArgs sub xs) (substArgs sub ys)
-      ; negative       → negative
-      ; (failure msg)  → failure msg
+    if isYes (_==_ {{EqArgInfo}} v₁ v₂)
+    then (unify x y >>= λ
+      { (positive sub) → (positive sub &U_) <$> unifyArgs (substArgs sub xs) (substArgs sub ys)
+      ; negative       → pure negative
       })
-    else (failure "panic: hiding mismatch")
+    else failure "panic: hiding mismatch"
 
-  unifyIndices : (c₁ c₂ : Name) → Unify
-  unifyIndices c₁ c₂ = case (telView (typeOf c₁) ,′ telView (typeOf c₂)) of λ
+  unifyIndices : (c₁ c₂ : Name) → TC Unify
+  unifyIndices c₁ c₂ =
+    forM t₁ ← getType c₁ do
+    forM t₂ ← getType c₂ do
+    case (telView t₁ ,′ telView t₂) of λ
     { ((tel₁ , el _ (def d₁ xs₁)) , (tel₂ , el _ (def d₂ xs₂))) →
-        let n₁ = #pars d₁
-            n₂ = #pars d₂
-            ixs₁ = drop n₁ xs₁
+        forM n₁ ← #pars d₁ do
+        forM n₂ ← #pars d₂ do
+        let ixs₁ = drop n₁ xs₁
             ixs₂ = drop n₂ xs₂
         in unifyArgs (weaken                        (length tel₂ - n₂) ixs₁)
            -- weaken all variables of first constructor by number of arguments of second constructor
@@ -192,10 +191,10 @@ private
 
   -- Analysing constructor types --
 
-  forcedArgs : (c : Name) → List Nat
-  forcedArgs c = case (unifyIndices c c) of λ
-    { (positive xs) → map fst xs
-    ; _             → []
+  forcedArgs : (c : Name) → TC (List Nat)
+  forcedArgs c = caseM (unifyIndices c c) of λ
+    { (positive xs) → pure (map fst xs)
+    ; _             → pure []
     }
 
   data Forced : Set where forced free : Forced
@@ -228,23 +227,23 @@ private
   rightArgs : ∀ {n} → RemainingArgs n → List (Arg Term)
   rightArgs = map (fmap (snd ∘ snd)) ∘ vecToList
 
-  classifyArgs : (c : Name) → RemainingArgs _
-  classifyArgs c = classify (#argsc - 1) (#freec - 1) (argsTel c)
+  classifyArgs : (c : Name) → TC (Σ Nat RemainingArgs)
+  classifyArgs c =
+    forM #argsc  ← #args c do
+    forM forcedc  ← forcedArgs c do
+    let #freec   = #argsc - length forcedc in
+    _,_ _ ∘ classify #freec forcedc (#argsc - 1) (#freec - 1) <$> argsTel c
   -- The final argument should be (weakenTel (#argsc + #freec) (argsTel c)),
   -- but we don't really care about the types of the arguments anyway.
     where
-      forcedc = forcedArgs c
-
-      #argsc   = #args c
-      #forcedc = length forcedc
-      #freec   = #argsc - #forcedc
-
-      classify : (m n : Nat) (tel : List (Arg Type)) → RemainingArgs (length tel)
-      classify m n [] = []
-      classify m n (arg i (el _ ty) ∷ tel) =
+      classify : Nat → List Nat → (m n : Nat) (tel : List (Arg Type)) → RemainingArgs (length tel)
+      classify _ _ m n [] = []
+      classify #freec forcedc m n (arg i (el _ ty) ∷ tel) =
         if (elem m forcedc)
-        then arg i (forced , var (#freec + m) [] , var (#freec + m) []) ∷ classify (m - 1) n       tel
-        else arg i (free   , var (#freec + m) [] , var n            []) ∷ classify (m - 1) (n - 1) tel
+        then arg i (forced , var (#freec + m) [] , var (#freec + m) []) ∷
+             classify #freec forcedc (m - 1) n       tel
+        else arg i (free   , var (#freec + m) [] , var n            []) ∷
+             classify #freec forcedc (m - 1) (n - 1) tel
 
   rightArgsFree : ∀ {n} → RemainingArgs n → List (Arg Term)
   rightArgsFree [] = []
@@ -315,19 +314,25 @@ private
 
   checkEqArgs _ _ _ = con₁ (quote yes) (con₀ (quote refl))
 
-  matchingClause : (c : Name) → Clause
-  matchingClause c = clause (makeParamsPats ++
-                              vArg (con c (makeLeftPattern args)) ∷
-                              vArg (con c (makeRightPattern args)) ∷ [])
-                            (checkEqArgs c makeParams args)
+  matchingClause : (c : Name) → TC Clause
+  matchingClause c =
+    caseM classifyArgs c of λ { (_ , args) →
+    forM  paramPats ← map (fmap λ _ → var "A") ∘ hideTel <$> params c do
+    for   params    ← makeParams args do
+      clause (paramPats ++
+              vArg (con c (makeLeftPattern args)) ∷
+              vArg (con c (makeRightPattern args)) ∷ [])
+             (checkEqArgs c params args) }
     where
       args = classifyArgs c
 
-      makeParamsPats : List (Arg Pattern)
-      makeParamsPats = map (fmap (λ _ → var "A")) (hideTel (params c))
+      makeParamsPats : TC (List (Arg Pattern))
+      makeParamsPats = map (fmap λ _ → var "A") ∘ hideTel <$> params c
 
-      makeParams : List (Arg Term)
-      makeParams = weaken (length (vecToList args) + countFree args) (newArgs (params c))
+      makeParams : ∀ {n} → RemainingArgs n → TC (List (Arg Term))
+      makeParams args =
+        for ps ← params c do
+        weaken (length (vecToList args) + countFree args) (newArgs ps)
 
       makeLeftPattern : ∀ {n} → RemainingArgs n → List (Arg Pattern)
       makeLeftPattern [] = []
@@ -340,21 +345,16 @@ private
 
   -- Mismatching constructor case --
 
-  mismatchingClause : (c₁ c₂ : Name) (fs : List Nat) → Clause
+  mismatchingClause : (c₁ c₂ : Name) (fs : List Nat) → TC Clause
   mismatchingClause c₁ c₂ fs =
-    clause (vArg (con c₁ (makePattern (#args₁ + #args₂ - 1) (argsTel c₁))) ∷
-            vArg (con c₂ (makePattern (#args₂ - 1) (argsTel c₂))) ∷ [])
+    forM args₁ ← argsTel c₁ do
+    forM args₂ ← argsTel c₂ do
+    forM #args₁ ← pure (length args₁) do
+    for  #args₂ ← pure (length args₂) do
+    clause (vArg (con c₁ (makePattern (#args₁ + #args₂ - 1) args₁)) ∷
+            vArg (con c₂ (makePattern (#args₂ - 1) args₂)) ∷ [])
            (con (quote no) ([ vArg (pat-lam ([ absurd-clause ([ vArg absurd ]) ]) []) ]))
     where
-      args₁ = argsTel c₁
-      args₂ = argsTel c₂
-      #args₁ = length args₁
-      #args₂ = length args₂
-      forced₁ = filter (λ i → #args₂ ≤? i) fs
-      forced₂ = filter (λ i → #args₂ >? i) fs
-      #forced₁ = length forced₁
-      #forced₂ = length forced₂
-
       makePattern : (k : Nat) (args : List (Arg Type)) → List (Arg Pattern)
       makePattern k [] = []
       makePattern k (arg i _ ∷ args) = (if (elem k fs) then (arg i dot) else arg i (var "x"))
@@ -362,23 +362,23 @@ private
 
   -- Clauses --
 
-  makeClause : (c₁ c₂ : Name) → List Clause
+  makeClause : (c₁ c₂ : Name) → TC (List Clause)
   makeClause c₁ c₂ = case (c₁ == c₂) of λ
-    { (yes _) → [ matchingClause c₁ ]
-    ; (no  _) → case (unifyIndices c₁ c₂) of λ
-      { (positive fs) → [ mismatchingClause c₁ c₂ (map fst fs) ]
-      ; _             → []
+    { (yes _) → _∷ [] <$> matchingClause c₁
+    ; (no  _) → caseM (unifyIndices c₁ c₂) of λ
+      { (positive fs) → _∷ [] <$> mismatchingClause c₁ c₂ (map fst fs)
+      ; _             → pure []
       }
     }
 
-  constructorPairs : (d : Name) → List (Name × Name)
-  constructorPairs d = case (definitionOf d) of λ
-    { (data-type _ cs) → concat (map (λ c₁ → map (_,_ c₁) cs) cs)
-    ; _ → []
+  constructorPairs : (d : Name) → TC (List (Name × Name))
+  constructorPairs d = caseM getDefinition d of λ
+    { (data-type _ cs) → pure $ concat (map (λ c₁ → map (_,_ c₁) cs) cs)
+    ; _ → pure []
     }
 
-  eqDefinition : (d : Name) → List Clause
-  eqDefinition d = concat (map (uncurry makeClause) (constructorPairs d))
+  eqDefinition : (d : Name) → TC (List Clause)
+  eqDefinition d = concat <$> (mapM (uncurry makeClause) =<< constructorPairs d)
 
   makeArgs : Nat → List (Arg Nat) → List (Arg Term)
   makeArgs n xs = reverse $ map (fmap (λ i → var (n - i - 1) [])) xs
@@ -402,8 +402,8 @@ private
      λ { (just i) → computeType d (1 + n) ((n <$ a) ∷ xs) (iArg (el unknown $ weaken (length is) i) ∷ weaken 1 is) tel
        ; nothing →  computeType d (1 + n) ((n <$ a) ∷ xs) (weaken 1 is) tel })
 
-deriveEqType : Name → Term
-deriveEqType d = computeType d 0 [] [] $ fst $ telView $ typeOf d
+deriveEqType : Name → TC Term
+deriveEqType d = computeType d 0 [] [] ∘ fst ∘ telView <$> getType d
 
-deriveEqDef : Name → List Clause
+deriveEqDef : Name → TC (List Clause)
 deriveEqDef d = eqDefinition d

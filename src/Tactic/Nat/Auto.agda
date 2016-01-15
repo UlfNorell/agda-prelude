@@ -33,11 +33,12 @@ module _ {Atom : Set} {{_ : Eq Atom}} {{_ : Ord Atom}} where
   auto-proof e₁ e₂ ρ    | no  _    = nothing
   auto-proof e₁ e₂ ρ    | yes nfeq = just (liftNFEq e₁ e₂ ρ (cong (λ n → ⟦ n ⟧n ρ) nfeq))
 
-auto-tactic : Term → Term
-auto-tactic t =
-  case termToEq t of
-  λ { nothing → failedProof (quote invalidGoal) t
+auto-tactic : Type → Tactic
+auto-tactic (el _ t) hole =
+  caseM termToEq t of
+  λ { nothing → unify hole $ failedProof (quote invalidGoal) t
     ; (just ((e₁ , e₂) , Γ)) →
+      unify hole $
       getProof (quote cantProve) t $
         def (quote auto-proof)
             ( vArg (` e₁)
@@ -47,5 +48,5 @@ auto-tactic t =
     }
 
 macro
-  auto : Term
-  auto = on-goal (quote auto-tactic)
+  auto : Tactic
+  auto = on-goal auto-tactic

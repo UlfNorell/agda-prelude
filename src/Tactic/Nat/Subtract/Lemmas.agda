@@ -146,7 +146,7 @@ private
     sub-mul-distr-r (evalt s) (eval a) (eval b) ʳ⟨≡⟩
     (evalt s *_) $≡ (_-_ $≡ lem-eval-sn-n a ρ *≡ lem-eval-sn-n b ρ) ʳ⟨≡⟩
     auto
-  
+
   sound-mul-ktm′ t [] ρ = auto
   sound-mul-ktm′ t (x ∷ a) ρ =
     let eval  x = ⟦ x ⟧n (atomEnv ρ)

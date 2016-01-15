@@ -4,6 +4,8 @@ module Tactic.Nat.Subtract.By where
 open import Prelude
 open import Builtin.Reflection
 open import Tactic.Reflection.Quote
+open import Tactic.Reflection.DeBruijn
+open import Tactic.Reflection.Substitute
 open import Tactic.Reflection
 open import Control.Monad.State
 
@@ -150,15 +152,27 @@ private
     for prf ← by-proof-less a (lit 1 ⟨+⟩ a₁) b b₁ ρ do
       λ eq → prf (diff 0 (cong suc (sym eq)))
 
-by-tactic : Term → Term
-by-tactic t =
-  case termToSubHyps t of
-  λ { (just (hyp ∷ goal ∷ [] , Γ)) →
-        getProof (quote cantProve) t $
-        def (quote by-proof)
-            ( vArg (` hyp)
-            ∷ vArg (` goal)
-            ∷ vArg (quotedEnv Γ)
-            ∷ [])
-    ; _ → failedProof (quote invalidGoal) t
+by-tactic : Term → Type → TC Term
+by-tactic prf g =
+  inferType prf >>= λ h →
+  let t = pi (vArg h) (abs "_" (weaken 1 g)) in
+  caseM termToSubHyps t of
+  λ { (just (hyp ∷ goal ∷ [] , Γ)) → pure $
+      applyTerm (safe
+        (getProof (quote cantProve) t $
+         def (quote by-proof)
+             ( vArg (` hyp)
+             ∷ vArg (` goal)
+             ∷ vArg (quotedEnv Γ)
+             ∷ [])) _) (vArg prf ∷ [])
+    ; _ → pure $ failedProof (quote invalidGoal) t
     }
+
+private
+  macro
+    by : Term → Tactic
+    by prf hole =
+      inferType hole >>= λ goal → unify hole =<< by-tactic prf goal
+
+  test : (a b c : Nat) → a + b ≡ b + c → 2 + a ≡ 1 + c + 1
+  test a b c eq = by eq

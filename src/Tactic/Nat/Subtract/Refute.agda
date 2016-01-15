@@ -4,6 +4,7 @@ module Tactic.Nat.Subtract.Refute where
 open import Prelude
 open import Builtin.Reflection
 open import Tactic.Reflection.Quote
+open import Tactic.Reflection.Substitute
 open import Tactic.Reflection
 open import Control.Monad.State
 
@@ -55,15 +56,16 @@ get-refute-proof : ∀ {a b} {A : Set a} {B : Set b} (prf : Maybe (A → ⊥)) �
 get-refute-proof eq x y = ⊥-elim (get-absurd-proof eq x y)
 {-# INLINE get-refute-proof #-}
 
-refutesub-tactic : Term → Term
-refutesub-tactic (pi (vArg (el _ a)) _) =
-  case termToSubEqn a of λ
-  { nothing → failedProof (quote invalidEquation) a
-  ; (just (eqn , Γ)) →
-    getProof (quote cantProve) a $
-    def (quote refutation-proof)
-        $ vArg (` eqn)
-        ∷ vArg (quotedEnv Γ)
-        ∷ []
+refutesub-tactic : Term → TC Term
+refutesub-tactic prf =
+  inferType prf >>= λ a →
+  caseM termToSubEqn (unEl a) of λ
+  { nothing → pure $ failedProof (quote invalidEquation) (unEl a)
+  ; (just (eqn , Γ)) → pure $
+    applyTerm (safe
+      (getProof (quote cantProve) (unEl a) $
+        def (quote refutation-proof)
+            $ vArg (` eqn)
+            ∷ vArg (quotedEnv Γ)
+            ∷ []) _) (vArg prf ∷ [])
   }
-refutesub-tactic _ = def (quote Impossible) []

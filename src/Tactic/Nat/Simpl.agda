@@ -5,6 +5,7 @@ open import Prelude
 open import Builtin.Reflection
 open import Tactic.Reflection.Quote
 open import Tactic.Reflection
+open import Tactic.Reflection.DeBruijn
 
 open import Tactic.Nat.Reflect
 open import Tactic.Nat.NF
@@ -43,30 +44,42 @@ module _ {Atom : Set} {{_ : Eq Atom}} {{_ : Ord Atom}} where
   simplifyH (h ∷ [])     ρ H = simplifyEq h ρ H
   simplifyH (h ∷ h₂ ∷ g) ρ H = λ H₁ → simplifyH (h₂ ∷ g) ρ $ H (complicateEq h ρ H₁)
 
-simplify-tactic : Term → Term
-simplify-tactic t =
-  case termToHyps t of
-  λ { nothing → failedProof (quote invalidGoal) t
-    ; (just (goal , Γ)) →
-      def (quote simplifyH) ( vArg (` goal)
-                            ∷ vArg (quotedEnv Γ)
-                            ∷ [])
+simplify-tactic : Term → Type → TC Term
+simplify-tactic prf g =
+  inferType prf >>= λ h →
+  let t = pi (vArg h) (abs "_" (weaken 1 g)) in
+  caseM termToHyps t of
+  λ { nothing → pure $ failedProof (quote invalidGoal) t
+    ; (just (goal , Γ)) → pure $
+      def (quote flip)
+        $ vArg (def (quote simplifyH)
+                    ( vArg (` goal)
+                    ∷ vArg (quotedEnv Γ) ∷ [] ))
+        ∷ vArg prf ∷ []
     }
 
-assumed-tactic : Term → Term
-assumed-tactic t =
-  case termToHyps t of
-  λ { nothing → failedProof (quote invalidGoal) t
-    ; (just (goal , Γ)) →
-      def (quote simplifyH) ( vArg (` goal)
-                            ∷ vArg (quotedEnv Γ)
-                            ∷ vArg (def (quote id) [])
-                            ∷ [])
-    }
+assumed-tactic : Term → Type → TC Term
+assumed-tactic prf g =
+  inferType prf >>= λ h →
+  let t = pi (vArg h) (abs "_" (weaken 1 g)) in
+  caseM termToHyps t of
+  (λ { nothing → pure $ failedProof (quote invalidGoal) t
+     ; (just (goal , Γ)) → pure $
+       def (quote simplifyH) ( vArg (` goal)
+                             ∷ vArg (quotedEnv Γ)
+                             ∷ vArg (def (quote id) [])
+                             ∷ vArg prf ∷ [])
+     })
 
 macro
-  follows-from : Term → Term
-  follows-from = on-type-of-term (quote assumed-tactic)
+  follows-from : Term → Tactic
+  follows-from prf hole =
+    inferType hole >>= λ goal →
+    unify hole =<< assumed-tactic prf goal
 
-  simplify : Term → Term
-  simplify = rewrite-argument-tactic (quote simplify-tactic)
+  simplify : Term → Tactic
+  simplify prf hole =
+    inferType hole >>= λ goal →
+    unify hole =<< simplify-tactic prf goal
+
+    -- rewrite-argument-tactic (quote simplify-tactic)

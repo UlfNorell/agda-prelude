@@ -28,6 +28,7 @@ termToSubExpR (a `* b) = _⟨*⟩_ <$> termToSubExpR a <*> termToSubExpR b
 termToSubExpR (a `- b) = _⟨-⟩_ <$> termToSubExpR a <*> termToSubExpR b
 termToSubExpR `0       = pure (lit 0)
 termToSubExpR (`suc a) = ⟨suc⟩s <$> termToSubExpR a
+termToSubExpR (meta x _) = lift (blockOnMeta x)
 termToSubExpR (lit (nat n)) = pure (lit n)
 termToSubExpR unknown  = fail
 termToSubExpR t =
@@ -37,9 +38,10 @@ termToSubExpR t =
 
 termToSubEqR : Term → R (SubExp × SubExp)
 termToSubEqR (lhs `≡ rhs) = _,_ <$> termToSubExpR lhs <*> termToSubExpR rhs
+termToSubEqR (def (quote _≡_) (_ ∷ hArg (meta x _) ∷ _)) = lift (blockOnMeta x)
 termToSubEqR _ = fail
 
-termToSubEq : Term → Maybe ((SubExp × SubExp) × List Term)
+termToSubEq : Term → TC (Maybe ((SubExp × SubExp) × List Term))
 termToSubEq t = runR (termToSubEqR t)
 
 pattern _`<_ a b = def (quote LessNat) (vArg a ∷ vArg b ∷ [])
@@ -47,24 +49,28 @@ pattern _`<_ a b = def (quote LessNat) (vArg a ∷ vArg b ∷ [])
 termToSubEqnR : Term → R Eqn
 termToSubEqnR (lhs `< rhs) = _:<_ <$> termToSubExpR lhs <*> termToSubExpR rhs
 termToSubEqnR (lhs `≡ rhs) = _:≡_ <$> termToSubExpR lhs <*> termToSubExpR rhs
+termToSubEqnR (def (quote _≡_) (_ ∷ hArg (meta x _) ∷ _)) = lift (blockOnMeta x)
+termToSubEqnR (meta x _) = lift (blockOnMeta x)
 termToSubEqnR _ = fail
 
-termToSubEqn : Term → Maybe (Eqn × List Term)
+termToSubEqn : Term → TC (Maybe (Eqn × List Term))
 termToSubEqn t = runR (termToSubEqnR t)
 
 private
   lower : Nat → Term → R Term
   lower 0 = pure
-  lower i = lift ∘ strengthen i
+  lower i = liftMaybe ∘ strengthen i
 
 termToSubHypsR′ : Nat → Term → R (List Eqn)
-termToSubHypsR′ i (hyp `-> a) = _∷_ <$> (termToSubEqnR =<< lower i hyp) <*> termToSubHypsR′ (suc i) a
+termToSubHypsR′ i (pi (vArg (el _ hyp)) (abs _ (el _ a))) =
+  _∷_ <$> (termToSubEqnR =<< lower i hyp) <*> termToSubHypsR′ (suc i) a
+termToSubHypsR′ _ (meta x _) = lift (blockOnMeta x)
 termToSubHypsR′ i a = [_] <$> (termToSubEqnR =<< lower i a)
 
 termToSubHypsR : Term → R (List Eqn)
 termToSubHypsR = termToSubHypsR′ 0
 
-termToSubHyps : Term → Maybe (List Eqn × List Term)
+termToSubHyps : Term → TC (Maybe (List Eqn × List Term))
 termToSubHyps t = runR (termToSubHypsR t)
 
 instance

@@ -55,6 +55,51 @@ instance
   OrdName = defaultOrd cmpName
 
 ------------------------------------------------------------------------
+-- Meta-variables
+
+postulate Meta : Set
+
+{-# BUILTIN AGDAMETA Meta #-}
+
+private
+  primitive
+    primMetaEquality : Meta → Meta → Bool
+    primMetaLess : Meta → Meta → Bool
+
+-- Show instance --
+
+instance
+  ShowMeta : Show Meta
+  showsPrec {{ShowMeta}} _ _ = showString "_"
+
+-- Eq instance --
+
+private
+  eqMeta : (x y : Meta) → Dec (x ≡ y)
+  eqMeta x y with primMetaEquality x y
+  ... | true  = yes unsafeEqual
+  ... | false = no  unsafeNotEqual
+
+instance
+  EqMeta : Eq Meta
+  EqMeta = record { _==_ = eqMeta }
+
+data LessMeta (x y : Meta) : Set where
+  less-name : primMetaLess x y ≡ true → LessMeta x y
+
+private
+  cmpMeta : ∀ x y → Comparison LessMeta x y
+  cmpMeta x y with inspect (primMetaLess x y)
+  ... | true  with≡ eq = less (less-name eq)
+  ... | false with≡ _  with inspect (primMetaLess y x)
+  ...   | true with≡ eq = greater (less-name eq)
+  ...   | false with≡ _ = equal unsafeEqual
+
+instance
+  OrdMeta : Ord Meta
+  OrdMeta = defaultOrd cmpMeta
+
+------------------------------------------------------------------------
 -- Terms
 
 -- Is the argument visible (explicit), hidden (implicit), or an
@@ -147,10 +192,7 @@ mutual
     pi            : (a : Arg Type) (b : Abs Type) → Term
     agda-sort     : (s : Sort) → Term
     lit           : (l : Literal) → Term
-    quote-goal    : (t : Abs Term) → Term
-    quote-term    : (t : Term) → Term
-    quote-context : Term
-    unquote-term  : (t : Term) (args : List (Arg Term)) → Term
+    meta          : (x : Meta) → List (Arg Term) → Term
     unknown       : Term
 
   data Type : Set where
@@ -188,15 +230,12 @@ absurd-lam = pat-lam (absurd-clause (vArg absurd ∷ []) ∷ []) []
 {-# BUILTIN AGDATERMVAR         var     #-}
 {-# BUILTIN AGDATERMCON         con     #-}
 {-# BUILTIN AGDATERMDEF         def     #-}
+{-# BUILTIN AGDATERMMETA        meta    #-}
 {-# BUILTIN AGDATERMLAM         lam     #-}
 {-# BUILTIN AGDATERMEXTLAM      pat-lam #-}
 {-# BUILTIN AGDATERMPI          pi      #-}
 {-# BUILTIN AGDATERMSORT        agda-sort #-}
 {-# BUILTIN AGDATERMLIT         lit     #-}
-{-# BUILTIN AGDATERMQUOTETERM    quote-term    #-}
-{-# BUILTIN AGDATERMQUOTEGOAL    quote-goal    #-}
-{-# BUILTIN AGDATERMQUOTECONTEXT quote-context #-}
-{-# BUILTIN AGDATERMUNQUOTE      unquote-term  #-}
 {-# BUILTIN AGDATERMUNSUPPORTED unknown #-}
 {-# BUILTIN AGDATYPEEL          el      #-}
 {-# BUILTIN AGDASORTSET         set     #-}
@@ -248,6 +287,76 @@ private
 {-# BUILTIN AGDADEFINITIONPOSTULATE       axiom        #-}
 {-# BUILTIN AGDADEFINITIONPRIMITIVE       primitive′   #-}
 
+------------------------------------------------------------------------
+-- TC monad
+
+postulate
+  TC         : ∀ {a} → Set a → Set a
+  returnTC   : ∀ {a} {A : Set a} → A → TC A
+  bindTC     : ∀ {a b} {A : Set a} {B : Set b} → TC A → (A → TC B) → TC B
+  unify      : Term → Term → TC ⊤
+  newMeta    : Type → TC Term
+  typeError  : ∀ {a} {A : Set a} → String → TC A
+  inferType  : Term → TC Type
+  checkType  : Term → Type → TC Term
+  normalise  : Term → TC Term
+  catchTC    : ∀ {a} {A : Set a} → TC A → TC A → TC A
+  getContext : TC (List (Arg Type))
+  extendContext : ∀ {a} {A : Set a} → Arg Type → TC A → TC A
+  inContext     : ∀ {a} {A : Set a} → List (Arg Type) → TC A → TC A
+  freshName  : String → TC Name
+  declareDef : Name → Type → TC ⊤
+  defineFun  : Name → List Clause → TC ⊤
+  getType    : Name → TC Type
+  getDef     : Name → TC Def
+  numberOfParameters : DataType → TC Nat
+  getConstructors    : DataType  → TC (List Name)
+  blockOnMeta : ∀ {a} {A : Set a} → Meta → TC A
+
+{-# BUILTIN AGDATCM           TC         #-}
+{-# BUILTIN AGDATCMRETURN     returnTC   #-}
+{-# BUILTIN AGDATCMBIND       bindTC     #-}
+{-# BUILTIN AGDATCMUNIFY      unify      #-}
+{-# BUILTIN AGDATCMNEWMETA    newMeta    #-}
+{-# BUILTIN AGDATCMTYPEERROR  typeError  #-}
+{-# BUILTIN AGDATCMINFERTYPE  inferType  #-}
+{-# BUILTIN AGDATCMCHECKTYPE  checkType  #-}
+{-# BUILTIN AGDATCMNORMALISE  normalise  #-}
+{-# BUILTIN AGDATCMCATCHERROR catchTC    #-}
+{-# BUILTIN AGDATCMGETCONTEXT getContext #-}
+{-# BUILTIN AGDATCMEXTENDCONTEXT extendContext #-}
+{-# BUILTIN AGDATCMINCONTEXT  inContext #-}
+{-# BUILTIN AGDATCMFRESHNAME  freshName #-}
+{-# BUILTIN AGDATCMDECLAREDEF declareDef #-}
+{-# BUILTIN AGDATCMDEFINEFUN  defineFun #-}
+{-# BUILTIN AGDATCMGETTYPE getType #-}
+{-# BUILTIN AGDATCMGETDEFINITION getDef #-}
+{-# BUILTIN AGDATCMNUMBEROFPARAMETERS numberOfParameters #-}
+{-# BUILTIN AGDATCMGETCONSTRUCTORS getConstructors #-}
+{-# BUILTIN AGDATCMBLOCKONMETA blockOnMeta #-}
+
+instance
+  MonadTC : ∀ {a} → Monad {a} TC
+  return {{MonadTC}} = returnTC
+  _>>=_  {{MonadTC}} = bindTC
+
+  ApplicativeTC : ∀ {a} → Applicative {a} TC
+  ApplicativeTC = defaultMonadApplicative
+
+  FunctorTC : ∀ {a} → Functor {a} TC
+  FunctorTC = defaultMonadFunctor
+
+Tactic = Term → TC ⊤
+
+give : Term → Tactic
+give v = λ hole → unify hole v
+
+define : Name → Function → TC ⊤
+define f (fun-def a cs) = declareDef f a >> defineFun f cs
+
+------------------------------------------------------------------------
+-- Convenient wrappers
+
 data Definition : Set where
   function    : Function  → Definition
   data-type   : (pars : Nat) (cs : List Name) → Definition
@@ -257,19 +366,12 @@ data Definition : Set where
   prim-fun    : Definition
 
 private
-  primitive
-    primQNameType        : Name → Type
-    primQNameDefinition  : Name → Def
-    primDataConstructors : DataType → List Name
-    primDataNumberOfParameters : DataType → Nat
-
-private
   data BadConstructorType : Set where
 
   bad = quote BadConstructorType
 
-  conData : Name → Name
-  conData = getTData ∘ primQNameType
+  conData : Name → TC Name
+  conData = λ c → getTData <$> getType c
     where
       getTData : Type → Name
       getData : Term → Name
@@ -278,23 +380,23 @@ private
       getData _         = bad
       getTData (el _ b) = getData b
 
-  makeDef : Name → Def → Definition
-  makeDef _ (function x)  = function x
-  makeDef _ (data-type x) = data-type (primDataNumberOfParameters x) (primDataConstructors x)
-  makeDef _ axiom         = axiom
-  makeDef _ (record′ x)   = record-type x
-  makeDef c constructor′  = data-cons (conData c)
-  makeDef _ primitive′    = prim-fun
+  makeDef : Name → Def → TC Definition
+  makeDef _ (function x)  = pure (function x)
+  makeDef _ (data-type x) = data-type <$> numberOfParameters x <*> getConstructors x
+  makeDef _ axiom         = pure axiom
+  makeDef _ (record′ x)   = pure (record-type x)
+  makeDef c constructor′  = data-cons <$> conData c
+  makeDef _ primitive′    = pure prim-fun
 
--- The type of the thing with the given name.
+getDefinition : Name → TC Definition
+getDefinition f = makeDef f =<< getDef f
 
-typeOf : Name → Type
-typeOf = primQNameType
-
--- The definition of the thing with the given name.
-
-definitionOf : Name → Definition
-definitionOf x = makeDef x (primQNameDefinition x)
+-- Zero for non-datatypes
+getParameters : Name → TC Nat
+getParameters d =
+  getDef d >>= λ
+  { (data-type d) → numberOfParameters d
+  ; _ → pure 0 }
 
 -- Injectivity of constructors
 
@@ -334,6 +436,12 @@ def-inj₁ refl = refl
 def-inj₂ : ∀ {f f′ args args′} → def f args ≡ def f′ args′ → args ≡ args′
 def-inj₂ refl = refl
 
+meta-inj₁ : ∀ {f f′ args args′} → meta f args ≡ meta f′ args′ → f ≡ f′
+meta-inj₁ refl = refl
+
+meta-inj₂ : ∀ {f f′ args args′} → meta f args ≡ meta f′ args′ → args ≡ args′
+meta-inj₂ refl = refl
+
 lam-inj₁ : ∀ {v v′ t t′} → lam v t ≡ lam v′ t′ → v ≡ v′
 lam-inj₁ refl = refl
 
@@ -351,21 +459,6 @@ sort-inj refl = refl
 
 lit-inj : ∀ {x y} → Term.lit x ≡ lit y → x ≡ y
 lit-inj refl = refl
-
-quote-goal-inj : ∀ {x y} → quote-goal x ≡ quote-goal y → x ≡ y
-quote-goal-inj refl = refl
-
-quote-term-inj : ∀ {x y} → quote-term x ≡ quote-term y → x ≡ y
-quote-term-inj refl = refl
-
-unquote-term-inj : ∀ {x y} → unquote-term x ≡ unquote-term y → x ≡ y
-unquote-term-inj refl = refl
-
-unquote-term-inj₁ : ∀ {x y z w} → unquote-term x z ≡ unquote-term y w → x ≡ y
-unquote-term-inj₁ refl = refl
-
-unquote-term-inj₂ : ∀ {x y z w} → unquote-term x z ≡ unquote-term y w → z ≡ w
-unquote-term-inj₂ refl = refl
 
 set-inj : ∀ {x y} → set x ≡ set y → x ≡ y
 set-inj refl = refl

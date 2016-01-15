@@ -61,8 +61,8 @@ data N : Set where
   z : N
   s : N → N
 
-eqN : unquote (deriveEqType (quote N))
+eqN : unquote (λ hole → unify hole =<< deriveEqType (quote N))
 instance
   EqN : Eq N
   EqN = record { _==_ = eqN }
-unquoteDef eqN = deriveEqDef (quote N)
+unquoteDef eqN = defineFun eqN =<< deriveEqDef (quote N)
