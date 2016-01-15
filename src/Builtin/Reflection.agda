@@ -346,6 +346,9 @@ instance
   FunctorTC : ∀ {a} → Functor {a} TC
   FunctorTC = defaultMonadFunctor
 
+  PMonadTC : ∀ {a b} → PMonad {a} {b} TC
+  _>>=′_ {{PMonadTC}} = bindTC
+
 Tactic = Term → TC ⊤
 
 give : Term → Tactic
