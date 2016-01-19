@@ -295,7 +295,6 @@ postulate
   returnTC   : ∀ {a} {A : Set a} → A → TC A
   bindTC     : ∀ {a b} {A : Set a} {B : Set b} → TC A → (A → TC B) → TC B
   unify      : Term → Term → TC ⊤
-  newMeta    : Type → TC Term
   typeError  : ∀ {a} {A : Set a} → String → TC A
   inferType  : Term → TC Type
   checkType  : Term → Type → TC Term
@@ -317,7 +316,6 @@ postulate
 {-# BUILTIN AGDATCMRETURN     returnTC   #-}
 {-# BUILTIN AGDATCMBIND       bindTC     #-}
 {-# BUILTIN AGDATCMUNIFY      unify      #-}
-{-# BUILTIN AGDATCMNEWMETA    newMeta    #-}
 {-# BUILTIN AGDATCMTYPEERROR  typeError  #-}
 {-# BUILTIN AGDATCMINFERTYPE  inferType  #-}
 {-# BUILTIN AGDATCMCHECKTYPE  checkType  #-}
@@ -356,6 +354,9 @@ give v = λ hole → unify hole v
 
 define : Name → Function → TC ⊤
 define f (fun-def a cs) = declareDef f a >> defineFun f cs
+
+newMeta : Type → TC Term
+newMeta = checkType unknown
 
 ------------------------------------------------------------------------
 -- Convenient wrappers
