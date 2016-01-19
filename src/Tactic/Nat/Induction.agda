@@ -53,5 +53,5 @@ macro
         (unify base =<< autosub-tactic =<< inferType base) >>
         inStepCxt (unify step =<< by-tactic (var 0 []) =<< inferType step)
     ; (meta x _) → blockOnMeta x
-    ; _          → typeError "Induction tactic must be applied to a function goal"
+    ; _          → typeErrorS "Induction tactic must be applied to a function goal"
     }

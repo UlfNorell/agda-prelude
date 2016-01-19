@@ -129,7 +129,7 @@ private
     negative : Unify
 
   failure : ∀ {a} {A : Set a} → String → TC A
-  failure s = typeError ("Unification error when deriving Eq: " & s)
+  failure s = typeErrorS ("Unification error when deriving Eq: " & s)
 
   _&U_ : Unify → Unify → Unify
   (positive xs) &U (positive ys) = positive (xs ++ ys)

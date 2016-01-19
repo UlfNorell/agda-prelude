@@ -13,7 +13,7 @@ open import Tactic.Nat.Exp
 R = StateT (Nat × List (Term × Nat)) TC
 
 fail : ∀ {A} → R A
-fail = lift (typeError "reflection error")
+fail = lift (typeErrorS "reflection error")
 
 _catch_ : ∀ {A} → R A → R A → R A
 m catch h = stateT (λ s → catchTC (runStateT h s) (runStateT m s))

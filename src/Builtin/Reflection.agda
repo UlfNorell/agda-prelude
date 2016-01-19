@@ -290,12 +290,22 @@ private
 ------------------------------------------------------------------------
 -- TC monad
 
+data ErrorPart : Set where
+  strErr  : String → ErrorPart
+  termErr : Term → ErrorPart
+  nameErr : Name → ErrorPart
+
+{-# BUILTIN AGDAERRORPART       ErrorPart #-}
+{-# BUILTIN AGDAERRORPARTSTRING strErr    #-}
+{-# BUILTIN AGDAERRORPARTTERM   termErr   #-}
+{-# BUILTIN AGDAERRORPARTNAME   nameErr   #-}
+
 postulate
   TC         : ∀ {a} → Set a → Set a
   returnTC   : ∀ {a} {A : Set a} → A → TC A
   bindTC     : ∀ {a b} {A : Set a} {B : Set b} → TC A → (A → TC B) → TC B
   unify      : Term → Term → TC ⊤
-  typeError  : ∀ {a} {A : Set a} → String → TC A
+  typeError  : ∀ {a} {A : Set a} → List ErrorPart → TC A
   inferType  : Term → TC Type
   checkType  : Term → Type → TC Term
   normalise  : Term → TC Term
@@ -357,6 +367,9 @@ define f (fun-def a cs) = declareDef f a >> defineFun f cs
 
 newMeta : Type → TC Term
 newMeta = checkType unknown
+
+typeErrorS : ∀ {a} {A : Set a} → String → TC A
+typeErrorS s = typeError (strErr s ∷ [])
 
 ------------------------------------------------------------------------
 -- Convenient wrappers
