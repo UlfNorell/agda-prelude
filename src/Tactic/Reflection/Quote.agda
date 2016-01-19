@@ -4,12 +4,8 @@ module Tactic.Reflection.Quote where
 open import Prelude
 open import Builtin.Reflection
 open import Builtin.Float
-
-record Quotable {a} (A : Set a) : Set a where
-  field
-    ` : A → Term
-
-open Quotable {{...}} public
+open import Tactic.Reflection.Quote.Class public
+open import Tactic.Deriving.Quotable
 
 --- Instances ---
 

@@ -3,8 +3,6 @@ module Tactic.Nat.Subtract.Simplify where
 
 open import Prelude
 open import Builtin.Reflection
-open import Tactic.Reflection.Quote
-open import Tactic.Reflection.DeBruijn
 open import Tactic.Reflection
 open import Control.Monad.State
 
@@ -74,21 +72,6 @@ simplifygoal-tactic (el _ (pi _ (abs _ (el _ t)))) =
     }
   }
 simplifygoal-tactic _ = typeErrorS "simplify-goal must be applied in a function position"
-
-private
-  el! : Term → Type
-  el! v = el unknown v
-
-  set₀ : Type
-  set₀ = el! (agda-sort (lit 0))
-
--- TODO: move to library
-forceFun : Type → TC Type
-forceFun (el s a) =
-  newMeta (el unknown (agda-sort unknown)) >>= λ dom →
-  newMeta (el unknown (agda-sort unknown)) >>= λ rng →
-  unify a (pi (vArg (el! dom)) (abs "_" (el! $ weaken 1 rng))) >>
-  el s <$> normalise a
 
 macro
   simplify-goal : Tactic

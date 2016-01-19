@@ -2,11 +2,8 @@
 open import Prelude
 open import Data.List
 open import Data.Traversable
-open import Builtin.Reflection renaming (unify to unifyTC)
-open import Tactic.Reflection.Free
-open import Tactic.Reflection.DeBruijn
+open import Tactic.Reflection hiding (substArgs) renaming (unify to unifyTC)
 open import Tactic.Reflection.Equality
-open import Tactic.Reflection.Telescope
 
 module Tactic.Deriving.Eq where
 
@@ -15,28 +12,12 @@ A ∋ x = x
 
 private
   -- Pattern synonyms --
-
-  pattern con₀ f       = con f ([])
-  pattern con₁ f x     = con f (vArg x ∷ [])
-  pattern con₂ f x y   = con f (vArg x ∷ vArg y ∷ [])
-  pattern con₃ f x y z = con f (vArg x ∷ vArg y ∷ vArg z ∷ [])
-
-  pattern def₀ f       = def f ([])
-  pattern def₁ f x     = def f (vArg x ∷ [])
-  pattern def₂ f x y   = def f (vArg x ∷ vArg y ∷ [])
-  pattern def₃ f x y z = def f (vArg x ∷ vArg y ∷ vArg z ∷ [])
-  pattern def₄ f x y z u = def f (vArg x ∷ vArg y ∷ vArg z ∷ vArg u ∷ [])
-
   infix 5 _`≡_
   pattern _`≡_ x y = def₂ (quote _≡_) x y
   pattern `subst x y z = def₃ (quote transport) x y z
   pattern `refl = con (quote refl) []
 
   pattern `Eq a = def (quote Eq) (vArg a ∷ [])
-  pattern _`→_  a b = pi (vArg (el unknown a)) (abs "_" (el unknown b))
-  pattern _`→ʰ_ a b = pi (hArg (el unknown a)) (abs "_" (el unknown b))
-  pattern _`→ⁱ_ a b = pi (iArg (el unknown a)) (abs "_" (el unknown b))
-  infixr 4 _`→_ _`→ʰ_ _`→ⁱ_
 
   pattern vLam s t = lam visible (abs s t)
 

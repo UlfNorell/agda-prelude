@@ -5,7 +5,6 @@ open import Prelude
 open import Builtin.Reflection
 open import Tactic.Reflection.Quote
 open import Tactic.Reflection
-open import Tactic.Reflection.DeBruijn
 
 open import Tactic.Nat.Reflect
 open import Tactic.Nat.NF
