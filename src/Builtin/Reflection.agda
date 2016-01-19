@@ -314,12 +314,12 @@ postulate
   extendContext : ∀ {a} {A : Set a} → Arg Type → TC A → TC A
   inContext     : ∀ {a} {A : Set a} → List (Arg Type) → TC A → TC A
   freshName  : String → TC Name
-  declareDef : Name → Type → TC ⊤
+  declareDef : Arg Name → Type → TC ⊤
   defineFun  : Name → List Clause → TC ⊤
   getType    : Name → TC Type
   getDef     : Name → TC Def
-  numberOfParameters : DataType → TC Nat
-  getConstructors    : DataType  → TC (List Name)
+  numberOfParameters : Name → TC Nat
+  getConstructors    : Name → TC (List Name)
   blockOnMeta : ∀ {a} {A : Set a} → Meta → TC A
 
 {-# BUILTIN AGDATCM           TC         #-}
@@ -363,7 +363,7 @@ give : Term → Tactic
 give v = λ hole → unify hole v
 
 define : Name → Function → TC ⊤
-define f (fun-def a cs) = declareDef f a >> defineFun f cs
+define f (fun-def a cs) = declareDef (vArg f) a >> defineFun f cs
 
 newMeta : Type → TC Term
 newMeta = checkType unknown
@@ -377,7 +377,7 @@ typeErrorS s = typeError (strErr s ∷ [])
 data Definition : Set where
   function    : Function  → Definition
   data-type   : (pars : Nat) (cs : List Name) → Definition
-  record-type : Record → Definition
+  record-type : (c : Name) → Definition
   data-cons   : (d : Name) → Definition
   axiom       : Definition
   prim-fun    : Definition
@@ -399,9 +399,12 @@ private
 
   makeDef : Name → Def → TC Definition
   makeDef _ (function x)  = pure (function x)
-  makeDef _ (data-type x) = data-type <$> numberOfParameters x <*> getConstructors x
+  makeDef d (data-type _) = data-type <$> numberOfParameters d <*> getConstructors d
   makeDef _ axiom         = pure axiom
-  makeDef _ (record′ x)   = pure (record-type x)
+  makeDef r (record′ _)   =
+    caseM getConstructors r of λ
+    { (c ∷ _) → pure $ record-type c
+    ; _ → typeErrorS "impossible" }
   makeDef c constructor′  = data-cons <$> conData c
   makeDef _ primitive′    = pure prim-fun
 
@@ -410,10 +413,7 @@ getDefinition f = makeDef f =<< getDef f
 
 -- Zero for non-datatypes
 getParameters : Name → TC Nat
-getParameters d =
-  getDef d >>= λ
-  { (data-type d) → numberOfParameters d
-  ; _ → pure 0 }
+getParameters d = catchTC (numberOfParameters d) (pure 0)
 
 -- Injectivity of constructors
 
