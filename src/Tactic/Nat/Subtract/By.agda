@@ -42,10 +42,11 @@ private
 
   by-proof-less-nf : ∀ u u₁ v v₁ ρ → Maybe (NFGoal _<_ _<_ u u₁ v v₁ ρ)
   by-proof-less-nf u u₁ v v₁ ρ =
-    forM v≤u  ← decide-leq v  u  ρ do
-    for u₁≤v₁ ← decide-leq u₁ v₁ ρ do λ u<u₁ →
-    diff (⟦ v₁ ⟧ns (atomEnvS ρ) - suc (⟦ v ⟧ns (atomEnvS ρ)))
-         (follows-diff-prf v≤u u<u₁ u₁≤v₁)
+    do v≤u   ← decide-leq v  u  ρ
+    -| u₁≤v₁ ← decide-leq u₁ v₁ ρ
+    -| pure λ u<u₁ →
+         diff (⟦ v₁ ⟧ns (atomEnvS ρ) - suc (⟦ v ⟧ns (atomEnvS ρ)))
+              (follows-diff-prf v≤u u<u₁ u₁≤v₁)
 
   by-proof-less : ∀ a a₁ b b₁ ρ → Maybe (SubExpLess a a₁ ρ → SubExpLess b b₁ ρ)
   by-proof-less a a₁ b b₁ ρ with cancel (normSub a) (normSub a₁)

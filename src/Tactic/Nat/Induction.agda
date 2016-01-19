@@ -44,14 +44,13 @@ macro
         let P = lam visible (unEl <$> b)
             inStepCxt : {A : Set} → TC A → TC A
             inStepCxt {_} = extendContext (vArg (el unknown (quoteTerm Nat))) ∘
-                            extendContext (vArg (el unknown unknown))
-        in
-        forM base ← newMeta! do
-        forM step ← inStepCxt newMeta! do
-        unify hole (def (quote nat-induction)
-                        (vArg P ∷ vArg base ∷ vArg (vlam $ vlam step) ∷ [])) >>
-        (unify base =<< autosub-tactic =<< inferType base) >>
-        inStepCxt (unify step =<< by-tactic (var 0 []) =<< inferType step)
+                            extendContext (vArg (el unknown unknown)) in
+        do base ← newMeta!
+        -| step ← inStepCxt newMeta!
+        -| unify hole (def (quote nat-induction)
+                           (vArg P ∷ vArg base ∷ vArg (vlam $ vlam step) ∷ []))
+        ~| unify base =<< autosub-tactic =<< inferType base
+        ~| inStepCxt (unify step =<< by-tactic (var 0 []) =<< inferType step)
     ; (meta x _) → blockOnMeta x
     ; _          → typeErrorS "Induction tactic must be applied to a function goal"
     }

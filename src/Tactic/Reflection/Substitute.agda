@@ -44,7 +44,8 @@ instance
       -- Strengthening or weakening safe terms always results in safe terms,
       -- but proving that is a bit of a bother, thus maybeSafe.
       str : Nat → Nat → SafeTerm → Maybe SafeTerm
-      str k n (safe v _) = forM v₁ ← strengthenFrom k n v do maybeSafe v₁
+      str k n (safe v _) = v₁ ← strengthenFrom k n v
+                        -| maybeSafe v₁
 
       wk : Nat → Nat → SafeTerm → SafeTerm
       wk k n (safe v p) = maybe (safe unknown _) id (maybeSafe (weakenFrom k n v))

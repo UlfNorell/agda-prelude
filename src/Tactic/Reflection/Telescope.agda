@@ -33,17 +33,16 @@ teleArgs Γ = teleArgs′ (length Γ) Γ
 
 conParams : Name → TC Nat
 conParams c =
-  forM def ← getDefinition c do
-  case def of λ
+  caseM getDefinition c of λ
   { (data-cons d) → getParameters d
   ; _             → pure 0 }
 
 conPat : Name → TC Pattern
 conPat c =
-  forM np ← conParams c do
-  con c ∘ telePat ∘ drop np <$> argTel c
+  do np ← conParams c
+  -| con c ∘ telePat ∘ drop np <$> argTel c
 
 conTerm : Name → TC Term
 conTerm c =
-  forM np ← conParams c do
-  con c ∘ teleArgs ∘ drop np <$> argTel c
+  do np ← conParams c
+  -| con c ∘ teleArgs ∘ drop np <$> argTel c

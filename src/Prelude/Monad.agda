@@ -35,15 +35,21 @@ record PMonad {a b} (M : ∀ {a} → Set a → Set a) : Set (lsuc (a ⊔ b)) whe
 
 open PMonad {{...}} public
 
-infixr 0 do-bind do-seq do-pbind
+infix -10 do_
+do_ : ∀ {a} {A : Set a} → A → A
+do x = x
 
-syntax do-bind  m (λ x → m₁) = forM x ← m do m₁
-syntax do-pbind m (λ x → m₁) = forM′ x ← m do m₁
-syntax do-seq   m m₁          = forM m do m₁
+infixr 0 do-bind do-seq do-pbind do-let
+
+syntax do-bind  m (λ x → m₁) = x ← m -| m₁
+syntax do-pbind m (λ x → m₁) = x ← m =| m₁
+syntax do-seq   m m₁          = m ~| m₁
+syntax do-let   m (λ x → m₁) = x := m -| m₁
 
 do-bind = _>>=_
 do-seq = _>>_
 do-pbind = _>>=′_
+do-let = case_of_
 
 infixr 0 caseM_of_
 caseM_of_ = _>>=_

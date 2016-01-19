@@ -174,20 +174,20 @@ private
 
   unifyIndices : (c₁ c₂ : Name) → TC Unify
   unifyIndices c₁ c₂ =
-    forM t₁ ← getType c₁ do
-    forM t₂ ← getType c₂ do
-    case (telView t₁ ,′ telView t₂) of λ
-    { ((tel₁ , el _ (def d₁ xs₁)) , (tel₂ , el _ (def d₂ xs₂))) →
-        forM n₁ ← #pars d₁ do
-        forM n₂ ← #pars d₂ do
-        let ixs₁ = drop n₁ xs₁
-            ixs₂ = drop n₂ xs₂
-        in unifyArgs (weaken                        (length tel₂ - n₂) ixs₁)
-           -- weaken all variables of first constructor by number of arguments of second constructor
-                     (weakenFrom (length tel₂ - n₂) (length tel₁ - n₁) ixs₂)
-           -- weaken parameters of second constructor by number of arguments of first constructor
-    ; _ → failure "panic: constructor type doesn't end in a def"
-    }
+    do t₁ ← getType c₁
+    -| t₂ ← getType c₂
+    -| case (telView t₁ ,′ telView t₂) of λ
+       { ((tel₁ , el _ (def d₁ xs₁)) , (tel₂ , el _ (def d₂ xs₂))) →
+         do n₁ ← #pars d₁
+         -| n₂ ← #pars d₂
+         -| ixs₁ := drop n₁ xs₁
+         -| ixs₂ := drop n₂ xs₂
+         -| unifyArgs (weaken                        (length tel₂ - n₂) ixs₁)
+            -- weaken all variables of first constructor by number of arguments of second constructor
+                      (weakenFrom (length tel₂ - n₂) (length tel₁ - n₁) ixs₂)
+            -- weaken parameters of second constructor by number of arguments of first constructor
+       ; _ → failure "panic: constructor type doesn't end in a def"
+       }
 
   -- Analysing constructor types --
 
@@ -229,10 +229,10 @@ private
 
   classifyArgs : (c : Name) → TC (Σ Nat RemainingArgs)
   classifyArgs c =
-    forM #argsc  ← #args c do
-    forM forcedc  ← forcedArgs c do
-    let #freec   = #argsc - length forcedc in
-    _,_ _ ∘ classify #freec forcedc (#argsc - 1) (#freec - 1) <$> argsTel c
+    do #argsc  ← #args c
+    -| forcedc ← forcedArgs c
+    -| let #freec   = #argsc - length forcedc in
+       _,_ _ ∘ classify #freec forcedc (#argsc - 1) (#freec - 1) <$> argsTel c
   -- The final argument should be (weakenTel (#argsc + #freec) (argsTel c)),
   -- but we don't really care about the types of the arguments anyway.
     where
@@ -317,12 +317,13 @@ private
   matchingClause : (c : Name) → TC Clause
   matchingClause c =
     caseM classifyArgs c of λ { (_ , args) →
-    forM  paramPats ← map (fmap λ _ → var "A") ∘ hideTel <$> params c do
-    for   params    ← makeParams args do
-      clause (paramPats ++
-              vArg (con c (makeLeftPattern args)) ∷
-              vArg (con c (makeRightPattern args)) ∷ [])
-             (checkEqArgs c params args) }
+    do paramPats ← map (fmap λ _ → var "A") ∘ hideTel <$> params c
+    -| params    ← makeParams args
+    -| pure $
+         clause (paramPats ++
+                 vArg (con c (makeLeftPattern args)) ∷
+                 vArg (con c (makeRightPattern args)) ∷ [])
+                (checkEqArgs c params args) }
     where
       args = classifyArgs c
 
@@ -347,13 +348,13 @@ private
 
   mismatchingClause : (c₁ c₂ : Name) (fs : List Nat) → TC Clause
   mismatchingClause c₁ c₂ fs =
-    forM args₁ ← argsTel c₁ do
-    forM args₂ ← argsTel c₂ do
-    forM #args₁ ← pure (length args₁) do
-    for  #args₂ ← pure (length args₂) do
-    clause (vArg (con c₁ (makePattern (#args₁ + #args₂ - 1) args₁)) ∷
-            vArg (con c₂ (makePattern (#args₂ - 1) args₂)) ∷ [])
-           (con (quote no) ([ vArg (pat-lam ([ absurd-clause ([ vArg absurd ]) ]) []) ]))
+    do args₁ ← argsTel c₁
+    -| args₂ ← argsTel c₂
+    -| #args₁ := length args₁
+    -| #args₂ := length args₂
+    -| pure $ clause (vArg (con c₁ (makePattern (#args₁ + #args₂ - 1) args₁)) ∷
+                      vArg (con c₂ (makePattern (#args₂ - 1) args₂)) ∷ [])
+                     (con (quote no) ([ vArg (pat-lam ([ absurd-clause ([ vArg absurd ]) ]) []) ]))
     where
       makePattern : (k : Nat) (args : List (Arg Type)) → List (Arg Pattern)
       makePattern k [] = []

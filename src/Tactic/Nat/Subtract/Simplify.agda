@@ -93,8 +93,8 @@ forceFun (el s a) =
 macro
   simplify-goal : Tactic
   simplify-goal hole =
-    forM goal ← forceFun =<< inferType hole do
-    unify hole =<< simplifygoal-tactic goal
+    do goal ← forceFun =<< inferType hole
+    -| unify hole =<< simplifygoal-tactic goal
 
   simplifysub : Term → Tactic
   simplifysub prf hole =
