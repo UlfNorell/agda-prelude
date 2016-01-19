@@ -3,6 +3,7 @@ module Tactic.Nat.Subtract.Simplify where
 
 open import Prelude
 open import Builtin.Reflection
+open import Tactic.Reflection.Quote
 open import Tactic.Reflection
 open import Control.Monad.State
 
