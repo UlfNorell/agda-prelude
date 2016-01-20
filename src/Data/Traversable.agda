@@ -31,3 +31,7 @@ instance
 mapM : ∀ {a} {F : Set a → Set a} {A B} {{AppF : Applicative F}} →
          (A → F B) → List A → F (List B)
 mapM = traverse
+
+mapM! : ∀ {F : Set → Set} {A} {{FunF : Functor F}} {{AppF : Applicative F}} →
+          (A → F ⊤) → List A → F ⊤
+mapM! f xs = _ <$ mapM f xs
