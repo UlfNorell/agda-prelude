@@ -8,23 +8,7 @@ open import Tactic.Reflection.Quote.Class
 open import Tactic.Deriving
 
 private
-  -- Could compute this from the type of the dictionary constructor
-  quoteType : Name → TC Type
-  quoteType d =
-    caseM instanceTelescope d (quote Quotable) of λ
-    { (tel , vs) → pure $ telPi tel $ el!
-                         $ def d vs `→ def (quote Term) []
-    }
-
-  dictConstructor : TC Name
-  dictConstructor =
-    caseM getConstructors (quote Quotable) of λ
-    { (c ∷ []) → pure c
-    ; _ → typeErrorS "impossible" }
-
-  patArgs : Telescope → List (Arg Pattern)
-  patArgs tel = map (var "x" <$_) tel
-
+  -- Bootstrapping
   qVis : Visibility → Term
   qVis visible = con (quote visible) []
   qVis hidden = con (quote hidden) []
@@ -43,6 +27,23 @@ private
   qList : List Term → Term
   qList = foldr (λ x xs → con₂ (quote List._∷_) x xs)
                 (con₀ (quote List.[]))
+
+  -- Could compute this from the type of the dictionary constructor
+  quoteType : Name → TC Type
+  quoteType d =
+    caseM instanceTelescope d (quote Quotable) of λ
+    { (tel , vs) → pure $ telPi tel $ el!
+                         $ def d vs `→ def (quote Term) []
+    }
+
+  dictConstructor : TC Name
+  dictConstructor =
+    caseM getConstructors (quote Quotable) of λ
+    { (c ∷ []) → pure c
+    ; _ → typeErrorS "impossible" }
+
+  patArgs : Telescope → List (Arg Pattern)
+  patArgs tel = map (var "x" <$_) tel
 
   quoteArgs′ : Nat → Telescope → List Term
   quoteArgs′ 0 _  = []
@@ -63,16 +64,16 @@ private
   quoteClauses : Name → TC (List Clause)
   quoteClauses d =
     do n ← getParameters d
-    -| mapM (constructorClause n) =<< getConstructors d
+    -| caseM getConstructors d of λ
+       { [] → pure [ absurd-clause (vArg absurd ∷ []) ]
+       ; cs → mapM (constructorClause n) cs }
 
-declareQuotableInstance : Name → TC Name
-declareQuotableInstance d =
-  do iname ← freshName ("Quotable[" & show d & "]")
-  -| declareDef (iArg iname) =<< instanceType d (quote Quotable)
-  ~| pure iname
+declareQuotableInstance : Name → Name → TC ⊤
+declareQuotableInstance iname d =
+  declareDef (iArg iname) =<< instanceType d (quote Quotable)
 
 defineQuotableInstance : Name → Name → TC ⊤
-defineQuotableInstance d iname =
+defineQuotableInstance iname d =
   do fname ← freshName ("quote[" & show d & "]")
   -| declareDef (vArg fname) =<< quoteType d
   ~| dictCon ← dictConstructor
@@ -80,5 +81,7 @@ defineQuotableInstance d iname =
   ~| defineFun fname =<< quoteClauses d
   ~| return _
 
-deriveQuotable : Name → TC ⊤
-deriveQuotable d = declareQuotableInstance d >>= defineQuotableInstance d
+deriveQuotable : Name → Name → TC ⊤
+deriveQuotable iname d =
+  declareQuotableInstance iname d >>
+  defineQuotableInstance iname d

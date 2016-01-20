@@ -2,10 +2,12 @@
 module Tactic.Nat.Reflect where
 
 open import Prelude
-open import Builtin.Reflection
-open import Tactic.Reflection.Quote
-open import Tactic.Reflection.DeBruijn
 open import Control.Monad.State
+
+open import Builtin.Reflection
+open import Tactic.Reflection
+open import Tactic.Reflection.Quote
+open import Tactic.Deriving.Quotable
 open import Tactic.Reflection.Equality
 
 open import Tactic.Nat.Exp
@@ -35,10 +37,10 @@ infix  4 _`≡_
 pattern _`≡_ x y = def (quote _≡_) (_ ∷ hArg `Nat ∷ vArg x ∷ vArg y ∷ [])
 pattern _`->_ a b = pi (vArg (el (lit 0) a)) (abs _ (el (lit 0) b))
 
-pattern _`+_ x y = def (quote _+N_) (vArg x ∷ vArg y ∷ [])
-pattern _`*_ x y = def (quote _*N_) (vArg x ∷ vArg y ∷ [])
-pattern `0       = `zero
-pattern `1       = `suc `0
+pattern _`+_ x y = def₂ (quote _+N_) x y
+pattern _`*_ x y = def₂ (quote _*N_) x y
+pattern `0       = con₀ (quote Nat.zero)
+pattern `suc n   = con₁ (quote Nat.suc) n
 
 fresh : Term → R (Exp Var)
 fresh t =
@@ -106,15 +108,7 @@ implicitArg instanceArg : ∀ {A} → A → Arg A
 implicitArg = arg (arg-info hidden relevant)
 instanceArg = arg (arg-info instance′ relevant)
 
-instance
-  QuotableExp : {Atom : Set} {{_ : Quotable Atom}} → Quotable (Exp Atom)
-  QuotableExp {Atom} = record { ` = quoteExp }
-    where
-      quoteExp : Exp Atom → Term
-      quoteExp (var x) = con (quote Exp.var) (vArg (` x) ∷ [])
-      quoteExp (lit n) = con (quote Exp.lit) (vArg (` n) ∷ [])
-      quoteExp (e ⟨+⟩ e₁) = con (quote _⟨+⟩_) (map defaultArg $ quoteExp e ∷ quoteExp e₁ ∷ [])
-      quoteExp (e ⟨*⟩ e₁) = con (quote _⟨*⟩_) (map defaultArg $ quoteExp e ∷ quoteExp e₁ ∷ [])
+unquoteDecl QuotableExp = deriveQuotable QuotableExp (quote Exp)
 
 stripImplicitArg : Arg Term → List (Arg Term)
 stripImplicitArgs : List (Arg Term) → List (Arg Term)
