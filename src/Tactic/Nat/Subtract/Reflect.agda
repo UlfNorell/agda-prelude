@@ -62,7 +62,7 @@ private
   lower i = liftMaybe ∘ strengthen i
 
 termToSubHypsR′ : Nat → Term → R (List Eqn)
-termToSubHypsR′ i (pi (vArg (el _ hyp)) (abs _ (el _ a))) =
+termToSubHypsR′ i (pi (vArg hyp) (abs _ a)) =
   _∷_ <$> (termToSubEqnR =<< lower i hyp) <*> termToSubHypsR′ (suc i) a
 termToSubHypsR′ _ (meta x _) = lift (blockOnMeta x)
 termToSubHypsR′ i a = [_] <$> (termToSubEqnR =<< lower i a)

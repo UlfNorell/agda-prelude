@@ -29,7 +29,7 @@ autosub-proof (e₁ :< e₂) ρ | [] , (suc n , []) ∷ nf | simp =
 autosub-proof (e₁ :< e₂) ρ | _  , _ | simp = nothing
 
 autosub-tactic : Type → TC Term
-autosub-tactic (el _ t) =
+autosub-tactic t =
   caseM termToSubEqn t of
   λ { nothing → pure $ failedProof (quote invalidGoal) t
     ; (just (eqn , Γ)) → pure $

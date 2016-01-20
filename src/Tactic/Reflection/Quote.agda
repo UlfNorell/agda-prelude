@@ -48,7 +48,7 @@ instance
 private
   deriveQuotableTermTypes : Vec Name _ → TC ⊤
   deriveQuotableTermTypes is =
-    do ts  := quote Term ∷ quote Clause ∷ quote Type ∷ quote Sort ∷ [] ofType Vec Name _
+    do ts  := quote Term ∷ quote Clause ∷ quote Sort ∷ [] ofType Vec Name _
     -| its := _,_ <$> is <*> ts
     -| traverse (uncurry declareQuotableInstance) its
     ~| traverse (uncurry defineQuotableInstance)  its
@@ -63,7 +63,7 @@ unquoteDecl QuotableVisibility QuotableRelevance QuotableArgInfo
   ~| deriveQuotable QuotableAbs        (quote Abs)
   ~| deriveQuotable QuotableLiteral    (quote Literal)
 
--- Should require TERMINATING pragma!
-unquoteDecl QuotablePattern QuotableTerm QuotableClause QuotableType QuotableSort =
+{-# TERMINATING #-}
+unquoteDecl QuotablePattern QuotableTerm QuotableClause QuotableSort =
   do deriveQuotable QuotablePattern (quote Pattern)
-  ~| deriveQuotableTermTypes (QuotableTerm ∷ QuotableClause ∷ QuotableType ∷ QuotableSort ∷ [])
+  ~| deriveQuotableTermTypes (QuotableTerm ∷ QuotableClause ∷ QuotableSort ∷ [])

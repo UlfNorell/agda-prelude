@@ -29,7 +29,7 @@ private
 
   nPi : ∀ {A} → List (Arg A) → Term → Term
   nPi [] t = t
-  nPi (arg i _ ∷ tel) t = pi (arg i (el unknown unknown)) (abs "x" (el unknown (nPi tel t)))
+  nPi (arg i _ ∷ tel) t = pi (arg i unknown) (abs "x" (nPi tel t))
 
   newArgs : ∀ {A} → List (Arg A) → List (Arg Term)
   newArgs {A} tel = newArgsFrom (length tel) tel
@@ -55,8 +55,8 @@ private
 
   argsTel : (c : Name) → TC Telescope
   argsTel c = caseM telView <$> getType c of λ
-    { (tel , el _ (def d ixs)) → flip drop tel <$> #pars d
-    ; (tel , _               ) → pure tel
+    { (tel , def d ixs) → flip drop tel <$> #pars d
+    ; (tel , _        ) → pure tel
     }
 
   #args : (c : Name) → TC Nat
@@ -64,8 +64,8 @@ private
 
   params : (c : Name) → TC (List (Arg Type))
   params c = telView <$> getType c >>= λ
-    { (tel , el _ (def d ixs)) → flip take tel <$> #pars d
-    ; _                        → pure []
+    { (tel , def d ixs) → flip take tel <$> #pars d
+    ; _                 → pure []
     }
 
   -- Parallel substitution --
@@ -158,7 +158,7 @@ private
     do t₁ ← getType c₁
     -| t₂ ← getType c₂
     -| case (telView t₁ ,′ telView t₂) of λ
-       { ((tel₁ , el _ (def d₁ xs₁)) , (tel₂ , el _ (def d₂ xs₂))) →
+       { ((tel₁ , def d₁ xs₁) , (tel₂ , def d₂ xs₂)) →
          do n₁ ← #pars d₁
          -| n₂ ← #pars d₂
          -| ixs₁ := drop n₁ xs₁
@@ -219,7 +219,7 @@ private
     where
       classify : Nat → List Nat → (m n : Nat) (tel : List (Arg Type)) → RemainingArgs (length tel)
       classify _ _ m n [] = []
-      classify #freec forcedc m n (arg i (el _ ty) ∷ tel) =
+      classify #freec forcedc m n (arg i ty ∷ tel) =
         if (elem m forcedc)
         then arg i (forced , var (#freec + m) [] , var (#freec + m) []) ∷
              classify #freec forcedc (m - 1) n       tel
@@ -366,22 +366,22 @@ private
   makeArgs n xs = reverse $ map (fmap (λ i → var (n - i - 1) [])) xs
 
   computeInstanceType : Nat → List (Arg Nat) → Type → Maybe Term
-  computeInstanceType n xs (el _ (agda-sort _)) =
+  computeInstanceType n xs (agda-sort _) =
     just (`Eq (var n (makeArgs n xs)))
-  computeInstanceType n xs (el _ (pi a (abs s b))) =
-    pi (hArg (unArg a)) ∘ abs s ∘ el unknown <$> computeInstanceType (suc n) ((n <$ a) ∷ xs) b
+  computeInstanceType n xs (pi a (abs s b)) =
+    pi (hArg (unArg a)) ∘ abs s <$> computeInstanceType (suc n) ((n <$ a) ∷ xs) b
   computeInstanceType _ _ _ = nothing
 
   computeType : Name → Nat → List (Arg Nat) → Telescope → Telescope → Term
   computeType d n xs is [] =
-    unEl $ telPi (reverse is) $ el unknown $
+    telPi (reverse is) $
     def d (makeArgs (n + k) xs) `→ def d (makeArgs (n + k + 1) xs) `→
     def₁ (quote Dec) (var 1 [] `≡ var 0 [])
     where k = length is
   computeType d n xs is (a ∷ tel) =
-    unEl (unArg a) `→ʰ
+    unArg a `→ʰ
     (case computeInstanceType 0 [] (weaken 1 $ unArg a) of
-     λ { (just i) → computeType d (1 + n) ((n <$ a) ∷ xs) (iArg (el unknown $ weaken (length is) i) ∷ weaken 1 is) tel
+     λ { (just i) → computeType d (1 + n) ((n <$ a) ∷ xs) (iArg (weaken (length is) i) ∷ weaken 1 is) tel
        ; nothing →  computeType d (1 + n) ((n <$ a) ∷ xs) (weaken 1 is) tel })
 
 deriveEqType : Name → TC Term

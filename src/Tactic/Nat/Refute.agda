@@ -26,8 +26,8 @@ refutation exp ρ !eq eq = ⊥-elim (!eq (complicateEq exp ρ eq))
 refute-tactic : Term → TC Term
 refute-tactic prf =
   inferType prf >>= λ a →
-  caseM termToEq (unEl a) of λ
-  { nothing → pure $ failedProof (quote invalidEquation) (unEl a)
+  caseM termToEq a of λ
+  { nothing → pure $ failedProof (quote invalidEquation) a
   ; (just (eqn , Γ)) → pure $
     def (quote refutation)
         $ vArg (` eqn)

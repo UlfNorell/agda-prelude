@@ -28,10 +28,8 @@ open FreeVars {{...}} public
 
 private
   freeTerm : Nat → Term → VarSet
-  freeType : Nat → Type → VarSet
   freeSort : Nat → Sort → VarSet
   freeArgTerm : Nat → Arg Term → VarSet
-  freeArgType : Nat → Arg Type → VarSet
   freeArgs : Nat → List (Arg Term) → VarSet
   freeClauses : Nat → List Clause → VarSet
   freeClause : Nat → Clause → VarSet
@@ -46,18 +44,16 @@ private
   freeTerm n (meta x args) = freeArgs n args
   freeTerm n (lam _ (abs _ v)) = freeTerm (suc n) v
   freeTerm n (pat-lam cs args) = freeClauses n cs ∪ freeArgs n args
-  freeTerm n (pi a (abs _ b))  = freeArgType n a ∪ freeType (suc n) b
+  freeTerm n (pi a (abs _ b))  = freeArgTerm n a ∪ freeTerm (suc n) b
   freeTerm n (agda-sort s) = freeSort n s
   freeTerm n (lit l) = ∅
   freeTerm n unknown = ∅
 
-  freeType n (el s t) = freeSort n s ∪ freeTerm n t
   freeSort n (set t) = freeTerm n t
   freeSort _ (lit n) = ∅
   freeSort _ unknown = ∅
 
   freeArgTerm n (arg i x) = freeTerm n x
-  freeArgType n (arg i x) = freeType n x
   freeArgs n [] = ∅
   freeArgs n (a ∷ as) = freeArgTerm n a ∪ freeArgs n as
 
@@ -71,9 +67,6 @@ instance
   FreeTerm : FreeVars Term
   FreeTerm = record { freeVars = freeTerm 0 }
 
-  FreeType : FreeVars Type
-  FreeType = record { freeVars = freeType 0 }
-
   FreeSort : FreeVars Sort
   FreeSort = record { freeVars = freeSort 0 }
 
@@ -82,6 +75,3 @@ instance
 
   FreeArgs : FreeVars (List (Arg Term))
   FreeArgs = record { freeVars = freeArgs 0 }
-
-  FreeArgType : FreeVars (Arg Type)
-  FreeArgType = record { freeVars = freeArgType 0 }

@@ -72,10 +72,7 @@ Subst A = List SafeTerm → A → A
 substTerm : Subst Term
 substArgs : Subst (List (Arg Term))
 substArg : Subst (Arg Term)
-substArgType : Subst (Arg Type)
 substAbs : Subst (Abs Term)
-substAbsType : Subst (Abs Type)
-substType : Subst Type
 substSort : Subst Sort
 substClauses : Subst (List Clause)
 substClause : Subst Clause
@@ -89,7 +86,7 @@ substTerm σ (def f args) = def f (substArgs σ args)
 substTerm σ (meta x args) = meta x (substArgs σ args)
 substTerm σ (lam v b) = lam v (substAbs σ b)
 substTerm σ (pat-lam cs args) = pat-lam (substClauses σ cs) (substArgs σ args)
-substTerm σ (pi a b) = pi (substArgType σ a) (substAbsType σ b)
+substTerm σ (pi a b) = pi (substArg σ a) (substAbs σ b)
 substTerm σ (agda-sort s) = agda-sort (substSort σ s)
 substTerm σ (lit l) = lit l
 substTerm σ unknown = unknown
@@ -112,8 +109,3 @@ substArgs σ [] = []
 substArgs σ (x ∷ args) = substArg σ x ∷ substArgs σ args
 substArg σ (arg i x) = arg i (substTerm σ x)
 substAbs σ (abs x v) = abs x $ substTerm (safe (var 0 []) _ ∷ weaken 1 σ) v
-
-substAbsType σ (abs x a) = abs x $ substType (safe (var 0 []) _ ∷ weaken 1 σ) a
-substArgType σ (arg i x) = arg i (substType σ x)
-
-substType σ (el s t) = el (substSort σ s) (substTerm σ t)

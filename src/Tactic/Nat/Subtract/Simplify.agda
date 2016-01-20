@@ -59,7 +59,7 @@ simplifysub-tactic prf g =
     }
 
 simplifygoal-tactic : Type → TC Term
-simplifygoal-tactic (el _ (pi _ (abs _ (el _ t)))) =
+simplifygoal-tactic (pi _ (abs _ t)) =
   case strengthen 1 t of λ
   { nothing → typeErrorS "simplify-goal must be applied in a non-dependent function position"
   ; (just t) →
@@ -83,7 +83,7 @@ macro
   simplifysub : Term → Tactic
   simplifysub prf hole =
     caseM forceFun =<< inferType hole of λ
-    { (el _ (pi _ (abs _ goal))) →
+    { (pi _ (abs _ goal)) →
       flip (maybe (typeErrorS "Should be non-dependent function")) (strengthen 1 goal) λ goal →
       unify hole =<< simplifysub-tactic prf goal
     ; _ → typeErrorS "Invalid goal"

@@ -35,7 +35,7 @@ infixr 1 _`->_
 infix  4 _`≡_
 
 pattern _`≡_ x y = def (quote _≡_) (_ ∷ hArg `Nat ∷ vArg x ∷ vArg y ∷ [])
-pattern _`->_ a b = pi (vArg (el (lit 0) a)) (abs _ (el (lit 0) b))
+pattern _`->_ a b = pi (vArg a) (abs _ b)
 
 pattern _`+_ x y = def₂ (quote _+N_) x y
 pattern _`*_ x y = def₂ (quote _*N_) x y
@@ -112,10 +112,8 @@ unquoteDecl QuotableExp = deriveQuotable QuotableExp (quote Exp)
 
 stripImplicitArg : Arg Term → List (Arg Term)
 stripImplicitArgs : List (Arg Term) → List (Arg Term)
-stripImplicitArgType : Arg Type → Arg Type
-stripImplicitType : Type → Type
 stripImplicitAbsTerm : Abs Term → Abs Term
-stripImplicitAbsType : Abs Type → Abs Type
+stripImplicitArgTerm : Arg Term → Arg Term
 
 stripImplicit : Term → Term
 stripImplicit (var x args) = var x (stripImplicitArgs args)
@@ -123,19 +121,18 @@ stripImplicit (con c args) = con c (stripImplicitArgs args)
 stripImplicit (def f args) = def f (stripImplicitArgs args)
 stripImplicit (meta x args) = meta x (stripImplicitArgs args)
 stripImplicit (lam v t) = lam v (stripImplicitAbsTerm t)
-stripImplicit (pi t₁ t₂) = pi (stripImplicitArgType t₁) (stripImplicitAbsType t₂)
+stripImplicit (pi t₁ t₂) = pi (stripImplicitArgTerm t₁) (stripImplicitAbsTerm t₂)
 stripImplicit (agda-sort x) = agda-sort x
 stripImplicit (lit l) = lit l
 stripImplicit (pat-lam cs args) = pat-lam cs (stripImplicitArgs args)
 stripImplicit unknown = unknown
 
-stripImplicitType (el s v) = el s (stripImplicit v)
-stripImplicitArgType (arg i a) = arg i (stripImplicitType a)
 stripImplicitAbsTerm (abs x v) = abs x (stripImplicit v)
-stripImplicitAbsType (abs x a) = abs x (stripImplicitType a)
 
 stripImplicitArgs [] = []
 stripImplicitArgs (a ∷ as) = stripImplicitArg a ++ stripImplicitArgs as
+
+stripImplicitArgTerm (arg i x) = arg i (stripImplicit x)
 
 stripImplicitArg (arg (arg-info visible r) x) = arg (arg-info visible r) (stripImplicit x) ∷ []
 stripImplicitArg (arg (arg-info hidden r) x) = []

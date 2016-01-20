@@ -8,14 +8,11 @@ open import Tactic.Reflection.Telescope  public
 open import Tactic.Reflection.Substitute public
 open import Tactic.Reflection.Free       public
 
-el! : Term → Type
-el! = el unknown
-
 set₀ : Type
-set₀ = el! (agda-sort (lit 0))
+set₀ = agda-sort (lit 0)
 
 set! : Type
-set! = el! (agda-sort unknown)
+set! = agda-sort unknown
 
 pattern def₀ f         = def f []
 pattern def₁ f x       = def f (vArg x ∷ [])
@@ -29,17 +26,17 @@ pattern con₂ c x y     = con c (vArg x ∷ vArg y ∷ [])
 pattern con₃ c x y z   = con c (vArg x ∷ vArg y ∷ vArg z ∷ [])
 pattern con₄ c x y z u = con c (vArg x ∷ vArg y ∷ vArg z ∷ vArg u ∷ [])
 
-pattern _`→_  a b = pi (vArg (el unknown a)) (abs "_" (el unknown b))
-pattern _`→ʰ_ a b = pi (hArg (el unknown a)) (abs "_" (el unknown b))
-pattern _`→ⁱ_ a b = pi (iArg (el unknown a)) (abs "_" (el unknown b))
+pattern _`→_  a b = pi (vArg a) (abs "_" b)
+pattern _`→ʰ_ a b = pi (hArg a) (abs "_" b)
+pattern _`→ⁱ_ a b = pi (iArg a) (abs "_" b)
 infixr 4 _`→_ _`→ʰ_ _`→ⁱ_
 
 on-goal : (Type → Tactic) → Tactic
 on-goal tac hole = inferType hole >>= λ goal → tac goal hole
 
 forceFun : Type → TC Type
-forceFun (el s a) =
-  newMeta set! >>= λ dom →
-  newMeta set! >>= λ rng →
-  unify a (pi (vArg (el! dom)) (abs "_" (el! $ weaken 1 rng))) >>
-  el s <$> normalise a
+forceFun a =
+  do dom ← newMeta set!
+  -| rng ← newMeta set!
+  -| unify a (dom `→ weaken 1 rng)
+  ~| normalise a

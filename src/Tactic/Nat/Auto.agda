@@ -34,7 +34,7 @@ module _ {Atom : Set} {{_ : Eq Atom}} {{_ : Ord Atom}} where
   auto-proof e₁ e₂ ρ    | yes nfeq = just (liftNFEq e₁ e₂ ρ (cong (λ n → ⟦ n ⟧n ρ) nfeq))
 
 auto-tactic : Type → Tactic
-auto-tactic (el _ t) hole =
+auto-tactic t hole =
   caseM termToEq t of
   λ { nothing → unify hole $ failedProof (quote invalidGoal) t
     ; (just ((e₁ , e₂) , Γ)) →

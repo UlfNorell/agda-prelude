@@ -76,13 +76,6 @@ instance
 private
   eqSort : (x y : Sort) → Dec (x ≡ y)
   eqTerm : (x y : Term) → Dec (x ≡ y)
-  eqType : (x y : Type) → Dec (x ≡ y)
-
-  eqArgType : (x y : Arg Type) → Dec (x ≡ y)
-  eqArgType (arg i x) (arg i₁ x₁) = decEq₂ arg-inj₁ arg-inj₂ (i == i₁) (eqType x x₁)
-
-  eqAbsType : (x y : Abs Type) → Dec (x ≡ y)
-  eqAbsType (abs i x) (abs i₁ x₁) = decEq₂ abs-inj₁ abs-inj₂ (i == i₁) (eqType x x₁)
 
   eqArgTerm : (x y : Arg Term) → Dec (x ≡ y)
   eqArgTerm (arg i x) (arg i₁ x₁) = decEq₂ arg-inj₁ arg-inj₂ (i == i₁) (eqTerm x x₁)
@@ -101,7 +94,7 @@ private
   eqTerm (def f args) (def f₁ args₁) = decEq₂ def-inj₁ def-inj₂ (f == f₁) (eqArgs args args₁)
   eqTerm (meta x args) (meta x₁ args₁) = decEq₂ meta-inj₁ meta-inj₂ (x == x₁) (eqArgs args args₁)
   eqTerm (lam v x) (lam v₁ y) = decEq₂ lam-inj₁ lam-inj₂ (v == v₁) (eqAbsTerm x y)
-  eqTerm (pi t₁ t₂) (pi t₃ t₄) = decEq₂ pi-inj₁ pi-inj₂ (eqArgType t₁ t₃) (eqAbsType t₂ t₄)
+  eqTerm (pi t₁ t₂) (pi t₃ t₄) = decEq₂ pi-inj₁ pi-inj₂ (eqArgTerm t₁ t₃) (eqAbsTerm t₂ t₄)
   eqTerm (agda-sort x) (agda-sort x₁) = decEq₁ sort-inj (eqSort x x₁)
   eqTerm (lit l) (lit l₁)   = decEq₁ lit-inj (l == l₁)
   eqTerm unknown unknown = yes refl
@@ -195,11 +188,9 @@ private
   eqSort unknown (set t) = no λ ()
   eqSort unknown (lit n) = no λ ()
 
-  eqType (el s t) (el s₁ t₁) = decEq₂ el-inj₁ el-inj₂ (eqSort s s₁) (eqTerm t t₁)
-
 instance
-  EqType : Eq Type
-  EqType = record { _==_ = eqType }
-
   EqTerm : Eq Term
   EqTerm = record { _==_ = eqTerm }
+
+  EqSort : Eq Sort
+  _==_ {{EqSort}} = eqSort

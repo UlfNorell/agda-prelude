@@ -9,10 +9,10 @@ private
   makeArgs n xs = reverse $ map (fmap (λ i → var (n - i - 1) [])) xs
 
   computeInstanceType : Name → Nat → List (Arg Nat) → Type → Maybe Term
-  computeInstanceType class n xs (el _ (agda-sort _)) =
+  computeInstanceType class n xs (agda-sort _) =
     just (def class (vArg (var n (makeArgs n xs)) ∷ []))
-  computeInstanceType class n xs (el _ (pi a (abs s b))) =
-    pi (hArg (unArg a)) ∘ abs s ∘ el unknown <$> computeInstanceType class (suc n) ((n <$ a) ∷ xs) b
+  computeInstanceType class n xs (pi a (abs s b)) =
+    pi (hArg (unArg a)) ∘ abs s <$> computeInstanceType class (suc n) ((n <$ a) ∷ xs) b
   computeInstanceType _ _ _ _ = nothing
 
   computeTel : Name → Nat → List (Arg Nat) → Telescope → Telescope → Telescope × List (Arg Term)
@@ -21,7 +21,7 @@ private
     first (hArg (unArg a) ∷_) $
     case computeInstanceType d 0 [] (weaken 1 $ unArg a) of λ
     { (just i) → computeTel d (1 + n) ((n <$ a) ∷ xs)
-                              (iArg (el unknown $ weaken (length is) i) ∷ weaken 1 is) tel
+                              (iArg (weaken (length is) i) ∷ weaken 1 is) tel
     ; nothing  → computeTel d (1 + n) ((n <$ a) ∷ xs) (weaken 1 is) tel }
 
 -- Computes the telescope of instances for a given datatype and class. For instance,
@@ -34,5 +34,5 @@ instanceTelescope d class = computeTel class 0 [] [] <$> (fst ∘ telView <$> ge
 instanceType : Name → Name → TC Type
 instanceType d class =
   caseM instanceTelescope d class of λ
-  { (tel , vs) → pure $ telPi tel $ el! $ def₁ class (def d vs)
+  { (tel , vs) → pure $ telPi tel $ def₁ class (def d vs)
   }

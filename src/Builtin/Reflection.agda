@@ -195,8 +195,8 @@ mutual
     meta          : (x : Meta) → List (Arg Term) → Term
     unknown       : Term
 
-  data Type : Set where
-    el : (s : Sort) (t : Term) → Type
+  Type : Set
+  Type = Term
 
   data Sort : Set where
     set     : (t : Term) → Sort
@@ -215,14 +215,10 @@ mutual
     clause : List (Arg Pattern) → Term → Clause
     absurd-clause : List (Arg Pattern) → Clause
 
-unEl : Type → Term
-unEl (el _ v) = v
-
 absurd-lam : Term
 absurd-lam = pat-lam (absurd-clause (vArg absurd ∷ []) ∷ []) []
 
 {-# BUILTIN AGDASORT            Sort    #-}
-{-# BUILTIN AGDATYPE            Type    #-}
 {-# BUILTIN AGDATERM            Term    #-}
 {-# BUILTIN AGDAPATTERN   Pattern #-}
 {-# BUILTIN AGDACLAUSE       Clause        #-}
@@ -237,7 +233,6 @@ absurd-lam = pat-lam (absurd-clause (vArg absurd ∷ []) ∷ []) []
 {-# BUILTIN AGDATERMSORT        agda-sort #-}
 {-# BUILTIN AGDATERMLIT         lit     #-}
 {-# BUILTIN AGDATERMUNSUPPORTED unknown #-}
-{-# BUILTIN AGDATYPEEL          el      #-}
 {-# BUILTIN AGDASORTSET         set     #-}
 {-# BUILTIN AGDASORTLIT         lit     #-}
 {-# BUILTIN AGDASORTUNSUPPORTED unknown #-}
@@ -388,14 +383,12 @@ private
   bad = quote BadConstructorType
 
   conData : Name → TC Name
-  conData = λ c → getTData <$> getType c
+  conData = λ c → getData <$> getType c
     where
-      getTData : Type → Name
       getData : Term → Name
       getData (def d _)        = d
-      getData (pi a (abs _ b)) = getTData b
+      getData (pi a (abs _ b)) = getData b
       getData _         = bad
-      getTData (el _ b) = getData b
 
   makeDef : Name → Def → TC Definition
   makeDef _ (function x)  = pure (function x)
@@ -482,12 +475,6 @@ set-inj refl = refl
 
 slit-inj : ∀ {x y} → Sort.lit x ≡ lit y → x ≡ y
 slit-inj refl = refl
-
-el-inj₁ : ∀ {s s′ t t′} → el s t ≡ el s′ t′ → s ≡ s′
-el-inj₁ refl = refl
-
-el-inj₂ : ∀ {s s′ t t′} → el s t ≡ el s′ t′ → t ≡ t′
-el-inj₂ refl = refl
 
 nat-inj : ∀ {x y} → nat x ≡ nat y → x ≡ y
 nat-inj refl = refl

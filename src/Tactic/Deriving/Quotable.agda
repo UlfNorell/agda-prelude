@@ -32,8 +32,7 @@ private
   quoteType : Name → TC Type
   quoteType d =
     caseM instanceTelescope d (quote Quotable) of λ
-    { (tel , vs) → pure $ telPi tel $ el!
-                         $ def d vs `→ def (quote Term) []
+    { (tel , vs) → pure $ telPi tel $ def d vs `→ def (quote Term) []
     }
 
   dictConstructor : TC Name

@@ -31,7 +31,7 @@ induction-goal-must-be-a-function-type = _
 -- TODO: in library
 private
   newMeta! : TC Term
-  newMeta! = newMeta (el unknown unknown)
+  newMeta! = newMeta unknown
 
   vlam : Term → Term
   vlam b = lam visible (abs "_" b)
@@ -39,12 +39,12 @@ private
 macro
   induction : Tactic
   induction hole =
-    caseM unEl <$> inferType hole of λ
+    caseM inferType hole of λ
     { (pi a b)   →
-        let P = lam visible (unEl <$> b)
+        let P = lam visible b
             inStepCxt : {A : Set} → TC A → TC A
-            inStepCxt {_} = extendContext (vArg (el unknown (quoteTerm Nat))) ∘
-                            extendContext (vArg (el unknown unknown)) in
+            inStepCxt {_} = extendContext (vArg (quoteTerm Nat)) ∘
+                            extendContext (vArg unknown) in
         do base ← newMeta!
         -| step ← inStepCxt newMeta!
         -| unify hole (def (quote nat-induction)
