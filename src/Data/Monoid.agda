@@ -19,8 +19,9 @@ mconcat = foldr _<>_ mempty
 MonoidList : ∀ {a} {A : Set a} → Monoid (List A)
 MonoidList = record { mempty = [] ; _<>_ = _++_ }
 
-MonoidFun : ∀ {a} {A : Set a} → Monoid (A → A)
-MonoidFun = record { mempty = id ; _<>_ = λ f g → f ∘ g }
+MonoidFun : ∀ {a b} {A : Set a} {B : A → Set b} {{_ : ∀ {x} → Monoid (B x)}} → Monoid (∀ x → B x)
+mempty {{MonoidFun}}     _ = mempty
+_<>_   {{MonoidFun}} f g x = f x <> g x
 
 record SumNat : Set where
   constructor mkSum
