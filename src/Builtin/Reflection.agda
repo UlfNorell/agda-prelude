@@ -250,37 +250,21 @@ absurd-lam = pat-lam (absurd-clause (vArg absurd ∷ []) ∷ []) []
 ------------------------------------------------------------------------
 -- Definitions
 
-data Function : Set where
-  fun-def : Type → List Clause → Function
+data Definition : Set where
+  function    : List Clause → Definition
+  data-type   : (pars : Nat) (cs : List Name) → Definition
+  record-type : (c : Name) → Definition
+  data-cons   : (d : Name) → Definition
+  axiom       : Definition
+  prim-fun    : Definition
 
-{-# BUILTIN AGDAFUNDEF    Function #-}
-{-# BUILTIN AGDAFUNDEFCON fun-def #-}
-
-postulate
-  DataType : Set
-  Record   : Set
-
-{-# BUILTIN AGDADATADEF   DataType #-}
-{-# BUILTIN AGDARECORDDEF Record    #-}
-
--- Definitions.
-
-private
-  data Def : Set where
-    function     : Function  → Def
-    data-type    : DataType → Def
-    record′      : Record    → Def
-    constructor′ : Def
-    axiom        : Def
-    primitive′   : Def
-
-{-# BUILTIN AGDADEFINITION                Def   #-}
-{-# BUILTIN AGDADEFINITIONFUNDEF          function     #-}
-{-# BUILTIN AGDADEFINITIONDATADEF         data-type    #-}
-{-# BUILTIN AGDADEFINITIONRECORDDEF       record′      #-}
-{-# BUILTIN AGDADEFINITIONDATACONSTRUCTOR constructor′ #-}
-{-# BUILTIN AGDADEFINITIONPOSTULATE       axiom        #-}
-{-# BUILTIN AGDADEFINITIONPRIMITIVE       primitive′   #-}
+{-# BUILTIN AGDADEFINITION                Definition  #-}
+{-# BUILTIN AGDADEFINITIONFUNDEF          function    #-}
+{-# BUILTIN AGDADEFINITIONDATADEF         data-type   #-}
+{-# BUILTIN AGDADEFINITIONRECORDDEF       record-type #-}
+{-# BUILTIN AGDADEFINITIONDATACONSTRUCTOR data-cons   #-}
+{-# BUILTIN AGDADEFINITIONPOSTULATE       axiom       #-}
+{-# BUILTIN AGDADEFINITIONPRIMITIVE       prim-fun    #-}
 
 ------------------------------------------------------------------------
 -- TC monad
@@ -312,10 +296,8 @@ postulate
   declareDef : Arg Name → Type → TC ⊤
   defineFun  : Name → List Clause → TC ⊤
   getType    : Name → TC Type
-  getDef     : Name → TC Def
-  numberOfParameters : Name → TC Nat
-  getConstructors    : Name → TC (List Name)
-  blockOnMeta : ∀ {a} {A : Set a} → Meta → TC A
+  getDefinition : Name → TC Definition
+  blockOnMeta   : ∀ {a} {A : Set a} → Meta → TC A
 
 {-# BUILTIN AGDATCM           TC         #-}
 {-# BUILTIN AGDATCMRETURN     returnTC   #-}
@@ -333,9 +315,7 @@ postulate
 {-# BUILTIN AGDATCMDECLAREDEF declareDef #-}
 {-# BUILTIN AGDATCMDEFINEFUN  defineFun #-}
 {-# BUILTIN AGDATCMGETTYPE getType #-}
-{-# BUILTIN AGDATCMGETDEFINITION getDef #-}
-{-# BUILTIN AGDATCMNUMBEROFPARAMETERS numberOfParameters #-}
-{-# BUILTIN AGDATCMGETCONSTRUCTORS getConstructors #-}
+{-# BUILTIN AGDATCMGETDEFINITION getDefinition #-}
 {-# BUILTIN AGDATCMBLOCKONMETA blockOnMeta #-}
 
 instance
@@ -357,8 +337,8 @@ Tactic = Term → TC ⊤
 give : Term → Tactic
 give v = λ hole → unify hole v
 
-define : Name → Function → TC ⊤
-define f (fun-def a cs) = declareDef (vArg f) a >> defineFun f cs
+define : Arg Name → Type → List Clause → TC ⊤
+define f a cs = declareDef f a >> defineFun (unArg f) cs
 
 newMeta : Type → TC Term
 newMeta = checkType unknown
@@ -369,44 +349,20 @@ typeErrorS s = typeError (strErr s ∷ [])
 ------------------------------------------------------------------------
 -- Convenient wrappers
 
-data Definition : Set where
-  function    : Function  → Definition
-  data-type   : (pars : Nat) (cs : List Name) → Definition
-  record-type : (c : Name) → Definition
-  data-cons   : (d : Name) → Definition
-  axiom       : Definition
-  prim-fun    : Definition
-
-private
-  data BadConstructorType : Set where
-
-  bad = quote BadConstructorType
-
-  conData : Name → TC Name
-  conData = λ c → getData <$> getType c
-    where
-      getData : Term → Name
-      getData (def d _)        = d
-      getData (pi a (abs _ b)) = getData b
-      getData _         = bad
-
-  makeDef : Name → Def → TC Definition
-  makeDef _ (function x)  = pure (function x)
-  makeDef d (data-type _) = data-type <$> numberOfParameters d <*> getConstructors d
-  makeDef _ axiom         = pure axiom
-  makeDef r (record′ _)   =
-    caseM getConstructors r of λ
-    { (c ∷ _) → pure $ record-type c
-    ; _ → typeErrorS "impossible" }
-  makeDef c constructor′  = data-cons <$> conData c
-  makeDef _ primitive′    = pure prim-fun
-
-getDefinition : Name → TC Definition
-getDefinition f = makeDef f =<< getDef f
-
 -- Zero for non-datatypes
 getParameters : Name → TC Nat
-getParameters d = catchTC (numberOfParameters d) (pure 0)
+getParameters d =
+  caseM getDefinition d of λ
+  { (data-type n _) → pure n
+  ; _ → pure 0 }
+
+getConstructors : Name → TC (List Name)
+getConstructors d =
+  caseM getDefinition d of λ
+  { (data-type _ cs) → returnTC cs
+  ; (record-type c) → returnTC (c ∷ [])
+  ; _ → typeError (strErr "Cannot get constructors of non-data or record type" ∷ nameErr d ∷ [])
+  }
 
 -- Injectivity of constructors
 
