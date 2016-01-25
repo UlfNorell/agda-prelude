@@ -17,17 +17,6 @@ nat-induction P base step (suc n) = step n (nat-induction P base step n)
 induction-goal-must-be-a-function-type : ⊤
 induction-goal-must-be-a-function-type = _
 
--- induction-tactic : Term → Term
--- induction-tactic (pi a b) =
---   let P = lam visible (unEl <$> b)
---   in def (quote nat-induction)
---          ( vArg P
---          ∷ vArg (on-goal (quote autosub-tactic))
---          ∷ vArg (lam visible $ abs "_" $ lam visible $ abs "ih" $
---                 on-type-of-term (quote by-tactic) (var 0 []))
---          ∷ [])
--- induction-tactic t = failedProof (quote induction-goal-must-be-a-function-type) t
-
 -- TODO: in library
 private
   newMeta! : TC Term

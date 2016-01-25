@@ -124,3 +124,4 @@ private
 
   induction-example : ∀ n → sum (downFrom n) * 2 ≡ n * (n + 1)
   induction-example = induction
+
