@@ -289,6 +289,8 @@ postulate
   checkType  : Term → Type → TC Term
   normalise  : Term → TC Term
   catchTC    : ∀ {a} {A : Set a} → TC A → TC A → TC A
+  quoteTC    : ∀ {a} {A : Set a} → A → TC Term
+  unquoteTC  : ∀ {a} {A : Set a} → Term → TC A
   getContext : TC (List (Arg Type))
   extendContext : ∀ {a} {A : Set a} → Arg Type → TC A → TC A
   inContext     : ∀ {a} {A : Set a} → List (Arg Type) → TC A → TC A
@@ -308,6 +310,8 @@ postulate
 {-# BUILTIN AGDATCMCHECKTYPE  checkType  #-}
 {-# BUILTIN AGDATCMNORMALISE  normalise  #-}
 {-# BUILTIN AGDATCMCATCHERROR catchTC    #-}
+{-# BUILTIN AGDATCMQUOTETERM  quoteTC    #-}
+{-# BUILTIN AGDATCMUNQUOTETERM unquoteTC #-}
 {-# BUILTIN AGDATCMGETCONTEXT getContext #-}
 {-# BUILTIN AGDATCMEXTENDCONTEXT extendContext #-}
 {-# BUILTIN AGDATCMINCONTEXT  inContext #-}
