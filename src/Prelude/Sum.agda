@@ -31,6 +31,10 @@ lefts = concatMap λ { (left x) → [ x ]; (right _) → [] }
 rights : ∀ {a b} {A : Set a} {B : Set b} → List (Either A B) → List B
 rights = concatMap λ { (left _) → []; (right x) → [ x ] }
 
+mapEither : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : Set b₁} {B₂ : Set b₂} →
+            (A₁ → A₂) → (B₁ → B₂) → Either A₁ B₁ → Either A₂ B₂
+mapEither f g = either (left ∘ f) (right ∘ g)
+
 mapLeft : ∀ {a₁ a₂ b} {A₁ : Set a₁} {A₂ : Set a₂} {B : Set b} →
             (A₁ → A₂) → Either A₁ B → Either A₂ B
 mapLeft f = either (left ∘ f) right
