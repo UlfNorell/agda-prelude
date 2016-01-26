@@ -2,9 +2,10 @@
 module Prelude.Alternative where
 
 open import Agda.Primitive
+open import Prelude.Bool
 open import Prelude.Maybe
 open import Prelude.List
-open import Prelude.String
+open import Prelude.Decidable
 
 record Alternative {a b} (F : Set a → Set b) : Set (lsuc (a ⊔ b)) where
   infixl 3 _<|>_
@@ -27,3 +28,12 @@ instance
   AlternativeList : ∀ {a} → Alternative (List {a})
   empty {{AlternativeList}} = []
   _<|>_ {{AlternativeList}} = _++_
+
+module _ {a b} {F : Set a → Set b} {A : Set a} {{_ : Alternative F}} where
+  guardA! : Bool → F A → F A
+  guardA! true  x = x
+  guardA! false _ = empty
+
+  guardA : ∀ {p} {P : Set p} (d : Dec P) → ({{_ : P}} → F A) → F A
+  guardA (yes p) x = x
+  guardA (no  _) _ = empty
