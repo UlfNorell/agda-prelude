@@ -336,6 +336,10 @@ instance
   PMonadTC : ∀ {a b} → PMonad {a} {b} TC
   _>>=′_ {{PMonadTC}} = bindTC
 
+  AlternativeTC : ∀ {a} → Alternative {a} TC
+  empty {{AlternativeTC}} = typeError []
+  _<|>_ {{AlternativeTC}} = catchTC
+
 Tactic = Term → TC ⊤
 
 give : Term → Tactic

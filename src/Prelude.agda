@@ -27,6 +27,7 @@ open import Prelude.Equality    public
 open import Prelude.Decidable   public
 open import Prelude.Functor     public
 open import Prelude.Applicative public
+open import Prelude.Alternative public
 open import Prelude.Monad       public
 open import Prelude.Show        public
 open import Prelude.Ord         public
