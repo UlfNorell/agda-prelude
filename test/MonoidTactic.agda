@@ -5,6 +5,7 @@ open import Prelude
 open import Data.Traversable
 open import Data.Monoid.Laws
 open import Tactic.Monoid
+open import Tactic.Reflection
 
 MonoidAnd : Monoid Bool
 mempty {{MonoidAnd}} = true
@@ -25,4 +26,4 @@ test₂ : ∀ {a} {A : Set a} {{Mon : Monoid A}} {{Laws : MonoidLaws A}} →
 test₂ x y = auto-monoid
 
 test₃ : ∀ {a} {A : Set a} (xs ys zs : List A) → xs ++ ys ++ zs ≡ (xs ++ []) ++ (ys ++ []) ++ zs
-test₃ xs ys zs = auto-monoid
+test₃ xs ys zs = runT monoidTactic

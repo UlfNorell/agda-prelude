@@ -40,3 +40,7 @@ forceFun a =
   -| rng ← newMeta set!
   -| unify a (dom `→ weaken 1 rng)
   ~| normalise a
+
+macro
+  runT : Tactic → Tactic
+  runT t = t
