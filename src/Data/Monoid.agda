@@ -11,35 +11,50 @@ record Monoid {a} (A : Set a) : Set a where
 
 open Monoid {{...}} public
 
+{-# DISPLAY Monoid.mempty _ = mempty #-}
+{-# DISPLAY Monoid._<>_ _ a b = a <> b #-}
+
 mconcat : ∀ {a} {A : Set a} {{MonA : Monoid A}} → List A → A
 mconcat = foldr _<>_ mempty
 
 --- Instances ---
 
-MonoidList : ∀ {a} {A : Set a} → Monoid (List A)
-MonoidList = record { mempty = [] ; _<>_ = _++_ }
+instance
+  MonoidList : ∀ {a} {A : Set a} → Monoid (List A)
+  mempty {{MonoidList}} = []
+  _<>_   {{MonoidList}} = _++_
 
-MonoidFun : ∀ {a b} {A : Set a} {B : A → Set b} {{_ : ∀ {x} → Monoid (B x)}} → Monoid (∀ x → B x)
-mempty {{MonoidFun}}     _ = mempty
-_<>_   {{MonoidFun}} f g x = f x <> g x
+  MonoidFun : ∀ {a b} {A : Set a} {B : A → Set b} {{_ : ∀ {x} → Monoid (B x)}} → Monoid (∀ x → B x)
+  mempty {{MonoidFun}}     _ = mempty
+  _<>_   {{MonoidFun}} f g x = f x <> g x
 
-record SumNat : Set where
+  MonoidMaybe : ∀ {a} {A : Set a} {{_ : Monoid A}} → Monoid (Maybe A)
+  mempty {{MonoidMaybe}} = nothing
+  _<>_   {{MonoidMaybe}} nothing  y        = y
+  _<>_   {{MonoidMaybe}} x        nothing  = x
+  _<>_   {{MonoidMaybe}} (just x) (just y) = just (x <> y)
+
+record Sum {a} (A : Set a) : Set a where
   constructor mkSum
-  field getSum : Nat
+  field getSum : A
 
-open SumNat public
+open Sum public
 
-MonoidSum : Monoid SumNat
-MonoidSum = record { mempty = mkSum 0 ; _<>_ = λ n m → mkSum (getSum n + getSum m) }
+instance
+  MonoidSum : ∀ {a} {A : Set a} {{_ : Semiring A}} → Monoid (Sum A)
+  getSum (mempty {{MonoidSum}})     = zro
+  getSum (_<>_   {{MonoidSum}} x y) = getSum x + getSum y
 
-record ProductNat : Set where
+record Product {a} (A : Set a) : Set a where
   constructor mkProduct
-  field getProduct : Nat
+  field getProduct : A
 
-open ProductNat public
+open Product public
 
-MonoidProduct : Monoid ProductNat
-MonoidProduct = record { mempty = mkProduct 1 ; _<>_ = λ n m → mkProduct (getProduct n * getProduct m) }
+instance
+  MonoidProduct : ∀ {a} {A : Set a} {{_ : Semiring A}} → Monoid (Product A)
+  getProduct (mempty {{MonoidProduct}})     = one
+  getProduct (_<>_   {{MonoidProduct}} x y) = getProduct x * getProduct y
 
 record Const {a b} (A : Set a) (B : Set b) : Set a where
   constructor mkConst
@@ -47,6 +62,7 @@ record Const {a b} (A : Set a) (B : Set b) : Set a where
 
 open Const public
 
-ApplicativeConst : ∀ {a b} {A : Set a} {{MonA : Monoid A}} → Applicative {a = b} (Const A)
-ApplicativeConst = record { pure  = const (mkConst mempty)
-                          ; _<*>_ = λ wf wx → mkConst (getConst wf <> getConst wx) }
+instance
+  ApplicativeConst : ∀ {a b} {A : Set a} {{MonA : Monoid A}} → Applicative {a = b} (Const A)
+  getConst (pure  {{ApplicativeConst}} x)     = mempty
+  getConst (_<*>_ {{ApplicativeConst}} wf wx) = getConst wf <> getConst wx
