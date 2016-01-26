@@ -157,6 +157,9 @@ data Abs (A : Set) : Set where
 {-# BUILTIN ABS        Abs      #-}
 {-# BUILTIN ABSABS     abs      #-}
 
+unAbs : ∀ {A} → Abs A → A
+unAbs (abs _ x) = x
+
 instance
   FunctorAbs : Functor Abs
   FunctorAbs = record { fmap = λ { f (abs s x) → abs s (f x) } }
