@@ -4,53 +4,49 @@ module Control.Monad.State where
 open import Prelude
 open import Control.Monad.Zero
 
-data StateT {a} (S : Set a) (M : Set a → Set a) (A : Set a) : Set a where
-  stateT : (S → M (A × S)) → StateT S M A
+record StateT {a} (S : Set a) (M : Set a → Set a) (A : Set a) : Set a where
+  no-eta-equality
+  constructor stateT
+  field runStateT : S → M (A × S)
 
-runStateT : ∀ {a} {S : Set a} {M : Set a → Set a} {A : Set a} →
-              StateT S M A → S → M (A × S)
-runStateT (stateT f) = f
+open StateT public
 
 -- Instances --
 
-private
-  returnStateT : ∀ {a} {S : Set a} {M : Set a → Set a} {{MonadM : Monad M}} {A : Set a} →
-                   A → StateT S M A
-  returnStateT x = stateT λ s → return (x , s)
+module _ {a} {S : Set a} {M : Set a → Set a} where
 
-  bindStateT : ∀ {a} {S : Set a} {M : Set a → Set a} {{MonadM : Monad M}} {A B : Set a} →
-                 StateT S M A → (A → StateT S M B) → StateT S M B
-  bindStateT m f = stateT λ s → runStateT m s >>= λ r → uncurry (runStateT ∘ f) r
-
-module _ {a} {S : Set a} {M : Set a → Set a} {{MonadM : Monad M}} where
   instance
-    MonadStateT : Monad {a = a} (StateT S M)
-    MonadStateT = record { return = returnStateT
-                         ; _>>=_  = bindStateT
-                         }
+    FunctorStateT : {{_ : Functor M}} → Functor {a = a} (StateT S M)
+    runStateT (fmap {{FunctorStateT}} f m) s = first f <$> runStateT m s
 
-    FunctorStateT : Functor {a = a} (StateT S M)
-    FunctorStateT = defaultMonadFunctor {{MonadStateT}}
+    AlternativeStateT : {{_ : Alternative M}} → Alternative {a = a} (StateT S M)
+    runStateT (empty {{AlternativeStateT}})     s = empty
+    runStateT (_<|>_ {{AlternativeStateT}} x y) s = runStateT x s <|> runStateT y s
 
-    ApplicativeStateT : Applicative {a = a} (StateT S M)
-    ApplicativeStateT = defaultMonadApplicative {{MonadStateT}}
+  module _ {{_ : Monad M}} where
 
-    MonadZeroStateT : {{_ : MonadZero M}} → MonadZero {a = a} (StateT S M)
-    MonadZeroStateT = record { mzero = stateT λ _ → mzero }
+    instance
+      MonadStateT : Monad {a = a} (StateT S M)
+      runStateT (return {{MonadStateT}} x)   s = return (x , s)
+      runStateT (_>>=_  {{MonadStateT}} m f) s = runStateT m s >>= λ r → uncurry (runStateT ∘ f) r
 
-  -- State operations --
+      ApplicativeStateT : Applicative {a = a} (StateT S M)
+      ApplicativeStateT = defaultMonadApplicative
 
-  lift : {A : Set a} → M A → StateT S M A
-  lift m = stateT λ s → m >>= λ x → return (x , s)
+      MonadZeroStateT : {{_ : MonadZero M}} → MonadZero {a = a} (StateT S M)
+      runStateT (mzero {{MonadZeroStateT}}) _ = mzero
 
-  gets : {A : Set a} → (S → A) → StateT S M A
-  gets f = stateT λ s → return (f s , s)
+    lift : {A : Set a} → M A → StateT S M A
+    runStateT (lift m) s = m >>= λ x → return (x , s)
 
-  modify : (S → S) → StateT S M S
-  modify f = stateT λ s → return (s , f s)
+    gets : {A : Set a} → (S → A) → StateT S M A
+    runStateT (gets f) s = return (f s , s)
 
-  get : StateT S M S
-  get = gets id
+    modify : (S → S) → StateT S M S
+    runStateT (modify f) s = return (s , f s)
 
-  put : S → StateT S M S
-  put s = modify (const s)
+    get : StateT S M S
+    get = gets id
+
+    put : S → StateT S M S
+    put s = modify (const s)
