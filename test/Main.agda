@@ -31,6 +31,8 @@ open import Data.Nat.Modulo
 open import Data.Nat.Pow
 open import Data.Smashed
 
+open import MonoidTactic
+
 Hello = printf "%c%s" 'H' "ello"
 World = printf "%-7s(%.6f)" "World" π
 
