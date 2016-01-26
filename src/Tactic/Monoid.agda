@@ -17,11 +17,10 @@ monoidTactic {A = A} {{dict}} {{laws}} hole =
   -| `A     ← quoteTC A
   -| catchTC (unify goal (def (quote _≡_) (hArg unknown ∷ hArg `A ∷ vArg unknown ∷ vArg unknown ∷ [])))
              (typeError $ strErr "Goal is not an equality" ∷ termErr goal ∷ [])
-  ~| isPlus ← match<> dict
-  -| isZero ← catchTC (matchEmpty dict) (typeErrorS "matchEmpty")
+  ~| match  ← monoidMatcher dict
   -| `dict  ← quoteTC dict
   -| `laws  ← quoteTC laws
-  -| caseM runP (parseEqn isZero isPlus goal) of λ
+  -| caseM parseGoal match goal of λ
      { ((lhs , rhs) , env) →
        catchTC (unify hole (def (quote proof) (iArg `dict ∷ iArg `laws ∷ vArg (` lhs) ∷ vArg (` rhs) ∷
                                               vArg (quoteEnv `dict env) ∷ vArg (con (quote refl) []) ∷ [])))
@@ -33,4 +32,3 @@ monoidTactic {A = A} {{dict}} {{laws}} hole =
 macro
   auto-monoid : ∀ {a} {A : Set a} {{Mon : Monoid A}} {{Laws : MonoidLaws A}} → Tactic
   auto-monoid {{Mon}} {{Laws}} = monoidTactic {{Mon}} {{Laws}}
-
