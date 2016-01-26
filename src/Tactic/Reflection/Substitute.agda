@@ -109,3 +109,47 @@ substArgs σ [] = []
 substArgs σ (x ∷ args) = substArg σ x ∷ substArgs σ args
 substArg σ (arg i x) = arg i (substTerm σ x)
 substAbs σ (abs x v) = abs x $ substTerm (safe (var 0 []) _ ∷ weaken 1 σ) v
+
+private
+  toArgs : Nat → List (Arg SafeTerm) → List (Arg Term)
+  toArgs k = map (weaken k ∘ fmap safe-term)
+
+  SafeApplyType : Set → Set
+  SafeApplyType A = List SafeTerm → Nat → A → List (Arg SafeTerm) → A
+
+  safeApplyAbs : SafeApplyType (Abs Term)
+  safeApplyArg : SafeApplyType (Arg Term)
+  safeApplySort : SafeApplyType Sort
+
+  -- safeApply′ env |Θ| v args = v′
+  --   where Γ, Δ, Θ ⊢ v
+  --         Γ ⊢ env : Δ
+  --         Γ ⊢ args
+  --         Γ, Θ ⊢ v′
+  safeApply′ : List SafeTerm → Nat → Term → List (Arg SafeTerm) → Term
+  safeApply′ env k (var x args) args₁ =
+    if x <? k then var x (args ++ toArgs k args₁)
+              else case index env (x - k) of λ
+                   { nothing  → var (x - length env) (args ++ toArgs k args₁)
+                   ; (just v) → applyTerm v (args ++ toArgs k args₁) }
+  safeApply′ env k (con c args)      args₁      = con c (args ++ toArgs k args₁)
+  safeApply′ env k (def f args)      args₁      = def f (args ++ toArgs k args₁)
+  safeApply′ env k (lam v t)        (a ∷ args₁) = safeApply′ (unArg a ∷ env) k (unAbs t) args₁
+  safeApply′ env k (lam v b)         []         = lam v $ safeApplyAbs env k b []
+  safeApply′ env k (pat-lam cs args) args₁      = pat-lam cs (args ++ toArgs k args₁)
+                                                  -- not right if applying to constructors
+  safeApply′ env k (pi a b)          _          = pi (safeApplyArg env k a []) (safeApplyAbs env k b [])
+  safeApply′ env k (agda-sort s)     args₁      = agda-sort (safeApplySort env k s [])
+  safeApply′ env k (lit l)           args₁      = lit l
+  safeApply′ env k (meta x args)     args₁      = meta x (args ++ toArgs k args₁)
+  safeApply′ env k unknown           args₁      = unknown
+
+  safeApplyAbs env k (abs x b) _ = abs x (safeApply′ env (suc k) b [])
+  safeApplyArg env k (arg i v) args₁ = arg i (safeApply′ env k v args₁)
+
+  safeApplySort env k (set t) _ = set (safeApply′ env k t [])
+  safeApplySort env k (lit n) _ = lit n
+  safeApplySort env k unknown _ = unknown
+
+safeApply : Term → List (Arg SafeTerm) → Term
+safeApply v args = safeApply′ [] 0 v args
