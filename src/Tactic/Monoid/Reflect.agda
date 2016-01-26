@@ -6,7 +6,6 @@ open import Tactic.Reflection
 open import Tactic.Reflection.Match
 
 open import Control.Monad.State
-open import Data.Monoid
 
 open import Tactic.Monoid.Exp
 

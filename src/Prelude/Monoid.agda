@@ -1,7 +1,10 @@
 
-module Data.Monoid where
+module Prelude.Monoid where
 
-open import Prelude
+open import Prelude.Maybe
+open import Prelude.List
+open import Prelude.Semiring
+open import Prelude.Applicative
 
 record Monoid {a} (A : Set a) : Set a where
   infixr 6 _<>_

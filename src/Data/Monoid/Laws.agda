@@ -2,7 +2,6 @@
 module Data.Monoid.Laws where
 
 open import Prelude
-open import Data.Monoid
 
 record MonoidLaws {a} (A : Set a) {{Mon : Monoid A}} : Set a where
   field

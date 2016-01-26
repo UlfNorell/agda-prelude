@@ -2,7 +2,6 @@
 module MonoidTactic where
 
 open import Prelude
-open import Data.Monoid
 open import Data.Traversable
 open import Data.Monoid.Laws
 open import Tactic.Monoid

@@ -2,7 +2,6 @@
 module Data.Foldable where
 
 open import Prelude
-open import Data.Monoid
 
 record Foldable {a b w} (F : Set a → Set b) : Set (lsuc w ⊔ lsuc a ⊔ b) where
   field

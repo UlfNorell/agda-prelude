@@ -2,7 +2,6 @@
 module Text.Parse (Tok : Set) where
 
 open import Prelude
-open import Data.Monoid
 
 private
   data P′ (A : Set) : Set where

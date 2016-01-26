@@ -5,7 +5,6 @@ open import Prelude
 open import Tactic.Reflection
 open import Tactic.Reflection.Quote
 
-open import Data.Monoid
 open import Data.Monoid.Laws
 
 open import Tactic.Monoid.Exp

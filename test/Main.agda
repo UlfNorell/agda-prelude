@@ -1,7 +1,6 @@
 
 open import Prelude
 open import Data.Traversable
-open import Data.Monoid
 open import Data.Foldable
 open import Data.List
 open import Text.Parse
