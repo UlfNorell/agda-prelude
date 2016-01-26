@@ -21,9 +21,13 @@ syntax flip-fmap a (λ x → y) = for x ← a do y
 flip-fmap : ∀ {a b} {F : Set a → Set b} {{_ : Functor F}} {A B} → F A → (A → B) → F B
 flip-fmap x f = fmap f x
 
+infixr 0 caseF_of_
+caseF_of_ : ∀ {a b} {F : Set a → Set b} {{_ : Functor F}} {A B} → F A → (A → B) → F B
+caseF_of_ x f = fmap f x
+
 -- Congruence for _<$>_ --
 
-infixl 4 _=$=_ 
+infixl 4 _=$=_
 _=$=_ : ∀ {a b} {A B : Set a} {F : Set a → Set b} {{_ : Functor F}} {x y : F A}
           (f : A → B) → x ≡ y → (f <$> x) ≡ (f <$> y)
 f =$= refl = refl
