@@ -26,10 +26,11 @@ pattern con₂ c x y     = con c (vArg x ∷ vArg y ∷ [])
 pattern con₃ c x y z   = con c (vArg x ∷ vArg y ∷ vArg z ∷ [])
 pattern con₄ c x y z u = con c (vArg x ∷ vArg y ∷ vArg z ∷ vArg u ∷ [])
 
-pattern _`→_  a b = pi (vArg a) (abs "_" b)
-pattern _`→ʰ_ a b = pi (hArg a) (abs "_" b)
-pattern _`→ⁱ_ a b = pi (iArg a) (abs "_" b)
 infixr 4 _`→_ _`→ʰ_ _`→ⁱ_
+_`→_ _`→ʰ_ _`→ⁱ_ : Type → Type → Type
+_`→_  a b = pi (vArg a) (abs "_" b)
+_`→ʰ_ a b = pi (hArg a) (abs "_" b)
+_`→ⁱ_ a b = pi (iArg a) (abs "_" b)
 
 on-goal : (Type → Tactic) → Tactic
 on-goal tac hole = inferType hole >>= λ goal → tac goal hole
