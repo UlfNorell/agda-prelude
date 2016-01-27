@@ -65,12 +65,13 @@ private
   primitive
     primMetaEquality : Meta → Meta → Bool
     primMetaLess : Meta → Meta → Bool
+    primShowMeta : Meta → String
 
 -- Show instance --
 
 instance
   ShowMeta : Show Meta
-  showsPrec {{ShowMeta}} _ _ = showString "_"
+  showsPrec {{ShowMeta}} _ x = showString (primShowMeta x)
 
 -- Eq instance --
 
@@ -175,13 +176,15 @@ data Literal : Set where
   char   : Char   → Literal
   string : String → Literal
   name   : Name   → Literal
+  meta   : Meta   → Literal
 
 {-# BUILTIN AGDALITERAL   Literal #-}
-{-# BUILTIN AGDALITNAT    nat #-}
-{-# BUILTIN AGDALITFLOAT  float #-}
-{-# BUILTIN AGDALITCHAR   char #-}
-{-# BUILTIN AGDALITSTRING string #-}
-{-# BUILTIN AGDALITQNAME  name #-}
+{-# BUILTIN AGDALITNAT    nat     #-}
+{-# BUILTIN AGDALITFLOAT  float   #-}
+{-# BUILTIN AGDALITCHAR   char    #-}
+{-# BUILTIN AGDALITSTRING string  #-}
+{-# BUILTIN AGDALITQNAME  name    #-}
+{-# BUILTIN AGDALITMETA   meta    #-}
 
 -- Terms.
 
@@ -413,10 +416,10 @@ def-inj₁ refl = refl
 def-inj₂ : ∀ {f f′ args args′} → def f args ≡ def f′ args′ → args ≡ args′
 def-inj₂ refl = refl
 
-meta-inj₁ : ∀ {f f′ args args′} → meta f args ≡ meta f′ args′ → f ≡ f′
+meta-inj₁ : ∀ {f f′ args args′} → Term.meta f args ≡ meta f′ args′ → f ≡ f′
 meta-inj₁ refl = refl
 
-meta-inj₂ : ∀ {f f′ args args′} → meta f args ≡ meta f′ args′ → args ≡ args′
+meta-inj₂ : ∀ {f f′ args args′} → Term.meta f args ≡ meta f′ args′ → args ≡ args′
 meta-inj₂ refl = refl
 
 lam-inj₁ : ∀ {v v′ t t′} → lam v t ≡ lam v′ t′ → v ≡ v′
@@ -457,3 +460,6 @@ string-inj refl = refl
 
 name-inj : ∀ {x y} → name x ≡ name y → x ≡ y
 name-inj refl = refl
+
+meta-inj : ∀ {x y} → Literal.meta x ≡ meta y → x ≡ y
+meta-inj refl = refl
