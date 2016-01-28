@@ -8,3 +8,5 @@ test/PrimeTest
 test/PrimeTest_p
 *.prof
 *.treeless
+*.hi
+*.o
