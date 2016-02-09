@@ -52,6 +52,10 @@ it : ∀ {a} {A : Set a} {{x : A}} → A
 it {{x}} = x
 {-# INLINE it #-}
 
+asInstance : ∀ {a b} {A : Set a} {B : A → Set b} (x : A) → (∀ {{x}} → B x) → B x
+asInstance x f = f {{x}}
+{-# INLINE asInstance #-}
+
 -- Can be used to force normalisation at compile time.
 static : ∀ {a} {A : Set a} → A → A
 static x = x
