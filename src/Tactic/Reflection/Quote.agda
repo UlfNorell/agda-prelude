@@ -43,7 +43,7 @@ unquoteDecl QuotableInt        = deriveQuotable QuotableInt        (quote Int)
 
 instance
   QuotableMeta : Quotable Meta
-  ` {{QuotableMeta}} _ = con (quote Term.unknown) []
+  ` {{QuotableMeta}} x = lit (meta x)
 
 private
   deriveQuotableTermTypes : Vec Name _ → TC ⊤
