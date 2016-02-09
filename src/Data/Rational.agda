@@ -42,8 +42,9 @@ private
         q′ = q₂ * d′
         p = p′ * d
         q = q′ * d
-        nzd : NonZero d
-        nzd = transport NonZero (gcd-unique p q d (factor! p′) (factor! q′) g) (nonzero-gcd p q)
+        instance
+          nzd : NonZero d
+          nzd = transport NonZero (gcd-unique p q d (factor! p′) (factor! q′) g) (nonzero-gcd p q)
         dd′|d : (d′ * d) Divides d
         dd′|d = g (d′ * d) (factor p₂ auto) (factor q₂ auto)
     in lem-divide-mul d′ d dd′|d

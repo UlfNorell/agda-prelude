@@ -199,8 +199,8 @@ private
     { (inside k∈2r) → k∤sn k k∈2r k|sn
     ; (below  k<2)  → less-not-geq k<2 (range-lower-bound k∈2n)
     ; (above  k>r)  →
-      let k≠0 : NonZero k
-          k≠0 = non-zero-range k∈2n
+      let instance k≠0 : NonZero k
+                   k≠0 = non-zero-range k∈2n
           hi : suc n div k ≤ r
           hi = divide-smaller (suc n) r k r²>n k|sn k>r
           lo : suc n div k ≥ 2

@@ -60,8 +60,8 @@ private
      ; (no !pm) →
          let m≤hi : m ≤ hi
              m≤hi = by d′<d ⟨≤⟩ diff 1 (cong suc eq)
-             d′≠0 : NonZero d′
-             d′≠0 = lem-half-nonzero d₀
+             instance d′≠0 : NonZero d′
+                      d′≠0 = lem-half-nonzero d₀
              eq′ : hi ≡ hi - m + m
              eq′ = eraseEquality (sym (sub-less m≤hi))
          in

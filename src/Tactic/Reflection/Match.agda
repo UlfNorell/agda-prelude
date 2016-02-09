@@ -14,7 +14,7 @@ private
   M n = StateT (Vec (Maybe Term) n) Maybe
 
   fN : ∀ {n} (i : Nat) → IsTrue (lessNat i n) → Fin n
-  fN i lt = fromNat i
+  fN i lt = fromNat i {{lt}}
 
   patVar : ∀ {n} → Nat → Nat → Maybe (Fin n)
   patVar {n} zero i with lessNat i n | fN {n} i
