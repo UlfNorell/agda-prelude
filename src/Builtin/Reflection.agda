@@ -378,6 +378,13 @@ getConstructors d =
   ; _ → typeError (strErr "Cannot get constructors of non-data or record type" ∷ nameErr d ∷ [])
   }
 
+getClauses : Name → TC (List Clause)
+getClauses d =
+  caseM getDefinition d of λ
+  { (function cs) → returnTC cs
+  ; _ → typeError (strErr "Cannot get constructors of non-function type" ∷ nameErr d ∷ [])
+  }
+
 -- Injectivity of constructors
 
 arg-inj₁ : ∀ {A i i′} {x x′ : A} → arg i x ≡ arg i′ x′ → i ≡ i′
