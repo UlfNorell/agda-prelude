@@ -373,15 +373,15 @@ getParameters d =
 getConstructors : Name → TC (List Name)
 getConstructors d =
   caseM getDefinition d of λ
-  { (data-type _ cs) → returnTC cs
-  ; (record-type c) → returnTC (c ∷ [])
+  { (data-type _ cs) → pure cs
+  ; (record-type c) → pure (c ∷ [])
   ; _ → typeError (strErr "Cannot get constructors of non-data or record type" ∷ nameErr d ∷ [])
   }
 
 getClauses : Name → TC (List Clause)
 getClauses d =
   caseM getDefinition d of λ
-  { (function cs) → returnTC cs
+  { (function cs) → pure cs
   ; _ → typeError (strErr "Cannot get constructors of non-function type" ∷ nameErr d ∷ [])
   }
 
