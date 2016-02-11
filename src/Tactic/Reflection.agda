@@ -45,3 +45,9 @@ forceFun a =
 macro
   runT : Tactic → Tactic
   runT t = t
+
+runTC : ∀ {a} {A : Set a} → TC A → Tactic
+runTC c hole =
+  do v ← c
+  =| `v ← quoteTC v
+  =| unify hole `v
