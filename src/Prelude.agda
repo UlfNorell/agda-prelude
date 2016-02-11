@@ -37,6 +37,3 @@ open import Prelude.IO          public
 
 open import Prelude.Equality.Unsafe  public using (eraseEquality)
 open import Prelude.Equality.Inspect public
-
-infixr 5 _::_
-pattern _::_ x xs = x ∷ xs
