@@ -32,6 +32,9 @@ _`→_  a b = pi (vArg a) (abs "_" b)
 _`→ʰ_ a b = pi (hArg a) (abs "_" b)
 _`→ⁱ_ a b = pi (iArg a) (abs "_" b)
 
+_::_ : Term → Type → TC Term
+_::_ = checkType
+
 on-goal : (Type → Tactic) → Tactic
 on-goal tac hole = inferType hole >>= λ goal → tac goal hole
 
