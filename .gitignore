@@ -10,3 +10,4 @@ test/PrimeTest_p
 *.treeless
 *.hi
 *.o
+*.agda#
