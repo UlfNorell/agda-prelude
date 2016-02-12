@@ -48,3 +48,10 @@ forceFun a =
 macro
   runT : Tactic → Tactic
   runT t = t
+
+evalTC : ∀ {a} {A : Set a} → TC A → Tactic
+evalTC c hole = c >>=′ quoteTC >>= unify hole
+
+macro
+  evalT : ∀ {a} {A : Set a} → TC A → Tactic
+  evalT = evalTC
