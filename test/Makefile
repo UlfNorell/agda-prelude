@@ -2,7 +2,7 @@
 agda = agda
 
 default :
-	$(agda) -i. -i../src Main.agda --compile --ghc-flag=../agda-ffi/Agda/FFI.hs $(agda-flags)
+	$(agda) -i. -i../src Main.agda --compile $(agda-flags)
 
 test :
 	make agda-flags=--ignore-interfaces

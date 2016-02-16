@@ -14,8 +14,8 @@ data Maybe {a} (A : Set a) : Set a where
   nothing : Maybe A
   just    : A → Maybe A
 
-{-# IMPORT Agda.FFI #-}
-{-# COMPILED_DATA Maybe Agda.FFI.AgdaMaybe Nothing Just #-}
+{-# HASKELL type AgdaMaybe l = Maybe #-}
+{-# COMPILED_DATA Maybe MAlonzo.Code.Prelude.Maybe.AgdaMaybe Nothing Just #-}
 
 maybe : ∀ {a b} {A : Set a} {B : Set b} → B → (A → B) → Maybe A → B
 maybe z f nothing  = z
