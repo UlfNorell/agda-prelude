@@ -1,7 +1,7 @@
 
 module Prelude.Semiring where
 
-open import Prelude.Nat.Core
+open import Agda.Builtin.Nat
 open import Prelude.Function
 
 record Semiring {a} (A : Set a) : Set a where

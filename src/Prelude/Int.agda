@@ -14,13 +14,7 @@ open import Prelude.Ord
 open import Prelude.Decidable
 open import Prelude.Function
 
-data Int : Set where
-  pos    : (n : Nat) → Int
-  negsuc : (n : Nat) → Int
-
-{-# BUILTIN INTEGER       Int    #-}
-{-# BUILTIN INTEGERPOS    pos    #-}
-{-# BUILTIN INTEGERNEGSUC negsuc #-}
+open import Agda.Builtin.Int public
 
 -- Integers are numbers --
 

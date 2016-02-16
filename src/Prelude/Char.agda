@@ -9,18 +9,8 @@ open import Prelude.Decidable
 open import Prelude.Function
 open import Prelude.Ord
 
-postulate Char : Set
-
-{-# BUILTIN CHAR Char #-}
-
---- Primitive operations ---
-
-private
- primitive
-  primIsLower primIsDigit primIsAlpha primIsSpace primIsAscii primIsLatin1 primIsPrint primIsHexDigit : Char → Bool
-  primToUpper primToLower : Char → Char
-  primCharToNat : Char → Nat
-  primNatToChar : Nat → Char
+open import Agda.Builtin.Char
+open Agda.Builtin.Char public using (Char)
 
 isLower    = primIsLower
 isDigit    = primIsDigit

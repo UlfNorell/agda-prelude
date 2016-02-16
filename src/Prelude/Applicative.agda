@@ -30,13 +30,13 @@ open Applicative {{...}} public
 module _ {a b} {F : Set a → Set b} {{FunF : Functor F}} {{AppF : Applicative F}} where
 
   defaultApplicativeNumber : {A : Set a} {{NumA : Number A}} -- levels get in the way of having constraints
-                             {{_ : Number.NoConstraint NumA}} →
+                             {{_ : NoNumConstraint NumA}} →
                              Number (F A)
   Number.Constraint defaultApplicativeNumber n = ⊤′
   fromNat {{defaultApplicativeNumber}} n = pure (fromNat n)
 
   defaultApplicativeNegative : {A : Set a} {{NegA : Negative A}} -- levels get in the way of having constraints
-                             {{_ : Negative.NoConstraint NegA}} →
+                             {{_ : NoNegConstraint NegA}} →
                              Negative (F A)
   Negative.Constraint defaultApplicativeNegative _ = ⊤′
   fromNeg {{defaultApplicativeNegative}} n = pure (fromNeg n)

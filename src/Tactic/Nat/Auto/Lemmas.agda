@@ -13,7 +13,7 @@ map++ f [] ys = refl
 map++ f (x ∷ xs) ys rewrite map++ f xs ys = refl
 
 prod++ : (xs ys : List Nat) → product (xs ++ ys) ≡ product xs * product ys
-prod++ [] ys = refl
+prod++ [] ys = sym (add-0-r (product ys))
 prod++ (x ∷ xs) ys rewrite prod++ xs ys = mul-assoc x _ _
 
 private
@@ -60,7 +60,7 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
 
   map-merge : ∀ x y (ρ : Env Atom) → product (map ρ (merge x y)) ≡ product (map ρ x) * product (map ρ y)
   map-merge [] [] ρ = refl
-  map-merge [] (x ∷ xs) ρ = refl
+  map-merge [] (x ∷ xs) ρ = sym (add-0-r (product (ρ x ∷ map ρ xs)))
   map-merge (x ∷ xs) [] ρ = sym (mul-1-r _)
   map-merge (x ∷ xs) (y ∷ ys) ρ with x <? y
   ... | true  rewrite map-merge xs (y ∷ ys) ρ = mul-assoc (ρ x) _ _
@@ -102,10 +102,7 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
     ⟦ t ∷ v₁ ⟧n ρ * ⟦ v₂ ⟧n ρ ∎
 
   sound : ∀ e (ρ : Env Atom) → ⟦ e ⟧e ρ ≡ ⟦ norm e ⟧n ρ
-  sound (var x) ρ =
-    ρ x     ≡⟨ mul-1-r (ρ x) ⟩ʳ
-    ρ x * 1 ≡⟨ add-0-r (ρ x * 1) ⟩ʳ
-    (ρ x * 1) + 0 ∎
+  sound (var x) ρ = mul-1-r (ρ x) ʳ⟨≡⟩ add-0-r _ ʳ⟨≡⟩ʳ add-0-r _
   sound (lit 0) ρ = refl
   sound (lit (suc n)) ρ rewrite mul-1-r n
                               | add-commute n 1

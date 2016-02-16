@@ -1,31 +1,11 @@
 
 module Prelude.Number where
 
-open import Agda.Primitive
-open import Prelude.Nat.Core
+open import Agda.Builtin.FromNat public
+open import Agda.Builtin.FromNeg public
 
-record Number {a} (A : Set a) : Set (lsuc a) where
-  field
-    Constraint : Nat → Set a
-    fromNat : ∀ n → {{_ : Constraint n}} → A
+NoNumConstraint : ∀ {a} {A : Set a} → Number A → Set a
+NoNumConstraint Num = ∀ {n} → Number.Constraint Num n
 
-  NoConstraint : Set a
-  NoConstraint = ∀ {n} → Constraint n
-
-open Number {{...}} public using (fromNat)
-
-{-# BUILTIN FROMNAT fromNat #-}
-{-# DISPLAY Number.fromNat _ n = fromNat n #-}
-
-record Negative {a} (A : Set a) : Set (lsuc a) where
-  field
-    Constraint : Nat → Set a
-    fromNeg : ∀ n → {{_ : Constraint n}} → A
-
-  NoConstraint : Set a
-  NoConstraint = ∀ {n} → Constraint n
-
-open Negative {{...}} public using (fromNeg)
-
-{-# BUILTIN FROMNEG fromNeg #-}
-{-# DISPLAY Negative.fromNeg _ n = fromNeg n #-}
+NoNegConstraint : ∀ {a} {A : Set a} → Negative A → Set a
+NoNegConstraint Neg = ∀ {n} → Negative.Constraint Neg n

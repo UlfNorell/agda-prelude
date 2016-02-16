@@ -11,32 +11,30 @@ open import Prelude.Char
 open import Prelude.Unit
 open import Prelude.Show
 
-{-# IMPORT Agda.FFI #-}
+open import Agda.Builtin.IO public
 
 postulate
-  IO : Set → Set
+  ioReturn : ∀ {a} {A : Set a} → A → IO A
+  ioBind   : ∀ {a b} {A : Set a} {B : Set b} → IO A → (A → IO B) → IO B
 
-{-# BUILTIN IO IO #-}
-{-# COMPILED_TYPE IO IO #-}
+{-# COMPILED ioReturn (\ _ _ -> return)    #-}
+{-# COMPILED ioBind   (\ _ _ _ _ -> (>>=)) #-}
 
-postulate
-  ioReturn : ∀ {A : Set} → A → IO A
-  ioBind   : ∀ {A B : Set} → IO A → (A → IO B) → IO B
-
-{-# COMPILED ioReturn (\ _ -> return)    #-}
-{-# COMPILED ioBind   (\ _ _ -> (>>=)) #-}
-
-{-# COMPILED_UHC ioReturn (\_ x -> UHC.Agda.Builtins.primReturn x) #-}
-{-# COMPILED_UHC ioBind   (\_ _ x y -> UHC.Agda.Builtins.primBind x y) #-}
+{-# COMPILED_UHC ioReturn (\ _ _ x -> UHC.Agda.Builtins.primReturn x) #-}
+{-# COMPILED_UHC ioBind   (\ _ _ _ _ x y -> UHC.Agda.Builtins.primBind x y) #-}
 
 instance
-  MonadIO : Monad IO
-  MonadIO = record { return = ioReturn ; _>>=_ = ioBind }
+  MonadIO : ∀ {a} → Monad {a} IO
+  return {{MonadIO}} = ioReturn
+  _>>=_  {{MonadIO}} = ioBind
 
-  FunctorIO : Functor IO
+  PMonadIO : ∀ {a b} → PMonad {a} {b} IO
+  _>>=′_ {{PMonadIO}} = ioBind
+
+  FunctorIO : ∀ {a} → Functor {a} IO
   FunctorIO = defaultMonadFunctor
 
-  ApplicativeIO : Applicative IO
+  ApplicativeIO : ∀ {a} → Applicative {a} IO
   ApplicativeIO = defaultMonadApplicative
 
 --- Terminal IO ---

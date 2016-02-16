@@ -5,7 +5,7 @@ open import Prelude.Equality
 open import Prelude.Empty
 open import Prelude.Erased
 
-private primitive primTrustMe : ∀ {a} {A : Set a} {x y : A} → x ≡ y
+open import Agda.Builtin.TrustMe
 
 -- unsafeEqual {x = x} {y = y} evaluates to refl if x and y are
 -- definitionally equal.

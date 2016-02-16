@@ -16,18 +16,8 @@ open import Prelude.Function
 open import Prelude.Monad
 open import Prelude.Semiring
 
-postulate
-  String : Set
-
-{-# BUILTIN STRING String #-}
-
---- Primitive operations ---
-
-primitive
-  primStringToList   : String → List Char
-  primStringFromList : List Char → String
-  primStringAppend   : String → String → String
-  primStringEquality : String → String → Bool
+open import Agda.Builtin.String public
+open import Agda.Builtin.FromString public
 
 unpackString = primStringToList
 packString   = primStringFromList
@@ -76,16 +66,6 @@ instance
   OrdString = OrdBy unpackString-inj
 
 -- Overloaded literals --
-
-record IsString {a} (A : Set a) : Set (lsuc a) where
-  field
-    Constraint : String → Set a
-    fromString : (s : String) {{_ : Constraint s}} → A
-
-open IsString {{...}} public using (fromString)
-
-{-# BUILTIN FROMSTRING fromString #-}
-{-# DISPLAY IsString.fromString _ s = fromString s #-}
 
 instance
   StringIsString : IsString String

@@ -2,11 +2,7 @@
 module Prelude.Strict where
 
 open import Prelude.Equality
-
-private
- primitive
-  primForce      : ∀ {a b} {A : Set a} {B : A → Set b} (x : A) → (∀ x → B x) → B x
-  primForceLemma : ∀ {a b} {A : Set a} {B : A → Set b} (x : A) (f : ∀ x → B x) → primForce x f ≡ f x
+open import Agda.Builtin.Strict
 
 force : ∀ {a b} {A : Set a} {B : A → Set b} (x : A) → (∀ x → B x) → B x
 force x f = primForce x f
@@ -18,7 +14,7 @@ forceLemma = primForceLemma
 {-# DISPLAY primForce      = force #-}
 {-# DISPLAY primForceLemma = forceLemma #-}
 
--- Warning: this doesn't work at compile-time due to call-by-name evaluation.
+-- Warning: this doesn't work at compile-time due to call-by-name evaluation.
 seq : ∀ {a b} {A : Set a} {B : Set b} → A → B → B
 seq x y = force x (λ _ → y)
 

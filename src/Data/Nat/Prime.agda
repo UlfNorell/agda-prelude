@@ -189,8 +189,8 @@ private
 
   divide-bigger : ∀ n k {{_ : NonZero k}} → k < n → k Divides n → n div k ≥ 2
   divide-bigger ._ k (diff! k₁) (factor zero eq) = refute eq
-  divide-bigger n  k k<n (factor 1 eq) = ⊥-elim (less-antirefl k<n eq)
-  divide-bigger n  k k<n (factor (suc (suc q)) eq) = by (sym $ div-unique (2 + q) eq)
+  divide-bigger n  k k<n (factor 1 eq) = ⊥-elim (less-antirefl k<n (by eq))
+  divide-bigger n  k k<n (factor (suc (suc q)) eq) = by (sym (div-unique (2 + q) {b = k} eq))
 
   up-to-root : ∀ r n → r ≤ n → r ^ 2 ≥ suc n → FindInRange 2 r (_Divides suc n) → FindInRange 2 n (_Divides suc n)
   up-to-root r n r<n r²>n (none k∤sn) =
@@ -224,7 +224,7 @@ private
 
   lem₂ : ∀ {n d} q → q * d ≡ suc n → d < suc n → q > 1
   lem₂ 0 eq d≤n = refute eq
-  lem₂ 1 eq d≤n = ⊥-elim (less-antirefl d≤n eq)
+  lem₂ 1 eq d≤n = ⊥-elim (less-antirefl d≤n (by eq))
   lem₂ (suc (suc q)) eq d≤n = auto
 
   two-is-prime : ∀ k → k Divides 2 → Either (k ≡ 1) (k ≡ 2)

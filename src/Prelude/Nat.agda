@@ -9,32 +9,14 @@ open import Prelude.Equality
 open import Prelude.Equality.Unsafe using (eraseEquality)
 open import Prelude.Function
 open import Prelude.Ord
-open import Prelude.Nat.Core public
 open import Prelude.Number
 open import Prelude.Semiring
 
---- Addition, subtraction and multiplication ---
-
-infixl 6 _+N_ _-N_
-infixl 7 _*N_ natDiv natMod
-
-_+N_ : Nat → Nat → Nat
-zero  +N m = m
-suc n +N m = suc (n +N m)
-
-_-N_ : Nat → Nat → Nat
-n     -N zero = n
-zero  -N suc m = zero
-suc n -N suc m = n -N m
-
-{-# BUILTIN NATPLUS _+N_ #-}
-{-# BUILTIN NATMINUS _-N_ #-}
-
-_*N_ : Nat → Nat → Nat
-zero  *N m = zero
-suc n *N m = n *N m +N m
-
-{-# BUILTIN NATTIMES _*N_ #-}
+open import Agda.Builtin.Nat public
+  renaming ( _==N_      to eqNat
+           ; _<N_       to lessNat
+           ; div-helper to divAux
+           ; mod-helper to modAux )
 
 --- Semiring ---
 
@@ -50,9 +32,9 @@ instance
   SubtractiveNat : Subtractive Nat
   SubtractiveNat = record { _-_ = _-N_ ; negate = λ _ → 0 }
 
-{-# DISPLAY _+N_ n m = n + m #-}
-{-# DISPLAY _-N_ n m = n - m #-}
-{-# DISPLAY _*N_ n m = n * m #-}
+{-# DISPLAY _+N_ = _+_ #-}
+{-# DISPLAY _-N_ = _-_ #-}
+{-# DISPLAY _*N_ = _*_ #-}
 
 --- Equality ---
 
@@ -62,13 +44,6 @@ NonZero (suc _) = ⊤
 
 suc-inj : ∀ {n m} → suc n ≡ suc m → n ≡ m
 suc-inj refl = refl
-
-eqNat : Nat → Nat → Bool
-eqNat  zero    zero   = true
-eqNat (suc n) (suc m) = eqNat n m
-eqNat  _       _      = false
-
-{-# BUILTIN NATEQUALS eqNat #-}
 
 private
   eqNatSound : ∀ n m → IsTrue (eqNat n m) → n ≡ m
@@ -95,24 +70,10 @@ instance
 
 --- Division and modulo ---
 
-divAux : Nat → Nat → Nat → Nat → Nat
-divAux k m  zero    j      = k
-divAux k m (suc n)  zero   = divAux (suc k) m n m
-divAux k m (suc n) (suc j) = divAux k m n j
-
-{-# BUILTIN NATDIVSUCAUX divAux #-}
-
 syntax natDiv m n = n div m
 natDiv : (m : Nat) {{nz : NonZero m}} → Nat → Nat
 natDiv zero {{}} n
 natDiv (suc m) n = divAux 0 m n m
-
-modAux : Nat → Nat → Nat → Nat → Nat
-modAux k m  zero    j      = k
-modAux k m (suc n)  zero   = modAux 0 m n m
-modAux k m (suc n) (suc j) = modAux (suc k) m n j
-
-{-# BUILTIN NATMODSUCAUX modAux #-}
 
 syntax natMod m n = n mod m
 natMod : (m : Nat) {{nz : NonZero m}} → Nat → Nat
@@ -124,15 +85,11 @@ natMod (suc m) n = modAux 0 m n m
 
 --- Comparison ---
 
-lessNat : Nat → Nat → Bool
-lessNat  _        zero  = false
-lessNat  zero   (suc _) = true
-lessNat (suc n) (suc m) = lessNat n m
-
-{-# BUILTIN NATLESS lessNat #-}
-
 data LessNat n m : Set where
   diff : ∀ k (eq : m ≡ suc k +N n) → LessNat n m
+
+{-# DISPLAY LessNat a b = a < b #-}
+{-# DISPLAY LessNat a (Nat.suc b) = a ≤ b #-}
 
 pattern diff! k = diff k refl
 {-# DISPLAY diff k refl = diff! k #-}

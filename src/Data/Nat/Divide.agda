@@ -44,11 +44,11 @@ div-divides {a} {b} a|b with divmod-sound a b
 ... | eq rewrite mod-divides a|b = by eq
 
 divides-refl : ∀ {a} → a Divides a
-divides-refl = factor! 1
+divides-refl = factor 1 auto
 
 divides-antisym : ∀ {a b} → a Divides b → b Divides a → a ≡ b
 divides-antisym         (factor! q)       (factor! 0)                = auto
-divides-antisym         (factor! q)       (factor 1 eq)              = sym eq
+divides-antisym         (factor! q)       (factor 1 eq)              = by eq
 divides-antisym {zero}  (factor! q)       (factor (suc (suc q₁)) eq) = auto
 divides-antisym {suc a} (factor! 0)       (factor (suc (suc q₁)) eq) = by eq
 divides-antisym {suc a} (factor! (suc q)) (factor (suc (suc q₁)) eq) = refute eq

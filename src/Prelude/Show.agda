@@ -55,8 +55,6 @@ instance
 
 -- Int --
 
-private primitive primShowInteger : Int → String
-
 instance
   ShowInt : Show Int
   ShowInt = simpleShowInstance primShowInteger
@@ -69,15 +67,11 @@ instance
 
 -- Char --
 
-private primitive primShowChar : Char → String
-
 instance
   ShowChar : Show Char
   ShowChar = simpleShowInstance primShowChar
 
 -- String --
-
-private primitive primShowString : String → String
 
 instance
   ShowString : Show String

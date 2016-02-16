@@ -25,7 +25,7 @@ private
             (λ k k|a k|b → gr k k|b (divides-sub-l k|a (divides-mul-r q k|b)))
 
   gcd-cert-acc : ∀ a b → Acc _<_ b → GCD a b
-  gcd-cert-acc a zero _ = gcd-res a (factor! 1) (factor! 0) (λ k k|a _ → k|a)
+  gcd-cert-acc a zero _ = gcd-res a (factor 1 auto) (factor! 0) (λ k k|a _ → k|a)
   gcd-cert-acc a (suc b) (acc wf) =
     case a divmod suc b of λ
     { (qr q r lt eq) → gcd-step q (gcd-cert-acc (suc b) r (wf r lt)) eq }

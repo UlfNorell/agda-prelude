@@ -56,7 +56,7 @@ private
   lem-nonzero-mul : ∀ a b {{_ : NonZero a}} {{_ : NonZero b}} → NonZero (a * b)
   lem-nonzero-mul zero b {{}}
   lem-nonzero-mul a zero {{_}} {{}}
-  lem-nonzero-mul (suc a) (suc b) = transport NonZero {x = suc (a * suc b + b)} auto _
+  lem-nonzero-mul (suc a) (suc b) = _
 
 infixl 7 mkratio
 syntax mkratio p q = p :/ q

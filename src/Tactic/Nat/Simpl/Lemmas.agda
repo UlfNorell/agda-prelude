@@ -15,7 +15,7 @@ product1-sound [] = refl
 product1-sound (x ∷ xs)
   rewrite sym (cong (λ x → foldl _*_ x xs) (mul-1-r x))
         | foldl-assoc _*_ mul-assoc x 1 xs
-        | foldl-foldr _*_ 1 mul-assoc (λ _ → refl) mul-1-r xs
+        | foldl-foldr _*_ 1 mul-assoc add-0-r mul-1-r xs
         = refl
 
 map-eq : ∀ {c b} {A : Set c} {B : Set b} (f g : A → B) →
@@ -50,7 +50,7 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
 
   ts-sound : ∀ x (ρ : Env Atom) → ⟦ x ⟧ts ρ ≡ ⟦ x ⟧t ρ
   ts-sound (0 , x) ρ = mul-0-r (product1 (map ρ x))
-  ts-sound (1 , x) ρ = product1-sound (map ρ x)
+  ts-sound (1 , x) ρ = product1-sound (map ρ x) ⟨≡⟩ʳ add-0-r _
   ts-sound (suc (suc i) , x) ρ
     rewrite sym (product1-sound (map ρ x))
           = auto

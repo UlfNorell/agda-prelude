@@ -22,7 +22,7 @@ add-assoc (suc x) y z rewrite add-assoc x y z = refl
 
 mul-1-r : (x : Nat) → x * 1 ≡ x
 mul-1-r zero = refl
-mul-1-r (suc x) rewrite mul-1-r x = add-commute x _
+mul-1-r (suc x) rewrite mul-1-r x = refl
 
 mul-0-r : (x : Nat) → x * 0 ≡ 0
 mul-0-r zero = refl
@@ -33,20 +33,21 @@ mul-distr-r zero y z = refl
 mul-distr-r (suc x) y z rewrite mul-distr-r x y z
                               | sym (add-assoc (x * z) (y * z) z)
                               | add-commute (y * z) z
-                              = add-assoc (x * z) _ _
+                              = add-assoc z _ _
 
 mul-distr-l : (x y z : Nat) → x * (y + z) ≡ x * y + x * z
 mul-distr-l zero y z = refl
 mul-distr-l (suc x) y z rewrite mul-distr-l x y z
-                              | sym (add-assoc (x * y) (x * z) (y + z))
-                              | add-assoc (x * z) y z
-                              | add-commute (x * z) y
-                              | sym (add-assoc y (x * z) z)
-                              = add-assoc (x * y) _ _
+                              | add-assoc (y + x * y) z (x * z)
+                              | add-assoc (y + z) (x * y) (x * z)
+                              | sym (add-assoc y z (x * y))
+                              | add-commute z (x * y)
+                              | add-assoc y (x * y) z
+                        = refl
 
 mul-assoc : (x y z : Nat) → x * (y * z) ≡ x * y * z
 mul-assoc zero y z = refl
-mul-assoc (suc x) y z rewrite mul-distr-r (x * y) y z
+mul-assoc (suc x) y z rewrite mul-distr-r y (x * y) z
                             | mul-assoc x y z
                             = refl
 
@@ -55,7 +56,7 @@ mul-commute zero y = sym (mul-0-r y)
 mul-commute (suc x) y rewrite mul-commute x y
                             | mul-distr-l y 1 x
                             | mul-1-r y
-                            = add-commute (y * x) _
+                            = refl
 
 add-inj₂ : (x y z : Nat) → x + y ≡ x + z → y ≡ z
 add-inj₂  zero   y z p = p

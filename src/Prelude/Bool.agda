@@ -7,14 +7,7 @@ open import Prelude.Equality
 open import Prelude.Decidable
 open import Prelude.Function
 
-data Bool : Set where
-  false true : Bool
-
-{-# BUILTIN BOOL Bool   #-}
-{-# BUILTIN TRUE true   #-}
-{-# BUILTIN FALSE false #-}
-
-{-# COMPILED_DATA_UHC Bool __BOOL__ __FALSE__ __TRUE__ #-}
+open import Agda.Builtin.Bool public
 
 infix 0 if_then_else_
 if_then_else_ : ∀ {a} {A : Set a} → Bool → A → A → A

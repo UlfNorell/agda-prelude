@@ -6,28 +6,20 @@ open import Prelude.Equality.Unsafe
 open import Builtin.Float
 open import Data.Traversable
 
-------------------------------------------------------------------------
--- Names
+open import Agda.Builtin.Reflection as Builtin
+open Builtin public
+  hiding ( primQNameEquality
+         ; primQNameLess
+         ; primShowQName
+         ; primMetaEquality
+         ; primMetaLess
+         ; primShowMeta )
 
--- Names.
-
-postulate Name : Set
-
-{-# BUILTIN QNAME Name #-}
-
-private
-  primitive
-    primQNameEquality : Name → Name → Bool
-    primQNameLess : Name → Name → Bool
-    primShowQName : Name → String
-
--- Show instance --
+--- Names ---
 
 instance
   ShowName : Show Name
   ShowName = record { showsPrec = λ _ x → showString (primShowQName x) }
-
--- Eq instance --
 
 private
   eqName : (x y : Name) → Dec (x ≡ y)
@@ -54,26 +46,11 @@ instance
   OrdName : Ord Name
   OrdName = defaultOrd cmpName
 
-------------------------------------------------------------------------
--- Meta-variables
-
-postulate Meta : Set
-
-{-# BUILTIN AGDAMETA Meta #-}
-
-private
-  primitive
-    primMetaEquality : Meta → Meta → Bool
-    primMetaLess : Meta → Meta → Bool
-    primShowMeta : Meta → String
-
--- Show instance --
+--- Meta variables ---
 
 instance
   ShowMeta : Show Meta
   showsPrec {{ShowMeta}} _ x = showString (primShowMeta x)
-
--- Eq instance --
 
 private
   eqMeta : (x y : Meta) → Dec (x ≡ y)
@@ -100,45 +77,11 @@ instance
   OrdMeta : Ord Meta
   OrdMeta = defaultOrd cmpMeta
 
-------------------------------------------------------------------------
--- Terms
-
--- Is the argument visible (explicit), hidden (implicit), or an
--- instance argument?
-
-data Visibility : Set where
-  visible hidden instance′ : Visibility
-
-{-# BUILTIN HIDING   Visibility #-}
-{-# BUILTIN VISIBLE  visible    #-}
-{-# BUILTIN HIDDEN   hidden     #-}
-{-# BUILTIN INSTANCE instance′   #-}
-
--- Arguments can be relevant or irrelevant.
-
-data Relevance : Set where
-  relevant irrelevant : Relevance
-
-{-# BUILTIN RELEVANCE  Relevance  #-}
-{-# BUILTIN RELEVANT   relevant   #-}
-{-# BUILTIN IRRELEVANT irrelevant #-}
-
--- Arguments.
-
-data ArgInfo : Set where
-  arg-info : (v : Visibility) (r : Relevance) → ArgInfo
-
-data Arg (A : Set) : Set where
-  arg : (i : ArgInfo) (x : A) → Arg A
+--- Terms ---
 
 pattern vArg x = arg (arg-info visible relevant) x
 pattern hArg x = arg (arg-info hidden relevant) x
 pattern iArg x = arg (arg-info instance′ relevant) x
-
-{-# BUILTIN ARGINFO    ArgInfo #-}
-{-# BUILTIN ARGARGINFO arg-info #-}
-{-# BUILTIN ARG        Arg      #-}
-{-# BUILTIN ARGARG     arg      #-}
 
 unArg : ∀ {A} → Arg A → A
 unArg (arg _ x) = x
@@ -150,14 +93,6 @@ instance
   TraversableArg : Traversable Arg
   TraversableArg = record { traverse = λ { f (arg i x) → pure (arg i) <*> f x } }
 
--- Name abstraction.
-
-data Abs (A : Set) : Set where
-  abs : (s : String) (x : A) → Abs A
-
-{-# BUILTIN ABS        Abs      #-}
-{-# BUILTIN ABSABS     abs      #-}
-
 unAbs : ∀ {A} → Abs A → A
 unAbs (abs _ x) = x
 
@@ -168,165 +103,10 @@ instance
   TraversableAbs : Traversable Abs
   TraversableAbs = record { traverse = λ { f (abs s x) → pure (abs s) <*> f x } }
 
--- Literals.
-
-data Literal : Set where
-  nat    : Nat    → Literal
-  float  : Float  → Literal
-  char   : Char   → Literal
-  string : String → Literal
-  name   : Name   → Literal
-  meta   : Meta   → Literal
-
-{-# BUILTIN AGDALITERAL   Literal #-}
-{-# BUILTIN AGDALITNAT    nat     #-}
-{-# BUILTIN AGDALITFLOAT  float   #-}
-{-# BUILTIN AGDALITCHAR   char    #-}
-{-# BUILTIN AGDALITSTRING string  #-}
-{-# BUILTIN AGDALITQNAME  name    #-}
-{-# BUILTIN AGDALITMETA   meta    #-}
-
--- Terms.
-
-mutual
-  data Term : Set where
-    var           : (x : Nat) (args : List (Arg Term)) → Term
-    con           : (c : Name) (args : List (Arg Term)) → Term
-    def           : (f : Name) (args : List (Arg Term)) → Term
-    lam           : (v : Visibility) (t : Abs Term) → Term
-    pat-lam       : (cs : List Clause) (args : List (Arg Term)) → Term
-    pi            : (a : Arg Type) (b : Abs Type) → Term
-    agda-sort     : (s : Sort) → Term
-    lit           : (l : Literal) → Term
-    meta          : (x : Meta) → List (Arg Term) → Term
-    unknown       : Term
-
-  Type : Set
-  Type = Term
-
-  data Sort : Set where
-    set     : (t : Term) → Sort
-    lit     : (n : Nat) → Sort
-    unknown : Sort
-
-  data Pattern : Set where
-    con    : Name → List (Arg Pattern) → Pattern
-    dot    : Pattern
-    var    : (s : String) → Pattern
-    lit    : Literal → Pattern
-    proj   : Name → Pattern
-    absurd : Pattern
-
-  data Clause : Set where
-    clause : List (Arg Pattern) → Term → Clause
-    absurd-clause : List (Arg Pattern) → Clause
-
 absurd-lam : Term
 absurd-lam = pat-lam (absurd-clause (vArg absurd ∷ []) ∷ []) []
 
-{-# BUILTIN AGDASORT            Sort    #-}
-{-# BUILTIN AGDATERM            Term    #-}
-{-# BUILTIN AGDAPATTERN   Pattern #-}
-{-# BUILTIN AGDACLAUSE       Clause        #-}
-
-{-# BUILTIN AGDATERMVAR         var     #-}
-{-# BUILTIN AGDATERMCON         con     #-}
-{-# BUILTIN AGDATERMDEF         def     #-}
-{-# BUILTIN AGDATERMMETA        meta    #-}
-{-# BUILTIN AGDATERMLAM         lam     #-}
-{-# BUILTIN AGDATERMEXTLAM      pat-lam #-}
-{-# BUILTIN AGDATERMPI          pi      #-}
-{-# BUILTIN AGDATERMSORT        agda-sort #-}
-{-# BUILTIN AGDATERMLIT         lit     #-}
-{-# BUILTIN AGDATERMUNSUPPORTED unknown #-}
-{-# BUILTIN AGDASORTSET         set     #-}
-{-# BUILTIN AGDASORTLIT         lit     #-}
-{-# BUILTIN AGDASORTUNSUPPORTED unknown #-}
-
-{-# BUILTIN AGDAPATCON    con     #-}
-{-# BUILTIN AGDAPATDOT    dot     #-}
-{-# BUILTIN AGDAPATVAR    var     #-}
-{-# BUILTIN AGDAPATLIT    lit     #-}
-{-# BUILTIN AGDAPATPROJ   proj    #-}
-{-# BUILTIN AGDAPATABSURD absurd  #-}
-
-{-# BUILTIN AGDACLAUSECLAUSE clause        #-}
-{-# BUILTIN AGDACLAUSEABSURD absurd-clause #-}
-
-------------------------------------------------------------------------
--- Definitions
-
-data Definition : Set where
-  function    : List Clause → Definition
-  data-type   : (pars : Nat) (cs : List Name) → Definition
-  record-type : (c : Name) → Definition
-  data-cons   : (d : Name) → Definition
-  axiom       : Definition
-  prim-fun    : Definition
-
-{-# BUILTIN AGDADEFINITION                Definition  #-}
-{-# BUILTIN AGDADEFINITIONFUNDEF          function    #-}
-{-# BUILTIN AGDADEFINITIONDATADEF         data-type   #-}
-{-# BUILTIN AGDADEFINITIONRECORDDEF       record-type #-}
-{-# BUILTIN AGDADEFINITIONDATACONSTRUCTOR data-cons   #-}
-{-# BUILTIN AGDADEFINITIONPOSTULATE       axiom       #-}
-{-# BUILTIN AGDADEFINITIONPRIMITIVE       prim-fun    #-}
-
-------------------------------------------------------------------------
--- TC monad
-
-data ErrorPart : Set where
-  strErr  : String → ErrorPart
-  termErr : Term → ErrorPart
-  nameErr : Name → ErrorPart
-
-{-# BUILTIN AGDAERRORPART       ErrorPart #-}
-{-# BUILTIN AGDAERRORPARTSTRING strErr    #-}
-{-# BUILTIN AGDAERRORPARTTERM   termErr   #-}
-{-# BUILTIN AGDAERRORPARTNAME   nameErr   #-}
-
-postulate
-  TC         : ∀ {a} → Set a → Set a
-  returnTC   : ∀ {a} {A : Set a} → A → TC A
-  bindTC     : ∀ {a b} {A : Set a} {B : Set b} → TC A → (A → TC B) → TC B
-  unify      : Term → Term → TC ⊤
-  typeError  : ∀ {a} {A : Set a} → List ErrorPart → TC A
-  inferType  : Term → TC Type
-  checkType  : Term → Type → TC Term
-  normalise  : Term → TC Term
-  catchTC    : ∀ {a} {A : Set a} → TC A → TC A → TC A
-  quoteTC    : ∀ {a} {A : Set a} → A → TC Term
-  unquoteTC  : ∀ {a} {A : Set a} → Term → TC A
-  getContext : TC (List (Arg Type))
-  extendContext : ∀ {a} {A : Set a} → Arg Type → TC A → TC A
-  inContext     : ∀ {a} {A : Set a} → List (Arg Type) → TC A → TC A
-  freshName  : String → TC Name
-  declareDef : Arg Name → Type → TC ⊤
-  defineFun  : Name → List Clause → TC ⊤
-  getType    : Name → TC Type
-  getDefinition : Name → TC Definition
-  blockOnMeta   : ∀ {a} {A : Set a} → Meta → TC A
-
-{-# BUILTIN AGDATCM           TC         #-}
-{-# BUILTIN AGDATCMRETURN     returnTC   #-}
-{-# BUILTIN AGDATCMBIND       bindTC     #-}
-{-# BUILTIN AGDATCMUNIFY      unify      #-}
-{-# BUILTIN AGDATCMTYPEERROR  typeError  #-}
-{-# BUILTIN AGDATCMINFERTYPE  inferType  #-}
-{-# BUILTIN AGDATCMCHECKTYPE  checkType  #-}
-{-# BUILTIN AGDATCMNORMALISE  normalise  #-}
-{-# BUILTIN AGDATCMCATCHERROR catchTC    #-}
-{-# BUILTIN AGDATCMQUOTETERM  quoteTC    #-}
-{-# BUILTIN AGDATCMUNQUOTETERM unquoteTC #-}
-{-# BUILTIN AGDATCMGETCONTEXT getContext #-}
-{-# BUILTIN AGDATCMEXTENDCONTEXT extendContext #-}
-{-# BUILTIN AGDATCMINCONTEXT  inContext #-}
-{-# BUILTIN AGDATCMFRESHNAME  freshName #-}
-{-# BUILTIN AGDATCMDECLAREDEF declareDef #-}
-{-# BUILTIN AGDATCMDEFINEFUN  defineFun #-}
-{-# BUILTIN AGDATCMGETTYPE getType #-}
-{-# BUILTIN AGDATCMGETDEFINITION getDefinition #-}
-{-# BUILTIN AGDATCMBLOCKONMETA blockOnMeta #-}
+--- TC monad ---
 
 instance
   MonadTC : ∀ {a} → Monad {a} TC
@@ -360,8 +140,7 @@ newMeta = checkType unknown
 typeErrorS : ∀ {a} {A : Set a} → String → TC A
 typeErrorS s = typeError (strErr s ∷ [])
 
-------------------------------------------------------------------------
--- Convenient wrappers
+--- Convenient wrappers ---
 
 -- Zero for non-datatypes
 getParameters : Name → TC Nat

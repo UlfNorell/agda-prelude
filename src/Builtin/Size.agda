@@ -1,9 +1,4 @@
 
 module Builtin.Size where
 
-{-# BUILTIN SIZEUNIV SizeU #-}
-{-# BUILTIN SIZE     Size   #-}
-{-# BUILTIN SIZELT   Size<_ #-}
-{-# BUILTIN SIZESUC  ↑_     #-}
-{-# BUILTIN SIZEINF  ω      #-}
-{-# BUILTIN SIZEMAX  _⊔ˢ_  #-}
+open import Agda.Builtin.Size public

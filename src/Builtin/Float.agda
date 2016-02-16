@@ -4,27 +4,8 @@ module Builtin.Float where
 open import Prelude
 open import Prelude.Equality.Unsafe
 
-postulate Float : Set
-
-{-# BUILTIN FLOAT Float #-}
-
-private
- primitive
-  primFloatEquality : Float → Float → Bool
-  primFloatLess     : Float → Float → Bool
-  primNatToFloat    : Nat → Float
-  primFloatPlus     : Float → Float → Float
-  primFloatMinus    : Float → Float → Float
-  primFloatTimes    : Float → Float → Float
-  primFloatDiv      : Float → Float → Float
-  primFloatSqrt     : Float → Float
-  primRound         : Float → Int
-  primFloor         : Float → Int
-  primCeiling       : Float → Int
-  primExp           : Float → Float
-  primLog           : Float → Float
-  primSin           : Float → Float
-  primShowFloat     : Float → String
+open import Agda.Builtin.Float
+open Agda.Builtin.Float public using (Float)
 
 natToFloat : Nat → Float
 natToFloat = primNatToFloat
