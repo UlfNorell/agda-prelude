@@ -12,11 +12,22 @@ open import Prelude.Ord
 open import Prelude.Number
 open import Prelude.Semiring
 
-open import Agda.Builtin.Nat public
+import Agda.Builtin.Nat as Builtin
+
+open Builtin public
+  hiding   ( _+N_; _*N_; _-N_ )
   renaming ( _==N_      to eqNat
            ; _<N_       to lessNat
            ; div-helper to divAux
            ; mod-helper to modAux )
+
+-- Trickery to make the display forms work.
+private module NatOps = Builtin
+open NatOps public using ( _+N_; _*N_; _-N_ )
+
+{-# DISPLAY _+N_ = _+_ #-}
+{-# DISPLAY _-N_ = _-_ #-}
+{-# DISPLAY _*N_ = _*_ #-}
 
 --- Semiring ---
 
@@ -31,10 +42,6 @@ instance
 
   SubtractiveNat : Subtractive Nat
   SubtractiveNat = record { _-_ = _-N_ ; negate = λ _ → 0 }
-
-{-# DISPLAY _+N_ = _+_ #-}
-{-# DISPLAY _-N_ = _-_ #-}
-{-# DISPLAY _*N_ = _*_ #-}
 
 --- Equality ---
 

@@ -4,6 +4,8 @@ module Tactic.Nat.Reflect where
 open import Prelude
 open import Control.Monad.State
 
+import Agda.Builtin.Nat as Builtin
+
 open import Builtin.Reflection
 open import Tactic.Reflection
 open import Tactic.Reflection.Quote
@@ -37,8 +39,8 @@ infix  4 _`≡_
 pattern _`≡_ x y = def (quote _≡_) (_ ∷ hArg `Nat ∷ vArg x ∷ vArg y ∷ [])
 pattern _`->_ a b = pi (vArg a) (abs _ b)
 
-pattern _`+_ x y = def₂ (quote _+N_) x y
-pattern _`*_ x y = def₂ (quote _*N_) x y
+pattern _`+_ x y = def₂ (quote Builtin._+N_) x y
+pattern _`*_ x y = def₂ (quote Builtin._*N_) x y
 pattern `0       = con₀ (quote Nat.zero)
 pattern `suc n   = con₁ (quote Nat.suc) n
 

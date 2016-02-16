@@ -2,6 +2,7 @@
 module Tactic.Nat.Subtract.Reflect where
 
 open import Prelude
+import Agda.Builtin.Nat as Builtin
 open import Builtin.Reflection
 open import Control.Monad.State
 open import Tactic.Reflection.Quote
@@ -20,7 +21,7 @@ freshS t =
   get >>= uncurry′ λ i Γ →
   var i <$ put (suc i , (t , i) ∷ Γ)
 
-pattern _`-_ x y = def (quote _-N_) (vArg x ∷ vArg y ∷ [])
+pattern _`-_ x y = def (quote Builtin._-N_) (vArg x ∷ vArg y ∷ [])
 
 termToSubExpR : Term → R SubExp
 termToSubExpR (a `+ b) = _⟨+⟩_ <$> termToSubExpR a <*> termToSubExpR b
