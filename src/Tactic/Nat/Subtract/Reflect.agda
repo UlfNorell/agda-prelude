@@ -21,7 +21,7 @@ freshS t =
   get >>= uncurry′ λ i Γ →
   var i <$ put (suc i , (t , i) ∷ Γ)
 
-pattern _`-_ x y = def (quote Builtin._-N_) (vArg x ∷ vArg y ∷ [])
+pattern _`-_ x y = def (quote Builtin._-_) (vArg x ∷ vArg y ∷ [])
 
 termToSubExpR : Term → R SubExp
 termToSubExpR (a `+ b) = _⟨+⟩_ <$> termToSubExpR a <*> termToSubExpR b
