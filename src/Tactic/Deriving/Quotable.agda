@@ -2,7 +2,7 @@
 module Tactic.Deriving.Quotable where
 
 open import Prelude
-open import Data.Traversable
+open import Container.Traversable
 open import Tactic.Reflection
 open import Tactic.Reflection.Quote.Class
 open import Tactic.Deriving

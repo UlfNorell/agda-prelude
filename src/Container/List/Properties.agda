@@ -1,5 +1,5 @@
 
-module Data.List.Properties where
+module Container.List.Properties where
 
 open import Prelude
 

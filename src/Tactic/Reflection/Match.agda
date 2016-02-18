@@ -7,7 +7,7 @@ open import Tactic.Reflection.Equality
 
 open import Control.Monad.Zero
 open import Control.Monad.State
-open import Data.Traversable
+open import Container.Traversable
 
 private
   M : Nat → Set → Set

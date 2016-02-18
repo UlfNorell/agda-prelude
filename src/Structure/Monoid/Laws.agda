@@ -1,5 +1,5 @@
 
-module Data.Monoid.Laws where
+module Structure.Monoid.Laws where
 
 open import Prelude
 

@@ -4,7 +4,7 @@ module Tactic.Nat.Subtract.Exp where
 open import Prelude
 open import Tactic.Nat.Exp
 open import Tactic.Nat.NF
-open import Data.Bag
+open import Container.Bag
 open import Data.TreeRep
 
 infixl 6 _⟨+⟩_ _⟨-⟩_

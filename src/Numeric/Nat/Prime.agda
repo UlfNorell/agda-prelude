@@ -1,12 +1,12 @@
-{-# OPTIONS -v profile.interactive:10 #-}
-module Data.Nat.Prime where
+
+module Numeric.Nat.Prime where
 
 open import Prelude
-open import Data.Nat.GCD
-open import Data.Nat.Divide
-open import Data.Nat.DivMod
-open import Data.Nat.Sqrt
-open import Data.Nat.Properties
+open import Numeric.Nat.GCD
+open import Numeric.Nat.Divide
+open import Numeric.Nat.DivMod
+open import Numeric.Nat.Sqrt
+open import Numeric.Nat.Properties
 open import Tactic.Nat
 
 Coprime : Nat → Nat → Set

@@ -1,5 +1,5 @@
 
-module Data.Traversable where
+module Container.Traversable where
 
 open import Prelude
 

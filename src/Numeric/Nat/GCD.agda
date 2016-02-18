@@ -1,11 +1,11 @@
-{-# OPTIONS -v profile.interactive:700 #-}
-module Data.Nat.GCD where
+
+module Numeric.Nat.GCD where
 
 open import Prelude
 open import Control.WellFounded
-open import Data.Nat.Properties
-open import Data.Nat.DivMod
-open import Data.Nat.Divide
+open import Numeric.Nat.Properties
+open import Numeric.Nat.DivMod
+open import Numeric.Nat.Divide
 open import Tactic.Nat
 
 --- GCD ---

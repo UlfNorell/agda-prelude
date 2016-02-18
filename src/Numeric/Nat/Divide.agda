@@ -1,10 +1,10 @@
 
-module Data.Nat.Divide where
+module Numeric.Nat.Divide where
 
 open import Prelude
 open import Control.WellFounded
-open import Data.Nat.Properties
-open import Data.Nat.DivMod
+open import Numeric.Nat.Properties
+open import Numeric.Nat.DivMod
 open import Tactic.Nat
 
 --- Divides predicate ---

@@ -1,11 +1,11 @@
-{-# OPTIONS -v profile.interactive:10 #-}
-module Data.Rational where
+
+module Numeric.Rational where
 
 open import Prelude
-open import Data.Nat.GCD
-open import Data.Nat.Prime
-open import Data.Nat.Divide
-open import Data.Nat.Properties
+open import Numeric.Nat.GCD
+open import Numeric.Nat.Prime
+open import Numeric.Nat.Divide
+open import Numeric.Nat.Properties
 open import Tactic.Nat
 
 data Rational : Set where

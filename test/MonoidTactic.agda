@@ -2,8 +2,8 @@
 module MonoidTactic where
 
 open import Prelude
-open import Data.Traversable
-open import Data.Monoid.Laws
+open import Container.Traversable
+open import Structure.Monoid.Laws
 open import Tactic.Monoid
 open import Tactic.Reflection
 

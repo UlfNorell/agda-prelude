@@ -1,8 +1,8 @@
 
 open import Prelude
-open import Data.Traversable
-open import Data.Foldable
-open import Data.List
+open import Container.Traversable
+open import Container.Foldable
+open import Container.List
 open import Text.Parse
 open import Text.Lex
 open import Text.Printf
@@ -21,14 +21,14 @@ open import Tactic.Reflection.Telescope
 open import Tactic.Deriving.Eq
 open import Tactic.Nat
 
-open import Data.Nat.DivMod
-open import Data.Nat.Divide
-open import Data.Nat.GCD
-open import Data.Nat.Prime
-open import Data.Rational
-open import Data.Nat.Modulo
-open import Data.Nat.Pow
-open import Data.Smashed
+open import Numeric.Nat.DivMod
+open import Numeric.Nat.Divide
+open import Numeric.Nat.GCD
+open import Numeric.Nat.Prime
+open import Numeric.Rational
+open import Numeric.Nat.Modulo
+open import Numeric.Nat.Pow
+open import Structure.Smashed
 
 open import MonoidTactic
 

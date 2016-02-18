@@ -4,10 +4,10 @@ module Tactic.Nat.Simpl.Lemmas where
 open import Prelude
 open import Tactic.Nat.NF
 open import Tactic.Nat.Exp
-open import Data.Bag
+open import Container.Bag
 open import Tactic.Nat.Auto
-open import Data.Nat.Properties.Core
-open import Data.List.Properties
+open import Numeric.Nat.Properties.Core
+open import Container.List.Properties
 open import Tactic.Nat.Auto.Lemmas
 
 product1-sound : ∀ xs → product1 xs ≡ product xs

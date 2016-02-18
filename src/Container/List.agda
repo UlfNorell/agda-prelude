@@ -1,5 +1,5 @@
 
-module Data.List where
+module Container.List where
 
 open import Prelude
 

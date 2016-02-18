@@ -6,7 +6,7 @@ open import Tactic.Reflection
 open import Tactic.Reflection.Match
 
 open import Control.Monad.State
-open import Data.Traversable
+open import Container.Traversable
 
 open import Tactic.Monoid.Exp
 open import Tactic.Reflection.Parse

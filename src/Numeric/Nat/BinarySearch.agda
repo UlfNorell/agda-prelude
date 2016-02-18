@@ -1,11 +1,11 @@
 
-module Data.Nat.BinarySearch where
+module Numeric.Nat.BinarySearch where
 
 open import Prelude
-open import Data.Nat.Properties
+open import Numeric.Nat.Properties
 open import Tactic.Nat
 open import Control.WellFounded
-open import Data.Nat.DivMod
+open import Numeric.Nat.DivMod
 
 data SearchResult! {a} (P : Nat → Set a) (lo hi : Nat) : Set a where
   here : ∀ k (!pk : ¬ P k) (psk : P (suc k)) (lo≤k : lo ≤ k) (k<hi : k < hi) → SearchResult! P lo hi

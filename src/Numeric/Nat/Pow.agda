@@ -1,10 +1,10 @@
 
 -- Fast exponentiation
 
-module Data.Nat.Pow where
+module Numeric.Nat.Pow where
 
 open import Prelude
-open import Data.Nat.DivMod
+open import Numeric.Nat.DivMod
 open import Control.WellFounded
 open import Tactic.Nat
 

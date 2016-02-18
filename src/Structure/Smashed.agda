@@ -1,5 +1,5 @@
 
-module Data.Smashed where
+module Structure.Smashed where
 
 open import Prelude
 

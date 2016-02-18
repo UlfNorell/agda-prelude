@@ -4,7 +4,7 @@ module Builtin.Reflection where
 open import Prelude
 open import Prelude.Equality.Unsafe
 open import Builtin.Float
-open import Data.Traversable
+open import Container.Traversable
 
 open import Agda.Builtin.Reflection as Builtin
 open Builtin public

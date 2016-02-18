@@ -1,10 +1,10 @@
 
-module Data.Nat.Sqrt where
+module Numeric.Nat.Sqrt where
 
 open import Prelude hiding (_<?_)
-open import Data.Nat.Properties
+open import Numeric.Nat.Properties
 open import Tactic.Nat
-open import Data.Nat.BinarySearch
+open import Numeric.Nat.BinarySearch
 
 data Sqrt (n : Nat) : Set where
   root : ∀ r → r ^ 2 ≤ n → n < suc r ^ 2 → Sqrt n

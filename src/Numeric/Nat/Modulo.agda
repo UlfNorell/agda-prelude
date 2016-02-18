@@ -1,9 +1,9 @@
 
 -- Integers modulo N
-module Data.Nat.Modulo where
+module Numeric.Nat.Modulo where
 
 open import Prelude
-open import Data.Nat.DivMod
+open import Numeric.Nat.DivMod
 open import Tactic.Nat
 
 data IntMod (n : Nat) : Set where

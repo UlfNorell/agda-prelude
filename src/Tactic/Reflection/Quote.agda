@@ -6,7 +6,7 @@ open import Builtin.Reflection
 open import Builtin.Float
 open import Tactic.Reflection.Quote.Class public
 open import Tactic.Deriving.Quotable
-open import Data.Traversable
+open import Container.Traversable
 
 --- Instances ---
 

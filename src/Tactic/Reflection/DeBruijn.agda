@@ -3,7 +3,7 @@ module Tactic.Reflection.DeBruijn where
 
 open import Prelude
 open import Builtin.Reflection
-open import Data.Traversable
+open import Container.Traversable
 
 record DeBruijn {a} (A : Set a) : Set a where
   field

@@ -1,7 +1,7 @@
 
 open import Prelude
-open import Data.List
-open import Data.Traversable
+open import Container.List
+open import Container.Traversable
 open import Tactic.Reflection hiding (substArgs) renaming (unify to unifyTC)
 open import Tactic.Reflection.Equality
 

@@ -3,7 +3,7 @@ module Tactic.Nat.NF where
 
 open import Prelude
 open import Tactic.Nat.Exp
-open import Data.Bag
+open import Container.Bag
 
 Tm : Set → Set
 Tm Atom = List Atom

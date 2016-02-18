@@ -1,5 +1,5 @@
 
-module Data.Nat.Properties.Core where
+module Numeric.Nat.Properties.Core where
 
 open import Prelude
 

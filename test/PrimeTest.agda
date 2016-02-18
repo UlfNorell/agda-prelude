@@ -2,7 +2,7 @@
 module _ where
 
 open import Prelude
-open import Data.Nat.Prime
+open import Numeric.Nat.Prime
 
 2^44+7 2^46+15 2^48+21 : Nat
 2^44+7  =  17592186044423

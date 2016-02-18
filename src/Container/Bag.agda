@@ -1,5 +1,5 @@
 
-module Data.Bag where
+module Container.Bag where
 
 open import Prelude
 

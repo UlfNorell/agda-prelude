@@ -6,7 +6,7 @@ open import Control.Monad.State
 open import Control.Monad.Zero
 open import Builtin.Reflection
 open import Tactic.Reflection.Equality
-open import Data.Traversable
+open import Container.Traversable
 
 ParseTerm : (Set → Set) → Set → Set
 ParseTerm M = StateT (Nat × List (Term × Nat)) M

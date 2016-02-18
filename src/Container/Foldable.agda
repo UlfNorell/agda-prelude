@@ -1,5 +1,5 @@
 
-module Data.Foldable where
+module Container.Foldable where
 
 open import Prelude
 

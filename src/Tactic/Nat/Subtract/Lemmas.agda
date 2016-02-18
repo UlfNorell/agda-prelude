@@ -4,10 +4,10 @@ module Tactic.Nat.Subtract.Lemmas where
 open import Prelude
 open import Tactic.Nat.NF
 open import Tactic.Nat.Exp
-open import Data.Bag
+open import Container.Bag
 open import Tactic.Nat.Simpl
-open import Data.Nat.Properties.Core
-open import Data.List.Properties
+open import Numeric.Nat.Properties.Core
+open import Container.List.Properties
 open import Tactic.Nat.Auto.Lemmas
 open import Tactic.Nat.Simpl.Lemmas
 open import Tactic.Nat.Auto

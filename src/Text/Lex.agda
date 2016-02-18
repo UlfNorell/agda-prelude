@@ -2,7 +2,7 @@
 module Text.Lex where
 
 open import Prelude
-open import Data.List
+open import Container.List
 
 record TokenDFA {s} (A : Set) (Tok : Set) : Set (lsuc s) where
   field

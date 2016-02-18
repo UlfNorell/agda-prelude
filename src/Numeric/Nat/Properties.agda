@@ -1,8 +1,8 @@
 
-module Data.Nat.Properties where
+module Numeric.Nat.Properties where
 
 open import Prelude
-open import Data.Nat.Properties.Core public
+open import Numeric.Nat.Properties.Core public
 open import Tactic.Nat
 
 --- Subtraction ---

@@ -1,12 +1,12 @@
 -- Evidence producing divmod.
-module Data.Nat.DivMod where
+module Numeric.Nat.DivMod where
 
 open import Prelude
 open import Control.WellFounded
 open import Tactic.Nat
 open import Tactic.Nat.Reflect
 open import Tactic.Nat.Exp
-open import Data.Nat.Properties
+open import Numeric.Nat.Properties
 
 private
   lemModAux′ : ∀ k m b j → modAux k m (suc j + b) j ≡ modAux 0 m b m
