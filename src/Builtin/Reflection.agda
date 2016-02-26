@@ -140,6 +140,9 @@ newMeta = checkType unknown
 typeErrorS : ∀ {a} {A : Set a} → String → TC A
 typeErrorS s = typeError (strErr s ∷ [])
 
+blockOnMeta! : ∀ {a} {A : Set a} → Meta → TC A
+blockOnMeta! x = commitTC >>=′ λ _ → blockOnMeta x
+
 --- Convenient wrappers ---
 
 -- Zero for non-datatypes
