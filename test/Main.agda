@@ -32,6 +32,8 @@ open import Structure.Smashed
 
 open import MonoidTactic
 
+open import DeriveEqTest
+
 Hello = printf "%c%s" 'H' "ello"
 World = printf "%-7s(%.6f)" "World" π
 
@@ -62,8 +64,4 @@ data N : Set where
   z : N
   s : N → N
 
-eqN : unquote (λ hole → unify hole =<< deriveEqType (quote N))
-instance
-  EqN : Eq N
-  EqN = record { _==_ = eqN }
-unquoteDef eqN = defineFun eqN =<< deriveEqDef (quote N)
+unquoteDecl eqN = deriveEq eqN (quote N)
