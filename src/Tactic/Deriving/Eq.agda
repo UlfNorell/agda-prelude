@@ -188,12 +188,6 @@ private
       ; weakenFrom     = λ _ _ → id
       }
 
-    DeBruijnVec : ∀ {a} {A : Set a} {n} {{_ : DeBruijn A}} → DeBruijn (Vec A n)
-    DeBruijnVec = record
-      { strengthenFrom = λ m n → traverse (strengthenFrom m n)
-      ; weakenFrom     = λ m n → fmap (weakenFrom m n)
-      }
-
     DeBruijnProd : {A B : Set} {{_ : DeBruijn A}} {{_ : DeBruijn B}} → DeBruijn (A × B)
     DeBruijnProd = record
       { strengthenFrom = λ { m n (x , y) → _,_ <$> (strengthenFrom m n x) <*> (strengthenFrom m n y) }
