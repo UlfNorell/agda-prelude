@@ -119,8 +119,8 @@ instance
   FunctorTC : ∀ {a} → Functor {a} TC
   FunctorTC = defaultMonadFunctor
 
-  PMonadTC : ∀ {a b} → PMonad {a} {b} TC
-  _>>=′_ {{PMonadTC}} = bindTC
+  MonadTC′ : ∀ {a b} → Monad′ {a} {b} TC
+  _>>=′_ {{MonadTC′}} = bindTC
 
   AlternativeTC : ∀ {a} → Alternative {a} TC
   empty {{AlternativeTC}} = typeError []

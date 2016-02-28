@@ -28,15 +28,15 @@ record Applicative {a b} (F : Set a → Set b) : Set (lsuc a ⊔ b) where
 open Applicative {{...}} public
 
 -- Level polymorphic functors
-record PApplicative {a b} (F : ∀ {a} → Set a → Set a) : Set (lsuc (a ⊔ b)) where
+record Applicative′ {a b} (F : ∀ {a} → Set a → Set a) : Set (lsuc (a ⊔ b)) where
   infixl 4 _<*>′_
   field
     _<*>′_ : {A : Set a} {B : Set b} → F (A → B) → F A → F B
 
-open PApplicative {{...}}
+open Applicative′ {{...}} public
 
 module _ {F : ∀ {a} → Set a → Set a}
-         {{_ : ∀ {a b} → PApplicative {a} {b} F}}
+         {{_ : ∀ {a b} → Applicative′ {a} {b} F}}
          {{_ : ∀ {a} → Applicative {a} F}}
          {a b} {A : Set a} {B : Set b} where
 
@@ -92,7 +92,7 @@ module _ {a b} {A B : Set a} {F : Set a → Set b} {{_ : Applicative F}} where
   refl *= refl = refl
 
 module _ {F  : ∀ {a}   → Set a → Set a}
-         {{_ : ∀ {a b} → PApplicative {a} {b} F}}
+         {{_ : ∀ {a b} → Applicative′ {a} {b} F}}
          {{_ : ∀ {a}   → Applicative {a} F}}
          {a b} {A : Set a} {B : Set b} where
 

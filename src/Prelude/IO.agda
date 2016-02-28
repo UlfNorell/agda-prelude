@@ -28,8 +28,8 @@ instance
   return {{MonadIO}} = ioReturn
   _>>=_  {{MonadIO}} = ioBind
 
-  PMonadIO : ∀ {a b} → PMonad {a} {b} IO
-  _>>=′_ {{PMonadIO}} = ioBind
+  MonadIO′ : ∀ {a b} → Monad′ {a} {b} IO
+  _>>=′_ {{MonadIO′}} = ioBind
 
   FunctorIO : ∀ {a} → Functor {a} IO
   FunctorIO = defaultMonadFunctor

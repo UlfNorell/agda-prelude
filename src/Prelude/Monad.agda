@@ -33,11 +33,11 @@ join : ∀ {a} {M : Set a → Set a} {{_ : Monad M}} {A : Set a} → M (M A) →
 join = _=<<_ id
 
 -- Level polymorphic monads
-record PMonad {a b} (M : ∀ {a} → Set a → Set a) : Set (lsuc (a ⊔ b)) where
+record Monad′ {a b} (M : ∀ {a} → Set a → Set a) : Set (lsuc (a ⊔ b)) where
   field
     _>>=′_ : {A : Set a} {B : Set b} → M A → (A → M B) → M B
 
-open PMonad {{...}} public
+open Monad′ {{...}} public
 
 infix -10 do_
 do_ : ∀ {a} {A : Set a} → A → A
