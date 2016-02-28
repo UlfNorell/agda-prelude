@@ -83,4 +83,4 @@ defineQuotableInstance iname d =
 deriveQuotable : Name → Name → TC ⊤
 deriveQuotable iname d =
   declareQuotableInstance iname d >>
-  defineQuotableInstance iname d
+  defineQuotableInstance  iname d

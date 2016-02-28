@@ -4,6 +4,7 @@ open import Container.List
 open import Container.Traversable
 open import Tactic.Reflection hiding (substArgs) renaming (unify to unifyTC)
 open import Tactic.Reflection.Equality
+open import Tactic.Deriving
 
 module Tactic.Deriving.Eq where
 
@@ -384,8 +385,31 @@ private
      λ { (just i) → computeType d (1 + n) ((n <$ a) ∷ xs) (iArg (weaken (length is) i) ∷ weaken 1 is) tel
        ; nothing →  computeType d (1 + n) ((n <$ a) ∷ xs) (weaken 1 is) tel })
 
-deriveEqType : Name → TC Term
-deriveEqType d = computeType d 0 [] [] ∘ fst ∘ telView <$> getType d
 
-deriveEqDef : Name → TC (List Clause)
-deriveEqDef d = eqDefinition d
+eqType : Name → TC Type
+eqType d = computeType d 0 [] [] ∘ fst ∘ telView <$> getType d
+
+macro
+  deriveEqType : Name → Tactic
+  deriveEqType d hole = unifyTC hole =<< (computeType d 0 [] [] ∘ fst ∘ telView <$> getType d)
+
+deriveEqDef : Name → Name → TC ⊤
+deriveEqDef i d = defineFun i =<< eqDefinition d
+
+declareEqInstance : Name → Name → TC ⊤
+declareEqInstance iname d =
+  declareDef (iArg iname) =<< instanceType d (quote Eq)
+
+defineEqInstance : Name → Name → TC ⊤
+defineEqInstance iname d =
+  do fname ← freshName ("_==[" & show d & "]_")
+  -| declareDef (vArg fname) =<< eqType d
+  ~| dictCon ← recordConstructor (quote Eq)
+  -| defineFun iname (clause [] (con₁ dictCon (def₀ fname)) ∷ [])
+  ~| defineFun fname =<< eqDefinition d
+  ~| return _
+
+deriveEq : Name → Name → TC ⊤
+deriveEq iname d =
+  declareEqInstance iname d >>
+  defineEqInstance  iname d
