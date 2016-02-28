@@ -26,6 +26,8 @@ pattern con₂ c x y     = con c (vArg x ∷ vArg y ∷ [])
 pattern con₃ c x y z   = con c (vArg x ∷ vArg y ∷ vArg z ∷ [])
 pattern con₄ c x y z u = con c (vArg x ∷ vArg y ∷ vArg z ∷ vArg u ∷ [])
 
+pattern var₀ x         = var x []
+
 infixr 4 _`→_ _`→ʰ_ _`→ⁱ_
 _`→_ _`→ʰ_ _`→ⁱ_ : Type → Type → Type
 _`→_  a b = pi (vArg a) (abs "_" b)
