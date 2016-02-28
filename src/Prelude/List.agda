@@ -109,15 +109,15 @@ module _ {a} {A : Set a} {{_ : Ord A}} where
   sort [] = []
   sort (x ∷ xs) = insert x (sort xs)
 
-private
-  fromto : Nat → Nat → List Nat
-  fromto 0  0   = []  -- make strict
-  fromto a  0   = []
-  fromto a (suc d) = a ∷ fromto (suc a) d
+infix 10 from_for_
+from_for_ : Nat → Nat → List Nat
+from_for_ 0  0   = []  -- make strict
+from_for_ a  0   = []
+from_for_ a (suc d) = a ∷ from suc a for d
 
 infix 10 from_to_
 from_to_ : Nat → Nat → List Nat
-from a to b = fromto a (suc b - a)
+from a to b = from a for (suc b - a)
 
 --- Equality ---
 
