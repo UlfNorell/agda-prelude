@@ -222,6 +222,24 @@ instance
       emb nothing  = refl
       emb (just x) = just =$= isTreeEmbedding x
 
+  EncodeSigma : ∀ {a b} {A : Set a} {B : A → Set b}
+                  {{EncA : TreeEncoding A}} {{EncB : ∀ {x} → TreeEncoding (B x)}} →
+                  TreeEncoding (Σ A B)
+  EncodeSigma {A = A} {B = B} = treeEncoding enc dec emb
+    where
+      enc : Σ A B → TreeRep
+      enc (x , y) = node 0 (treeEncode x ∷ treeEncode y ∷ [])
+
+      dec : TreeRep → Maybe (Σ A B)
+      dec (node _ (x ∷ y ∷ _)) =
+        do x ← treeDecode x
+        =| y ← treeDecode y
+        =| return (x , y)
+      dec _ = nothing
+
+      emb : ∀ x → dec (enc x) ≡ just x
+      emb (x , y) rewrite isTreeEmbedding x | isTreeEmbedding y = refl
+
 --- Example ---
 
 -- private
