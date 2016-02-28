@@ -29,6 +29,9 @@ record Monad {a b} (M : Set a → Set b) : Set (lsuc a ⊔ b) where
 
 open Monad {{...}} public
 
+join : ∀ {a} {M : Set a → Set a} {{_ : Monad M}} {A : Set a} → M (M A) → M A
+join = _=<<_ id
+
 record PMonad {a b} (M : ∀ {a} → Set a → Set a) : Set (lsuc (a ⊔ b)) where
   field
     _>>=′_ : {A : Set a} {B : Set b} → M A → (A → M B) → M B
