@@ -194,6 +194,8 @@ abs-inj₁ refl = refl
 abs-inj₂ : ∀ {A s s′} {x x′ : A} → abs s x ≡ abs s′ x′ → x ≡ x′
 abs-inj₂ refl = refl
 
+--- Terms ---
+
 var-inj₁ : ∀ {x x′ args args′} → Term.var x args ≡ var x′ args′ → x ≡ x′
 var-inj₁ refl = refl
 
@@ -224,6 +226,12 @@ lam-inj₁ refl = refl
 lam-inj₂ : ∀ {v v′ t t′} → lam v t ≡ lam v′ t′ → t ≡ t′
 lam-inj₂ refl = refl
 
+pat-lam-inj₁ : ∀ {v v′ t t′} → pat-lam v t ≡ pat-lam v′ t′ → v ≡ v′
+pat-lam-inj₁ refl = refl
+
+pat-lam-inj₂ : ∀ {v v′ t t′} → pat-lam v t ≡ pat-lam v′ t′ → t ≡ t′
+pat-lam-inj₂ refl = refl
+
 pi-inj₁ : ∀ {t₁ t₁′ t₂ t₂′} → pi t₁ t₂ ≡ pi t₁′ t₂′ → t₁ ≡ t₁′
 pi-inj₁ refl = refl
 
@@ -236,11 +244,43 @@ sort-inj refl = refl
 lit-inj : ∀ {x y} → Term.lit x ≡ lit y → x ≡ y
 lit-inj refl = refl
 
+--- Sorts ---
+
 set-inj : ∀ {x y} → set x ≡ set y → x ≡ y
 set-inj refl = refl
 
 slit-inj : ∀ {x y} → Sort.lit x ≡ lit y → x ≡ y
 slit-inj refl = refl
+
+--- Patterns ---
+
+pcon-inj₁ : ∀ {x y z w} → Pattern.con x y ≡ con z w → x ≡ z
+pcon-inj₁ refl = refl
+
+pcon-inj₂ : ∀ {x y z w} → Pattern.con x y ≡ con z w → y ≡ w
+pcon-inj₂ refl = refl
+
+pvar-inj : ∀ {x y} → Pattern.var x ≡ var y → x ≡ y
+pvar-inj refl = refl
+
+plit-inj : ∀ {x y} → Pattern.lit x ≡ lit y → x ≡ y
+plit-inj refl = refl
+
+proj-inj : ∀ {x y} → Pattern.proj x ≡ proj y → x ≡ y
+proj-inj refl = refl
+
+--- Clauses ---
+
+clause-inj₁ : ∀ {x y z w} → clause x y ≡ clause z w → x ≡ z
+clause-inj₁ refl = refl
+
+clause-inj₂ : ∀ {x y z w} → clause x y ≡ clause z w → y ≡ w
+clause-inj₂ refl = refl
+
+absurd-clause-inj : ∀ {x y} → absurd-clause x ≡ absurd-clause y → x ≡ y
+absurd-clause-inj refl = refl
+
+--- Literals ---
 
 nat-inj : ∀ {x y} → nat x ≡ nat y → x ≡ y
 nat-inj refl = refl
