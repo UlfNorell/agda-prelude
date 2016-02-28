@@ -2,6 +2,10 @@ module Reright where
   open import Prelude
   open import Tactic.Reflection.Reright
 
+  -- 'reright' presents the user with changed context variabes, to mimic that done by 'rewrite'.
+  simple-reright-test : (A B : Set) (F : Set → Set) → F A → A ≡ B → B → A
+  simple-reright-test A B F FA A≡B b = reright A≡B $ λ (FB : F B) → b
+
   module Test₁ where
     postulate
       Set≡Set : Set ≡ Set
