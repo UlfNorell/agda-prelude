@@ -52,13 +52,22 @@ instance
 
 instance
   MonadMaybe : ∀ {a} → Monad {a} Maybe
-  MonadMaybe = record { return = just ; _>>=_ = flip (maybe nothing) }
+  return {{MonadMaybe}}     = just
+  _>>=_  {{MonadMaybe}} m f = maybe nothing f m
 
   MonadMaybe′ : ∀ {a b} → Monad′ {a} {b} Maybe
-  MonadMaybe′ = record { _>>=′_ = flip (maybe nothing) }
+  _>>=′_ {{MonadMaybe′}} m f = maybe nothing f m
 
   FunctorMaybe : ∀ {a} → Functor (Maybe {a})
   FunctorMaybe = defaultMonadFunctor
 
+  FunctorMaybe′ : ∀ {a b} → Functor′ {a} {b} Maybe
+  fmap′ {{FunctorMaybe′}} f nothing  = nothing
+  fmap′ {{FunctorMaybe′}} f (just x) = just (f x)
+
   ApplicativeMaybe : ∀ {a} → Applicative (Maybe {a})
   ApplicativeMaybe = defaultMonadApplicative
+
+  ApplicativeMaybe′ : ∀ {a b} → Applicative′ {a} {b} Maybe
+  _<*>′_ {{ApplicativeMaybe′}} (just f) (just x) = just (f x)
+  _<*>′_ {{ApplicativeMaybe′}}  _        _       = nothing
