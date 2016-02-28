@@ -76,3 +76,10 @@ module DeriveEqTest where
       test : {x : Nat} → Vec Nat x → Test
 
     unquoteDecl EqTest = deriveEq EqTest (quote Test)
+
+  module Issue-#3 where
+
+    data Test : Nat → Set where
+       test : (x : Nat) → Test x
+
+    unquoteDecl EqTest = deriveEq EqTest (quote Test)
