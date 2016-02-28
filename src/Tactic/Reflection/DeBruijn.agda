@@ -40,6 +40,11 @@ private
   Str : Set → Set
   Str A = Nat → Nat → A → Maybe A
 
+  strVar : Str Nat
+  strVar lo n x = if      x <? lo     then just x
+                  else if x <? lo + n then nothing
+                  else                just (x - n)
+
   strArgs    : Str (List (Arg Term))
   strArg     : Str (Arg Term)
   strSort    : Str Sort
@@ -49,10 +54,7 @@ private
   strAbsType : Str (Abs Type)
 
   strTerm : Str Term
-  strTerm lo n (var x args) =
-    if      x <? lo     then var x <$> strArgs lo n args
-    else if x <? lo + n then nothing
-    else                     var (x - n) <$> strArgs lo n args
+  strTerm lo n (var x args)  = var <$> strVar lo n x <*> strArgs lo n args
   strTerm lo n (con c args)  = con c <$> strArgs lo n args
   strTerm lo n (def f args)  = def f <$> strArgs lo n args
   strTerm lo n (meta x args) = meta x <$> strArgs lo n args
@@ -83,6 +85,9 @@ private
   Wk : Set → Set
   Wk A = Nat → Nat → A → A
 
+  wkVar : Wk Nat
+  wkVar lo k x = if x <? lo then x else x + k
+
   wkArgs    : Wk (List (Arg Term))
   wkArg     : Wk (Arg Term)
   wkSort    : Wk Sort
@@ -91,12 +96,10 @@ private
   wkAbsTerm : Wk (Abs Term)
 
   wk : Wk Term
-  wk lo k (var x args) =
-    if x <? lo then var x       (wkArgs lo k args)
-    else            var (x + k) (wkArgs lo k args)
+  wk lo k (var x args)  = var (wkVar lo k x) (wkArgs lo k args)
   wk lo k (con c args)  = con c (wkArgs lo k args)
   wk lo k (def f args)  = def f (wkArgs lo k args)
-  wk lo k (meta x args)  = meta x (wkArgs lo k args)
+  wk lo k (meta x args) = meta x (wkArgs lo k args)
   wk lo k (lam v t)     = lam v (wkAbsTerm lo k t)
   wk lo k (pi a b)      = pi (wkArg lo k a) (wkAbsTerm lo k b)
   wk lo k (agda-sort s) = agda-sort (wkSort lo k s)
@@ -127,6 +130,10 @@ DeBruijnTraversable =
          ; weakenFrom = λ lo k → fmap (weakenFrom lo k) }
 
 instance
+  DeBruijnNat : DeBruijn Nat
+  strengthenFrom {{DeBruijnNat}} = strVar
+  weakenFrom     {{DeBruijnNat}} = wkVar
+
   DeBruijnTerm : DeBruijn Term
   DeBruijnTerm = record { strengthenFrom = strTerm ; weakenFrom = wk }
 
@@ -141,4 +148,3 @@ instance
 
   DeBruijnMaybe : {A : Set} {{_ : DeBruijn A}} → DeBruijn (Maybe A)
   DeBruijnMaybe = DeBruijnTraversable
-
