@@ -167,6 +167,13 @@ getClauses d =
   ; _ → typeError (strErr "Cannot get constructors of non-function type" ∷ nameErr d ∷ [])
   }
 
+-- Get the constructor of a record type (or single-constructor data type)
+recordConstructor : Name → TC Name
+recordConstructor r =
+  caseM getConstructors r of λ
+  { (c ∷ []) → pure c
+  ; _ → typeError $ strErr "Cannot get constructor of non-record type" ∷ nameErr r ∷ [] }
+
 -- Injectivity of constructors
 
 arg-inj₁ : ∀ {A i i′} {x x′ : A} → arg i x ≡ arg i′ x′ → i ≡ i′
