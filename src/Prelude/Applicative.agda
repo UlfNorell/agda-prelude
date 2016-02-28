@@ -27,6 +27,26 @@ record Applicative {a b} (F : Set a → Set b) : Set (lsuc a ⊔ b) where
 
 open Applicative {{...}} public
 
+-- Level polymorphic functors
+record PApplicative {a b} (F : ∀ {a} → Set a → Set a) : Set (lsuc (a ⊔ b)) where
+  infixl 4 _<*>′_
+  field
+    _<*>′_ : {A : Set a} {B : Set b} → F (A → B) → F A → F B
+
+open PApplicative {{...}}
+
+module _ {F : ∀ {a} → Set a → Set a}
+         {{_ : ∀ {a b} → PApplicative {a} {b} F}}
+         {{_ : ∀ {a} → Applicative {a} F}}
+         {a b} {A : Set a} {B : Set b} where
+
+  infixl 4 _<*′_ _*>′_
+  _<*′_ : F A → F B → F A
+  a <*′ b = pure const <*>′ a <*>′ b
+
+  _*>′_ : F A → F B → F B
+  a *>′ b = pure (const id) <*>′ a <*>′ b
+
 module _ {a b} {F : Set a → Set b} {{FunF : Functor F}} {{AppF : Applicative F}} where
 
   defaultApplicativeNumber : {A : Set a} {{NumA : Number A}} -- levels get in the way of having constraints
@@ -59,15 +79,29 @@ module _ {a b} {F : Set a → Set b} {{FunF : Functor F}} {{AppF : Applicative F
 
 -- Congruence for _<*>_ and friends
 
-infixl 4 _=*=_
-_=*=_ : ∀ {a b} {A B : Set a} {F : Set a → Set b} {{_ : Applicative F}} {f g : F (A → B)} {x y : F A} →
-          f ≡ g → x ≡ y → (f <*> x) ≡ (g <*> y)
-refl =*= refl = refl
+module _ {a b} {A B : Set a} {F : Set a → Set b} {{_ : Applicative F}} where
 
-_=*_ : ∀ {a b} {A B : Set a} {F : Set a → Set b} {{_ : Applicative F}} {a₁ a₂ : F A} {b₁ b₂ : F B} →
-         a₁ ≡ a₂ → b₁ ≡ b₂ → (a₁ <* b₁) ≡ (a₂ <* b₂)
-refl =* refl = refl
+  infixl 4 _=*=_
+  _=*=_ : {f g : F (A → B)} {x y : F A} → f ≡ g → x ≡ y → (f <*> x) ≡ (g <*> y)
+  refl =*= refl = refl
 
-_*=_ : ∀ {a b} {A B : Set a} {F : Set a → Set b} {{_ : Applicative F}} {a₁ a₂ : F A} {b₁ b₂ : F B} →
-         a₁ ≡ a₂ → b₁ ≡ b₂ → (a₁ *> b₁) ≡ (a₂ *> b₂)
-refl *= refl = refl
+  _=*_ : {a₁ a₂ : F A} {b₁ b₂ : F B} → a₁ ≡ a₂ → b₁ ≡ b₂ → (a₁ <* b₁) ≡ (a₂ <* b₂)
+  refl =* refl = refl
+
+  _*=_ : {a₁ a₂ : F A} {b₁ b₂ : F B} → a₁ ≡ a₂ → b₁ ≡ b₂ → (a₁ *> b₁) ≡ (a₂ *> b₂)
+  refl *= refl = refl
+
+module _ {F  : ∀ {a}   → Set a → Set a}
+         {{_ : ∀ {a b} → PApplicative {a} {b} F}}
+         {{_ : ∀ {a}   → Applicative {a} F}}
+         {a b} {A : Set a} {B : Set b} where
+
+  infixl 4 _=*=′_
+  _=*=′_ : {f g : F (A → B)} {x y : F A} → f ≡ g → x ≡ y → (f <*>′ x) ≡ (g <*>′ y)
+  refl =*=′ refl = refl
+
+  _=*′_ : {a₁ a₂ : F A} {b₁ b₂ : F B} → a₁ ≡ a₂ → b₁ ≡ b₂ → (a₁ <*′ b₁) ≡ (a₂ <*′ b₂)
+  refl =*′ refl = refl
+
+  _*=′_ : {a₁ a₂ : F A} {b₁ b₂ : F B} → a₁ ≡ a₂ → b₁ ≡ b₂ → (a₁ *>′ b₁) ≡ (a₂ *>′ b₂)
+  refl *=′ refl = refl
