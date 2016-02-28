@@ -34,11 +34,11 @@ private
   freeClauses : Nat → List Clause → VarSet
   freeClause : Nat → Clause → VarSet
 
-  freeTerm n (var x args) =
-    case compare (suc x) n of
+  freeTerm n (var x args) = freeArgs n args ∪
+    (case compare (suc x) n of
     λ { (greater (diff k _)) → [ k ]
       ; _ → ∅
-      }
+      })
   freeTerm n (con c args) = freeArgs n args
   freeTerm n (def f args) = freeArgs n args
   freeTerm n (meta x args) = freeArgs n args
