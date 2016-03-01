@@ -6,6 +6,7 @@ module Tactic.Reflection.Reright where
   open import Tactic.Reflection
   open import Tactic.Reflection.Match
   open import Tactic.Reflection.Replace
+  open import Tactic.Reflection.Quote
 
   private
     {-# TERMINATING #-}
@@ -126,7 +127,26 @@ module Tactic.Reflection.Reright where
               (λ {(helper-type , helper-patterns , helper-term) →
                 catchTC
                   (define (vArg n) helper-type [ clause helper-patterns helper-term ])
-                  (typeError ( strErr "error defining helper function" ∷ [] ))
+                  (typeError ( strErr "error defining helper function" ∷
+                               strErr "\nhelper-type:" ∷ termErr helper-type ∷
+                               strErr "\n`helper-type:" ∷ termErr (` helper-type) ∷
+                               strErr "\nhelper-patterns:" ∷ termErr (` helper-patterns) ∷
+                               strErr "\nhelper-term:" ∷ termErr helper-term ∷
+                               strErr "\ngʳ:" ∷ termErr (` gʳ) ∷
+                               strErr "\nΓʷ:" ∷ termErr (` Γʷ) ∷
+                               strErr "\n𝐺ʷ:" ∷ termErr (` 𝐺ʷ) ∷
+                               strErr "\nl≡r:" ∷ termErr (` l≡r) ∷
+                               strErr "\nA:" ∷ termErr (` A) ∷
+                               strErr "\nL:" ∷ termErr (` L) ∷
+                               strErr "\nR:" ∷ termErr (` R) ∷
+                               strErr "\nΓᶜ:" ∷ termErr (` Γᶜ) ∷
+                               strErr "\n𝐺:" ∷ termErr (` 𝐺) ∷
+                               strErr "\nΓʷ/ᴬ" ∷ termErr (` Γʷ/ᴬ) ∷
+                               strErr "\nΓʷ/⁻ᴬ" ∷ termErr (` Γʷ/⁻ᴬ) ∷
+                               strErr "\n[iᶜ∣iᶜ∈FVᴬ]" ∷ termErr (` [iᶜ∣iᶜ∈FVᴬ]) ∷
+                               strErr "\n[iᶜ∣iᶜ∉FVᴬ]" ∷ termErr (` [iᶜ∣iᶜ∉FVᴬ]) ∷
+                               strErr "\n[iʷ]" ∷ termErr (` [iʷ]) ∷
+                               [] ))
                   })
               (_,_ <$> helper-type <*> (_,_ <$> helper-patterns <*> helper-term))
         where
@@ -142,7 +162,22 @@ module Tactic.Reflection.Reright where
 
       extendHelper : ∀ {a} {A : Set a} → TC A → TC A
       extendHelper =
-        maybe (const $ typeError [ strErr "error constructing helper extension" ])
+        maybe (const $ typeError ( strErr "error constructing helper extension" ∷
+                                   strErr "\nhelper-type:" ∷ termErr (` helper-type) ∷
+                                   strErr "\ngʳ:" ∷ termErr (` gʳ) ∷
+                                   strErr "\nΓʷ:" ∷ termErr (` Γʷ) ∷
+                                   strErr "\n𝐺ʷ:" ∷ termErr (` 𝐺ʷ) ∷
+                                   strErr "\nl≡r:" ∷ termErr (` l≡r) ∷
+                                   strErr "\nA:" ∷ termErr (` A) ∷
+                                   strErr "\nL:" ∷ termErr (` L) ∷
+                                   strErr "\nR:" ∷ termErr (` R) ∷
+                                   strErr "\nΓᶜ:" ∷ termErr (` Γᶜ) ∷
+                                   strErr "\n𝐺:" ∷ termErr (` 𝐺) ∷
+                                   strErr "\nΓʷ/ᴬ" ∷ termErr (` Γʷ/ᴬ) ∷
+                                   strErr "\nΓʷ/⁻ᴬ" ∷ termErr (` Γʷ/⁻ᴬ) ∷
+                                   strErr "\n[iᶜ∣iᶜ∉FVᴬ]" ∷ termErr (` [iᶜ∣iᶜ∉FVᴬ]) ∷
+                                   strErr "\n[iʷ]" ∷ termErr (` [iʷ]) ∷
+                                   [] ))
               (λ x → (extendContext (vArg x)))
               $ helper-extension
         where
