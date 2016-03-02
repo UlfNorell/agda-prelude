@@ -180,45 +180,15 @@ module Tactic.Reflection.Reright where
           iʷs ← make-vars-from-args [iʷ∣γᶜᵢ∈Γʳ] γʷs -|
           pure $ var 0 (reverse (weaken 1 iʷs))
 
-      extendHelper : ∀ {a} {A : Set a} → TC A → TC A
-      extendHelper =
-        maybe (const $ typeError ( strErr "error constructing helper extension" ∷
-                                   strErr "\nhelper-type:" ∷ termErr (` helper-type) ∷
-                                   strErr "\ngʳ:" ∷ termErr (` gʳ) ∷
-                                   strErr "\nΓʷ:" ∷ termErr (` Γʷ) ∷
-                                   strErr "\n𝐺ʷ:" ∷ termErr (` 𝐺ʷ) ∷
-                                   strErr "\nl≡r:" ∷ termErr (` l≡r) ∷
-                                   strErr "\nA:" ∷ termErr (` A) ∷
-                                   strErr "\nL:" ∷ termErr (` L) ∷
-                                   strErr "\nR:" ∷ termErr (` R) ∷
-                                   strErr "\nΓᶜ:" ∷ termErr (` Γᶜ) ∷
-                                   strErr "\n𝐺:" ∷ termErr (` 𝐺) ∷
-                                   strErr "\nΓʷ/ᴬ" ∷ termErr (` Γʷ/ᴬ) ∷
-                                   strErr "\nΓʷ/⁻ᴬ" ∷ termErr (` Γʷ/⁻ᴬ) ∷
-                                   strErr "\n[iᶜ∣iᶜ∉FVᴬ]" ∷ termErr (` [iᶜ∣iᶜ∉FVᴬ]) ∷
-                                   strErr "\n[iʷ]" ∷ termErr (` [iʷ]) ∷
-                                   [] ))
-              (λ x → (extendContext (vArg x)))
-              $ helper-extension
-        where
-
-        helper-extension : Maybe Type
-        helper-extension = reorderVars [iʷ]-reverse <$> gʳ where
-          [iʷ]-reverse : List Nat
-          [iʷ]-reverse = for p ← (from 0 for (length [iʷ] + 1)) do maybe 9999 id (find 0 p [iʷ]) where
-            find : Nat → Nat → List Nat → Maybe Nat
-            find m x [] = nothing
-            find m x (l ∷ ls) = ifYes x == l then just m else find (suc m) x ls
-
       callHelper : Name → Tactic
       callHelper n hole =
         maybe (typeError [ strErr "error constructing helper call" ])
-              (unify (weaken 1 hole) ∘ lam visible ∘ abs "_")
+              (unify hole)
               $ helper-call n
         where
         
         helper-call : Name → Maybe Term
-        helper-call n = def n <$> (reverse <$> (_∷_ <$> pure (vArg (var₀ 0)) <*> weaken 2 (_∷_ <$> pure (vArg l≡r) <*> Γʰ))) where
+        helper-call n = def n <$> (reverse <$> (_∷_ <$> pure (vArg l≡r) <*> Γʰ)) where
           Γʰ : Maybe $ List $ Arg Term
           Γʰ = (λ xs → take (length [iᶜ∣iᶜ∉FVᴬ]) xs ++ hArg unknown ∷ drop (length [iᶜ∣iᶜ∉FVᴬ]) xs) <$> (join $ make-vars-from-args <$> pure ([iᶜ∣iᶜ∉FVᴬ] ++ [iᶜ∣iᶜ∈FVᴬ]) <*> Γʰ') where
             Γʰ' : Maybe (List (Arg Type))
@@ -247,6 +217,5 @@ module Tactic.Reflection.Reright where
       q ← getRequest l≡r hole -|
       n ← freshName "reright" -|
       let open Request q in 
-      extendHelper $ 
-        defineHelper n ~|
-        callHelper n hole
+      defineHelper n ~|
+      callHelper n hole
