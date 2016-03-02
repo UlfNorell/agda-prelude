@@ -1,10 +1,25 @@
 module Reright where
   open import Prelude
   open import Tactic.Reflection.Reright
+  open import Agda.Builtin.Reflection -- for better pretty-printing of error messages
 
   -- 'reright' presents the user with changed context variabes, to mimic that done by 'rewrite'.
-  simple-reright-test : (A B : Set) (F : Set → Set) → F A → A ≡ B → B → A
-  simple-reright-test A B F FA A≡B b = reright A≡B $ λ (FB : F B) → b
+  simple-reright-test₁ : (A B : Set) (F : Set → Set) → F A → A ≡ B → B → A
+  simple-reright-test₁ A B F FA A≡B b = reright A≡B $ λ (FB : F B) → b
+
+  -- the target of the reright (in this case x≡y₁) is excluded from the changed context variables
+  simple-reright-test₂ : {a : Level} {A : Set a} {x y : A} (x≡y₁ : x ≡ y) (x≡y₂ : x ≡ y) → y ≡ x
+  simple-reright-test₂ {y = y} x≡y₁ x≡y₂ = reright x≡y₁ λ (x≡y₂' : y ≡ y) → refl
+
+  -- the visibility of context variables remains the same in their changed state
+  simple-reright-test₃ : {a : Level} {A : Set a} {x y : A} (x≡y₁ : x ≡ y) (x≡y₂ : x ≡ y) {x≡y₃ : x ≡ y} → y ≡ x
+  simple-reright-test₃ {y = y} x≡y₁ x≡y₂ {x≡y₃} = reright x≡y₁ λ (x≡y₂' : y ≡ y) {x≡y₃' : y ≡ y} → refl
+
+  -- for some reason, when the first changed variable is hidden, it's impossible to bring it into scope
+  {- FAILS - results in unsolved metas
+    problematic-visibility : {a : Level} {A : Set a} {x y : A} (x≡y₁ : x ≡ y) {x≡y₃ : x ≡ y} → y ≡ x
+    problematic-visibility {y = y} x≡y₁ {x≡y₃} = reright x≡y₁ λ {x≡y₃' : y ≡ y} → refl
+  -}
 
   module Test₁ where
     postulate
@@ -122,7 +137,7 @@ module Reright where
              → A₂ a₀² a₁a₀²-1 ≡ A₂ a₀² a₁a₀²-3
     test₁₉ {a₀¹} {a₀²} {a₁a₀²-1} {a₁a₀²-2} {a₁a₀²-3} {a₁a₀²-2=a₁a₀²-3} R X = reright (R a₀¹) {!!}
 
-    {- FAILS
+    {- FAILS (correctly, though perhaps without the most comprehensible of error messages)
       test₂₀' : (f₁ : A₀) (f₂ : A₀) (A₀f₁≡A₀f₂ : A₁ f₁ ≡ A₁ f₂) (g₁ : A₁ f₁) → A₂ f₁ g₁
       test₂₀' f₁ f₂ A₀f₁≡A₀f₂ g₁ rewrite A₀f₁≡A₀f₂ = {!!}
 
@@ -130,6 +145,15 @@ module Reright where
       test₂₀ f₁ f₂ A₀f₁≡A₀f₂ g₁ = reright A₀f₁≡A₀f₂ {!!}
     -}
    
+    test₂₀ : ∀ {a b : Level} {A : Set a} {x y : A} (x≡y : x ≡ y) → Set
+    test₂₀ x≡y = reright x≡y {!!}
+
+    test₂₁ : ∀ {a b : Level} {A : Set a} {x y : A} (B : Set b) (x≡y : x ≡ y) → Set
+    test₂₁ B x≡y = reright x≡y {!!}
+
+    test₂₂ : ∀ {a : Level} {A : Set a} {B : Set} {x : B} {y : B} (x≡y : x ≡ y) → Set
+    test₂₂ x≡y = reright x≡y {!!}
+
   module Test₂ where
     record Map 
              {K : Set}
@@ -167,3 +191,36 @@ module Reright where
       → (k∈putkv∅ : k ∈ (fst $ put {k₀ = k} v {m₁ = ∅} ∅-is-empty))
       → Set
     test₁ v k k∈putkv∅ = let p = (put {k₀ = k} v {m₁ = ∅} ∅-is-empty) in let r = sym (snd $ snd p) in reright r {!!}
+
+{- expected.out
+?0 : b₀² ≡ b₀² → Set
+?1 : (b : B₀) → b ≡ b
+?2 : B₀ → B₀
+?3 : B₀ → B₀
+?4 : Y ≡ Y
+?5 : A₂ 𝑨₀² a₁𝑨₀²
+?6 : (a₁ : A₁ a₀²) → a₀² ≡ a₀² → F (A₂ a₀² a₁) → F (A₁ a₀²) ≡ A₂ a₀² a₁
+?7 : A₂ a₀ a₁a₀²
+?8 : F (A₁ a₀²) → F (A₁ a₀²) ≡ F (F (A₁ a₀²))
+?9 : F (A₁ a₀²) → F (A₁ a₀²) ≡ F (F (A₁ a₀²))
+?10 : C lzero (χ ⊔ β) (A₁ a₀²) →
+Nat →
+Σ Level
+(λ γ → C lzero (χ ⊔ β) (A₁ a₀²) ≡ C γ (χ ⊔ β) (C lzero γ (A₁ a₀¹)))
+?11 : F (A₁ a₀)
+?12 : F (F (F (F (A₁ a₀))))
+?13 : C lzero (l a₀¹ β) (A₁ a₀²) →
+Σ Level
+(λ γ →
+   C lzero (l a₀¹ β) (A₁ a₀²) ≡ C γ (l a₀¹ β) (C lzero γ (A₁ a₀¹)))
+?14 : K₀ a₀² → Set
+?15 : K₀ a₀² → F (K₀ a₀²) → F (F (K₀ a₀²)) ≡ F (K₀ a₀²)
+?16 : (A₀ → A₂ a₀² a₁a₀²-2 ≡ A₂ a₀² a₁a₀²-2) →
+A₂ a₀² a₁a₀²-2 ≡ A₂ a₀² a₁a₀²-3
+?17 : Set
+?18 : Set
+?19 : Set
+?20 : (k ∉ fst (put (get (fst (snd (put v ∅-is-empty)))) ∅-is-empty) →
+ ⊥) →
+Set
+-}
