@@ -116,7 +116,7 @@ module Tactic.Reflection.Reright where
             go _ [] _ = nothing
             go m (_ ∷ [iʷ]) (γᶜᵢ ∷ Γᶜ) = _∷_ <$> (strengthen (suc m) $ reorderVars [iʷ] <$> γᶜᵢ) <*> (go (suc m) [iʷ] $ Γᶜ)
 
-        Γʷ/ᴬ = join $ subsetList <$> Γʷ/ᶜ <*> pure [iᶜ∣iᶜ∈FVᴬ]
+        Γʷ/ᴬ = join $ strengthen 1 $ join $ subsetList <$> Γʷ/ᶜ <*> pure [iᶜ∣iᶜ∈FVᴬ]
         Γʷ/⁻ᴬ = join $ subsetList <$> Γʷ/ᶜ <*> pure [iᶜ∣iᶜ∉FVᴬ]
         
       module _ where
