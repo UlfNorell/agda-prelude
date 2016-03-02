@@ -79,6 +79,7 @@ module Tactic.Reflection.Reright where
           γᶜᵢ : Arg Type
           iᶜ∈FVᴬ : Bool
           iʷ : Nat
+          adjustᴬ : Nat
           γᶜᵢ∈Γʳ : Bool
    
         gᶜᵢ : Type
@@ -90,11 +91,13 @@ module Tactic.Reflection.Reright where
         go : Nat → List (Arg Type) → List γᶜ'
         go iᶜ [] = []
         go iᶜ (γᶜᵢ ∷ Γᶜ) = γᶜᵢ' ∷ go (suc iᶜ) (weaken 1 Γᶜ) where
+          iʷ = if elem iᶜ [iᶜ∣iᶜ∉FVᴬ] then (length (filter (_<? iᶜ) [iᶜ∣iᶜ∉FVᴬ])) else (length [iᶜ∣iᶜ∉FVᴬ] + (length (filter (_≤? iᶜ) [iᶜ∣iᶜ∈FVᴬ])))
           γᶜᵢ' = record
             { iᶜ = iᶜ
             ; γᶜᵢ = γᶜᵢ
             ; iᶜ∈FVᴬ = elem iᶜ [iᶜ∣iᶜ∈FVᴬ]
-            ; iʷ = if elem iᶜ [iᶜ∣iᶜ∉FVᴬ] then (length (filter (_<? iᶜ) [iᶜ∣iᶜ∉FVᴬ])) else (length [iᶜ∣iᶜ∉FVᴬ] + (length (filter (_≤? iᶜ) [iᶜ∣iᶜ∈FVᴬ])))
+            ; iʷ = iʷ
+            ; adjustᴬ = if elem iᶜ [iᶜ∣iᶜ∈FVᴬ] then iʷ - iᶜ else 0
             ; γᶜᵢ∈Γʳ = let gᶜᵢ = unArg γᶜᵢ in (isNo $ weaken 1 gᶜᵢ == weaken 1 gᶜᵢ r[ unknown / L ]) && (isNo $ l≡r == var₀ iᶜ)
             }
 
@@ -104,21 +107,25 @@ module Tactic.Reflection.Reright where
       [iʷ] : List Nat
       [iʷ] = iʷ <$> Γᶜ' where open γᶜ'
 
+      [adjustᴬ] : List Nat
+      [adjustᴬ] = adjustᴬ <$> Γᶜ' where open γᶜ'
+
       subsetList : {A : Set} → List A → List Nat → Maybe (List A)
       subsetList xs is = traverse (index xs) is
 
       module _ where
         private
           Γʷ/ᶜ : Maybe (List (Arg Type))
-          Γʷ/ᶜ = go 0 [iʷ] Γᶜ where
-            go : Nat → List Nat → List (Arg Type) → Maybe (List (Arg Type))
-            go _ _ [] = just []
-            go _ [] _ = nothing
-            go m (_ ∷ [iʷ]) (γᶜᵢ ∷ Γᶜ) = _∷_ <$> (strengthen (suc m) $ reorderVars [iʷ] <$> γᶜᵢ) <*> (go (suc m) [iʷ] $ Γᶜ)
+          Γʷ/ᶜ = go 0 [iʷ] [adjustᴬ] Γᶜ where
+            go : Nat → List Nat → List Nat → List (Arg Type) → Maybe (List (Arg Type))
+            go _ _ _ [] = just []
+            go _ _ [] _ = nothing
+            go _ [] _ _ = nothing
+            go m (_ ∷ [iʷ]) (adjustᴬ ∷ [adjustᴬ]) (γᶜᵢ ∷ Γᶜ) = _∷_ <$> (strengthen (adjustᴬ + (suc m)) $ reorderVars [iʷ] <$> γᶜᵢ) <*> (go (suc m) [iʷ] [adjustᴬ] $ Γᶜ)
 
         Γʷ/ᴬ = join $ subsetList <$> Γʷ/ᶜ <*> pure [iᶜ∣iᶜ∈FVᴬ]
         Γʷ/⁻ᴬ = join $ subsetList <$> Γʷ/ᶜ <*> pure [iᶜ∣iᶜ∉FVᴬ]
-        
+
       module _ where
         private
           Lʷ = reorderVars [iʷ] L
