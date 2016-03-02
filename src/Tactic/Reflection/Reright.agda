@@ -109,16 +109,16 @@ module Tactic.Reflection.Reright where
 
       module _ where
         private
-          {-# TERMINATING #-}
           Γʷ/ᶜ : Maybe (List (Arg Type))
-          Γʷ/ᶜ = go 0 Γᶜ where
-            go : Nat → List (Arg Type) → Maybe (List (Arg Type))
+          Γʷ/ᶜ = go [iʷ] Γᶜ where
+            go : List Nat → List (Arg Type) → Maybe (List (Arg Type))
             go _ [] = just []
-            go m (γᶜᵢ ∷ Γᶜ) = _∷_ <$> (strengthen 1 $ reorderVars [iʷ] <$> (weaken 1 γᶜᵢ)) <*> (join $ strengthen 1 $ go (suc m) $ weaken 1 Γᶜ)
-
+            go [] _ = nothing
+            go (iʷ ∷ [iʷ]) (γᶜᵢ ∷ Γᶜ) = _∷_ <$> (strengthen (suc iʷ) $ reorderVars [iʷ] <$> γᶜᵢ) <*> (go [iʷ] Γᶜ)
+            
         Γʷ/ᴬ = join $ subsetList <$> Γʷ/ᶜ <*> pure [iᶜ∣iᶜ∈FVᴬ]
         Γʷ/⁻ᴬ = join $ subsetList <$> Γʷ/ᶜ <*> pure [iᶜ∣iᶜ∉FVᴬ]
-        
+
       module _ where
         private
           Lʷ = reorderVars [iʷ] L
