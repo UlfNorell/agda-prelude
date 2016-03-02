@@ -27,6 +27,38 @@ module Tactic.Reflection.Reright where
     reorderVars xs (meta x args) = meta x $ (fmap ∘ fmap) (reorderVars xs) args
     reorderVars xs unknown = unknown
 
+    {-# TERMINATING #-}
+    freeDependencies : List (Arg Type) → Type → Maybe VarSet
+    freeDependencies Γ x = foldr _∪_ (freeVars x) <$> mapM go (freeVars x) where
+      _∪_ : VarSet → VarSet → VarSet -- REFACTOR this was stolen from Tactic.Reflection.Free
+      []       ∪ ys = ys
+      xs       ∪ [] = xs
+      (x ∷ xs) ∪ (y ∷ ys) with compare x y
+      ... | (less    _) = x ∷ (xs ∪ (y ∷ ys))
+      ... | (equal   _) = x ∷ (xs ∪ ys)
+      ... | (greater _) = y ∷ ((x ∷ xs) ∪ ys)
+     
+      go : Nat → Maybe VarSet
+      go v = weaken (suc v) $ join $ freeDependencies (drop (suc v) Γ) <$> (unArg <$> index Γ v)
+
+    .test-freeDependencies₁ : freeDependencies [] unknown ≡ just []
+    test-freeDependencies₁ = refl
+
+    .test-freeDependencies₂ : freeDependencies (vArg (var₀ 0) ∷ vArg unknown ∷ []) (var₀ 0) ≡ just (0 ∷ 1 ∷ [])
+    test-freeDependencies₂ = refl
+
+    .test-freeDependencies₃ : freeDependencies (vArg (var₀ 0) ∷ vArg (var₀ 1) ∷ vArg unknown ∷ vArg unknown ∷ []) (var₀ 0) ≡ just (0 ∷ 1 ∷ 3 ∷ [])
+    test-freeDependencies₃ = refl
+
+    .test-freeDependencies₄ : freeDependencies (vArg (var₀ 0) ∷ vArg (var₀ 1) ∷ vArg unknown ∷ vArg unknown ∷ []) (var₀ 1) ≡ just (1 ∷ 3 ∷ [])
+    test-freeDependencies₄ = refl
+
+    .test-freeDependencies₅ : freeDependencies (vArg (var₀ 1) ∷ vArg unknown ∷ vArg unknown ∷ []) (var₀ 0) ≡ just (0 ∷ 2 ∷ [])
+    test-freeDependencies₅ = refl
+
+    .test-freeDependencies₆ : freeDependencies (vArg (var₀ 0) ∷ vArg (var₀ 1) ∷ vArg unknown ∷ vArg unknown ∷ []) (var₁ 0 (var₀ 1)) ≡ just (0 ∷ 1 ∷ 3 ∷ [])
+    test-freeDependencies₆ = refl
+
     record Request : Set where
       field
         l≡r : Term
@@ -36,7 +68,7 @@ module Tactic.Reflection.Reright where
         𝐺 : Type
 
       [iᶜ∣iᶜ∈FVᴬ] : VarSet
-      [iᶜ∣iᶜ∈FVᴬ] = freeVars A
+      [iᶜ∣iᶜ∈FVᴬ] = maybe [] id $ freeDependencies Γᶜ A -- TODO this is a hack; I don't expect freeDependencies will return 'nothing', but if it does, I hope(!) the rest of the computation will fail
       
       [iᶜ∣iᶜ∉FVᴬ] : VarSet
       [iᶜ∣iᶜ∉FVᴬ] = filter (not ∘ flip elem [iᶜ∣iᶜ∈FVᴬ]) (from 0 for (length Γᶜ))
