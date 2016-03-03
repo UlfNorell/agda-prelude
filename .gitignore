@@ -12,3 +12,4 @@ test/PrimeTest_p
 *.o
 *.agda#
 *.agda~
+.#*.agda
