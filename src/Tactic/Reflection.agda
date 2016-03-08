@@ -50,7 +50,12 @@ macro
   runT t = t
 
 evalTC : ∀ {a} {A : Set a} → TC A → Tactic
-evalTC c hole = c >>=′ quoteTC >>= unify hole
+evalTC {A = A} c hole =
+  do v ← c
+  =| `v ← quoteTC v
+  -| `A ← quoteTC A
+  -| checkedHole ← checkType hole `A
+  -| unify checkedHole `v
 
 macro
   evalT : ∀ {a} {A : Set a} → TC A → Tactic
