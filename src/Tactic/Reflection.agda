@@ -38,8 +38,26 @@ _`→_  a b = pi (vArg a) (abs "_" b)
 _`→ʰ_ a b = pi (hArg a) (abs "_" b)
 _`→ⁱ_ a b = pi (iArg a) (abs "_" b)
 
-_::_ : Term → Type → TC Term
-_::_ = checkType
+`λ : Term → Term
+`λ b = lam visible (abs "_" b)
+
+infixl 9 _`∘_
+_`∘_ : Term → Term → Term
+_`∘_ = def₂ (quote _∘_)
+
+infixr 0 _`$_
+_`$_ : Term → Term → Term
+_`$_ = def₂ (quote _$_)
+
+_:′_ : Term → Type → TC Term
+_:′_ = checkType
+
+λ′ : ∀ {a} {A : Set a} → Arg Type → TC A → TC A
+λ′ = extendContext
+
+infix 2 _=′_
+_=′_ : Term → Term → TC ⊤
+_=′_ = unify
 
 on-goal : (Type → Tactic) → Tactic
 on-goal tac hole = inferType hole >>= λ goal → tac goal hole
