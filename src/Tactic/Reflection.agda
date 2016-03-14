@@ -51,8 +51,8 @@ forceFun a =
   -| unify a (dom `→ weaken 1 rng)
   ~| normalise a
 
-inferFunType : Term → TC Type
-inferFunType hole = unPi =<< forceFun =<< inferType hole where
+inferFunRange : Term → TC Type
+inferFunRange hole = unPi =<< forceFun =<< inferType hole where
   unPi : Type → TC Type
   unPi (pi _ (abs _ (meta x _))) = blockOnMeta! x
   unPi (pi _ (abs _ b)) = maybe (typeError (strErr "Must be applied in a non-dependent function position" ∷ termErr b ∷ [])) pure $ strengthen 1 b
