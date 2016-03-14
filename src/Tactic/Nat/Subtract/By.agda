@@ -168,12 +168,3 @@ by-tactic prf g =
              ∷ [])) _) (vArg prf ∷ [])
     ; _ → pure $ failedProof (quote invalidGoal) t
     }
-
-private
-  macro
-    by : Term → Tactic
-    by prf hole =
-      inferType hole >>= λ goal → unify hole =<< by-tactic prf goal
-
-  test : (a b c : Nat) → a + b ≡ b + c → 2 + a ≡ 1 + c + 1
-  test a b c eq = by eq
