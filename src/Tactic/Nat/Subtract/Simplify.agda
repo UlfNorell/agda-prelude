@@ -59,25 +59,20 @@ simplifysub-tactic prf g =
     }
 
 simplifygoal-tactic : Type → TC Term
-simplifygoal-tactic (pi _ (abs _ t)) =
-  case strengthen 1 t of λ
-  { nothing → typeErrorS "simplify-goal must be applied in a non-dependent function position"
-  ; (just t) →
-    caseM termToSubHyps t of λ
-    { nothing → pure $ failedProof (quote invalidGoal) t
-    ; (just (goal , Γ)) → pure $
-        def (quote simplifySubH)
-          $ vArg (` goal)
-          ∷ vArg (quotedEnv Γ)
-          ∷ []
-    }
+simplifygoal-tactic t =
+  caseM termToSubHyps t of λ
+  { nothing → pure $ failedProof (quote invalidGoal) t
+  ; (just (goal , Γ)) → pure $
+      def (quote simplifySubH)
+        $ vArg (` goal)
+        ∷ vArg (quotedEnv Γ)
+        ∷ []
   }
-simplifygoal-tactic _ = typeErrorS "simplify-goal must be applied in a function position"
 
 macro
   simplify-goal : Tactic
   simplify-goal hole =
-    do goal ← forceFun =<< inferType hole
+    do goal ← inferFunType hole
     -| unify hole =<< simplifygoal-tactic goal
 
   simplifysub : Term → Tactic
