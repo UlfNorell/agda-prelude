@@ -154,6 +154,18 @@ module Reright where
     test₂₂ : ∀ {a : Level} {A : Set a} {B : Set} {x : B} {y : B} (x≡y : x ≡ y) → Set
     test₂₂ x≡y = reright x≡y {!!}
 
+    {- FAILS (due to agda issue #1890)
+      module _ (l : Level) where
+        postulate P : Set
+     
+        test₂₃ : (p : P)
+                 (A : Set)
+                 (x y : A)
+                 (x≡y : x ≡ y)
+                 → Set
+        test₂₃ _ _ _ _ x≡y = reright x≡y ?
+    -}
+
   module Test₂ where
     record Map 
              {K : Set}
