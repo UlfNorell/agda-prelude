@@ -6,7 +6,7 @@ module Numeric.Nat.Pow where
 open import Prelude
 open import Numeric.Nat.DivMod
 open import Control.WellFounded
-open import Tactic.Nat
+open import Tactic.Nat.Prelude
 
 module _ {a} {A : Set a} {{_ : Semiring A}} where
   private

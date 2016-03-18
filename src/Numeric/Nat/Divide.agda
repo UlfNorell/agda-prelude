@@ -5,7 +5,7 @@ open import Prelude
 open import Control.WellFounded
 open import Numeric.Nat.Properties
 open import Numeric.Nat.DivMod
-open import Tactic.Nat
+open import Tactic.Nat.Prelude
 
 --- Divides predicate ---
 

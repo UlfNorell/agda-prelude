@@ -3,7 +3,7 @@ module Numeric.Nat.DivMod where
 
 open import Prelude
 open import Control.WellFounded
-open import Tactic.Nat
+open import Tactic.Nat.Prelude
 open import Tactic.Nat.Reflect
 open import Tactic.Nat.Exp
 open import Numeric.Nat.Properties

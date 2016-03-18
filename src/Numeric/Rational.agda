@@ -6,7 +6,7 @@ open import Numeric.Nat.GCD
 open import Numeric.Nat.Prime
 open import Numeric.Nat.Divide
 open import Numeric.Nat.Properties
-open import Tactic.Nat
+open import Tactic.Nat.Prelude
 
 data Rational : Set where
   ratio : (p q : Nat) {{nz : NonZero q}} (prf : Coprime p q) → Rational
