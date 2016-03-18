@@ -2,8 +2,8 @@
 module Control.Monad.Identity where
 
 open import Prelude
-open import Data.Foldable
-open import Data.Traversable
+open import Container.Foldable
+open import Container.Traversable
 
 record Identity {a} (A : Set a) : Set a where
   constructor mkIdentity
@@ -17,8 +17,8 @@ instance
   runIdentity (return {{MonadId}} x) = x
   _>>=_ {{MonadId}} m f = f (runIdentity m)
 
-  PMonadId : ∀ {a b} → PMonad {a} {b} Identity
-  _>>=′_ {{PMonadId}} m f = f (runIdentity m)
+  MonadId′ : ∀ {a b} → Monad′ {a} {b} Identity
+  _>>=′_ {{MonadId′}} m f = f (runIdentity m)
 
   ApplicativeId : ∀ {a} → Applicative (Identity {a})
   ApplicativeId = defaultMonadApplicative
