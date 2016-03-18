@@ -6,6 +6,7 @@ module Tactic.Reflection.Reright where
   open import Tactic.Reflection
   open import Tactic.Reflection.Match
   open import Tactic.Reflection.Replace
+  open import Tactic.Reflection.Quote
 
   private
     {-# TERMINATING #-}
@@ -26,6 +27,38 @@ module Tactic.Reflection.Reright where
     reorderVars xs (meta x args) = meta x $ (fmap ∘ fmap) (reorderVars xs) args
     reorderVars xs unknown = unknown
 
+    {-# TERMINATING #-}
+    freeDependencies : List (Arg Type) → Type → Maybe VarSet
+    freeDependencies Γ x = foldr _∪_ (freeVars x) <$> mapM go (freeVars x) where
+      _∪_ : VarSet → VarSet → VarSet -- REFACTOR this was stolen from Tactic.Reflection.Free
+      []       ∪ ys = ys
+      xs       ∪ [] = xs
+      (x ∷ xs) ∪ (y ∷ ys) with compare x y
+      ... | (less    _) = x ∷ (xs ∪ (y ∷ ys))
+      ... | (equal   _) = x ∷ (xs ∪ ys)
+      ... | (greater _) = y ∷ ((x ∷ xs) ∪ ys)
+     
+      go : Nat → Maybe VarSet
+      go v = weaken (suc v) $ join $ freeDependencies (drop (suc v) Γ) <$> (unArg <$> index Γ v)
+
+    .test-freeDependencies₁ : freeDependencies [] unknown ≡ just []
+    test-freeDependencies₁ = refl
+
+    .test-freeDependencies₂ : freeDependencies (vArg (var₀ 0) ∷ vArg unknown ∷ []) (var₀ 0) ≡ just (0 ∷ 1 ∷ [])
+    test-freeDependencies₂ = refl
+
+    .test-freeDependencies₃ : freeDependencies (vArg (var₀ 0) ∷ vArg (var₀ 1) ∷ vArg unknown ∷ vArg unknown ∷ []) (var₀ 0) ≡ just (0 ∷ 1 ∷ 3 ∷ [])
+    test-freeDependencies₃ = refl
+
+    .test-freeDependencies₄ : freeDependencies (vArg (var₀ 0) ∷ vArg (var₀ 1) ∷ vArg unknown ∷ vArg unknown ∷ []) (var₀ 1) ≡ just (1 ∷ 3 ∷ [])
+    test-freeDependencies₄ = refl
+
+    .test-freeDependencies₅ : freeDependencies (vArg (var₀ 1) ∷ vArg unknown ∷ vArg unknown ∷ []) (var₀ 0) ≡ just (0 ∷ 2 ∷ [])
+    test-freeDependencies₅ = refl
+
+    .test-freeDependencies₆ : freeDependencies (vArg (var₀ 0) ∷ vArg (var₀ 1) ∷ vArg unknown ∷ vArg unknown ∷ []) (var₁ 0 (var₀ 1)) ≡ just (0 ∷ 1 ∷ 3 ∷ [])
+    test-freeDependencies₆ = refl
+
     record Request : Set where
       field
         l≡r : Term
@@ -35,7 +68,7 @@ module Tactic.Reflection.Reright where
         𝐺 : Type
 
       [iᶜ∣iᶜ∈FVᴬ] : VarSet
-      [iᶜ∣iᶜ∈FVᴬ] = freeVars A
+      [iᶜ∣iᶜ∈FVᴬ] = maybe [] id $ freeDependencies Γᶜ A -- TODO this is a hack; I don't expect freeDependencies will return 'nothing', but if it does, I hope(!) the rest of the computation will fail
       
       [iᶜ∣iᶜ∉FVᴬ] : VarSet
       [iᶜ∣iᶜ∉FVᴬ] = filter (not ∘ flip elem [iᶜ∣iᶜ∈FVᴬ]) (from 0 for (length Γᶜ))
@@ -76,16 +109,16 @@ module Tactic.Reflection.Reright where
 
       module _ where
         private
-          {-# TERMINATING #-}
           Γʷ/ᶜ : Maybe (List (Arg Type))
-          Γʷ/ᶜ = go 0 Γᶜ where
-            go : Nat → List (Arg Type) → Maybe (List (Arg Type))
+          Γʷ/ᶜ = go [iʷ] Γᶜ where
+            go : List Nat → List (Arg Type) → Maybe (List (Arg Type))
             go _ [] = just []
-            go m (γᶜᵢ ∷ Γᶜ) = _∷_ <$> (strengthen 1 $ reorderVars [iʷ] <$> (weaken 1 γᶜᵢ)) <*> (join $ strengthen 1 $ go (suc m) $ weaken 1 Γᶜ)
-
+            go [] _ = nothing
+            go (iʷ ∷ [iʷ]) (γᶜᵢ ∷ Γᶜ) = _∷_ <$> (strengthen (suc iʷ) $ reorderVars [iʷ] <$> γᶜᵢ) <*> (go [iʷ] Γᶜ)
+            
         Γʷ/ᴬ = join $ subsetList <$> Γʷ/ᶜ <*> pure [iᶜ∣iᶜ∈FVᴬ]
         Γʷ/⁻ᴬ = join $ subsetList <$> Γʷ/ᶜ <*> pure [iᶜ∣iᶜ∉FVᴬ]
-        
+
       module _ where
         private
           Lʷ = reorderVars [iʷ] L
@@ -122,11 +155,50 @@ module Tactic.Reflection.Reright where
       
       defineHelper : Name → TC ⊤
       defineHelper n =
-        maybe (typeError [ strErr "error constructing helper function type, patterns, or term" ]) 
+        maybe (typeError ( strErr "error constructing helper function type, patterns, or term" ∷
+                           strErr "\nhelper-type:" ∷ termErr (maybe unknown id helper-type) ∷
+                           strErr "\n`helper-type:" ∷ termErr (` helper-type) ∷
+                           strErr "\nhelper-patterns:" ∷ termErr (` helper-patterns) ∷
+                           strErr "\nhelper-term:" ∷ termErr (maybe unknown id helper-term) ∷
+                           strErr "\ngʳ:" ∷ termErr (` gʳ) ∷
+                           strErr "\nΓʷ:" ∷ termErr (` Γʷ) ∷
+                           strErr "\n𝐺ʷ:" ∷ termErr (` 𝐺ʷ) ∷
+                           strErr "\nl≡r:" ∷ termErr (` l≡r) ∷
+                           strErr "\nA:" ∷ termErr (` A) ∷
+                           strErr "\nL:" ∷ termErr (` L) ∷
+                           strErr "\nR:" ∷ termErr (` R) ∷
+                           strErr "\nΓᶜ:" ∷ termErr (` Γᶜ) ∷
+                           strErr "\n𝐺:" ∷ termErr (` 𝐺) ∷
+                           strErr "\nΓʷ/ᴬ" ∷ termErr (` Γʷ/ᴬ) ∷
+                           strErr "\nΓʷ/⁻ᴬ" ∷ termErr (` Γʷ/⁻ᴬ) ∷
+                           strErr "\n[iᶜ∣iᶜ∈FVᴬ]" ∷ termErr (` [iᶜ∣iᶜ∈FVᴬ]) ∷
+                           strErr "\n[iᶜ∣iᶜ∉FVᴬ]" ∷ termErr (` [iᶜ∣iᶜ∉FVᴬ]) ∷
+                           strErr "\n[iʷ]" ∷ termErr (` [iʷ]) ∷
+                           [] )) 
               (λ {(helper-type , helper-patterns , helper-term) →
                 catchTC
                   (define (vArg n) helper-type [ clause helper-patterns helper-term ])
-                  (typeError ( strErr "error defining helper function" ∷ [] ))
+                  (typeError ( strErr "error defining helper function" ∷
+                               strErr "\nhelper-type:" ∷ termErr helper-type ∷
+                               strErr "\n`helper-type:" ∷ termErr (` helper-type) ∷
+                               strErr "\nhelper-patterns:" ∷ termErr (` helper-patterns) ∷
+                               strErr "\nhelper-term:" ∷ termErr helper-term ∷
+                               strErr "\n`helper-term:" ∷ termErr (` helper-term) ∷
+                               strErr "\ngʳ:" ∷ termErr (` gʳ) ∷
+                               strErr "\nΓʷ:" ∷ termErr (` Γʷ) ∷
+                               strErr "\n𝐺ʷ:" ∷ termErr (` 𝐺ʷ) ∷
+                               strErr "\nl≡r:" ∷ termErr (` l≡r) ∷
+                               strErr "\nA:" ∷ termErr (` A) ∷
+                               strErr "\nL:" ∷ termErr (` L) ∷
+                               strErr "\nR:" ∷ termErr (` R) ∷
+                               strErr "\nΓᶜ:" ∷ termErr (` Γᶜ) ∷
+                               strErr "\n𝐺:" ∷ termErr (` 𝐺) ∷
+                               strErr "\nΓʷ/ᴬ" ∷ termErr (` Γʷ/ᴬ) ∷
+                               strErr "\nΓʷ/⁻ᴬ" ∷ termErr (` Γʷ/⁻ᴬ) ∷
+                               strErr "\n[iᶜ∣iᶜ∈FVᴬ]" ∷ termErr (` [iᶜ∣iᶜ∈FVᴬ]) ∷
+                               strErr "\n[iᶜ∣iᶜ∉FVᴬ]" ∷ termErr (` [iᶜ∣iᶜ∉FVᴬ]) ∷
+                               strErr "\n[iʷ]" ∷ termErr (` [iʷ]) ∷
+                               [] ))
                   })
               (_,_ <$> helper-type <*> (_,_ <$> helper-patterns <*> helper-term))
         where
@@ -140,30 +212,15 @@ module Tactic.Reflection.Reright where
           iʷs ← make-vars-from-args [iʷ∣γᶜᵢ∈Γʳ] γʷs -|
           pure $ var 0 (reverse (weaken 1 iʷs))
 
-      extendHelper : ∀ {a} {A : Set a} → TC A → TC A
-      extendHelper =
-        maybe (const $ typeError [ strErr "error constructing helper extension" ])
-              (λ x → (extendContext (vArg x)))
-              $ helper-extension
-        where
-
-        helper-extension : Maybe Type
-        helper-extension = reorderVars [iʷ]-reverse <$> gʳ where
-          [iʷ]-reverse : List Nat
-          [iʷ]-reverse = for p ← (from 0 for (length [iʷ] + 1)) do maybe 9999 id (find 0 p [iʷ]) where
-            find : Nat → Nat → List Nat → Maybe Nat
-            find m x [] = nothing
-            find m x (l ∷ ls) = ifYes x == l then just m else find (suc m) x ls
-
       callHelper : Name → Tactic
       callHelper n hole =
         maybe (typeError [ strErr "error constructing helper call" ])
-              (unify (weaken 1 hole) ∘ lam visible ∘ abs "_")
+              (unify hole)
               $ helper-call n
         where
         
         helper-call : Name → Maybe Term
-        helper-call n = def n <$> (reverse <$> (_∷_ <$> pure (vArg (var₀ 0)) <*> weaken 2 (_∷_ <$> pure (vArg l≡r) <*> Γʰ))) where
+        helper-call n = def n <$> (reverse <$> (_∷_ <$> pure (vArg l≡r) <*> Γʰ)) where
           Γʰ : Maybe $ List $ Arg Term
           Γʰ = (λ xs → take (length [iᶜ∣iᶜ∉FVᴬ]) xs ++ hArg unknown ∷ drop (length [iᶜ∣iᶜ∉FVᴬ]) xs) <$> (join $ make-vars-from-args <$> pure ([iᶜ∣iᶜ∉FVᴬ] ++ [iᶜ∣iᶜ∈FVᴬ]) <*> Γʰ') where
             Γʰ' : Maybe (List (Arg Type))
@@ -192,6 +249,5 @@ module Tactic.Reflection.Reright where
       q ← getRequest l≡r hole -|
       n ← freshName "reright" -|
       let open Request q in 
-      extendHelper $ 
-        defineHelper n ~|
-        callHelper n hole
+      defineHelper n ~|
+      callHelper n hole
