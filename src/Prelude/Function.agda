@@ -16,12 +16,18 @@ flip : ∀ {a b c} {A : Set a} {B : Set b} {C : A → B → Set c} → (∀ x y 
 flip f x y = f y x
 {-# INLINE flip #-}
 
-infixl 9 _∘_
+infixr 9 _∘_
 _∘_ : ∀ {a b c} {A : Set a} {B : A → Set b} {C : ∀ x → B x → Set c}
         (f : ∀ {x} (y : B x) → C x y) (g : ∀ x → B x) →
         ∀ x → C x (g x)
 (f ∘ g) x = f (g x)
 {-# INLINE _∘_ #-}
+
+infixr 9 _∘′_
+_∘′_ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+         (B → C) → (A → B) → (A → C)
+f ∘′ g = f ∘ g
+{-# INLINE _∘′_ #-}
 
 infixr 0 _$_ _$′_ case_of_ case_return_of_
 _$_ : ∀ {a b} {A : Set a} {B : A → Set b} → (∀ x → B x) → ∀ x → B x
