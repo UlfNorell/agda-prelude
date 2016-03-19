@@ -19,7 +19,7 @@ open import Tactic.Reflection.Free
 open import Tactic.Reflection.Quote
 open import Tactic.Reflection.Telescope
 open import Tactic.Deriving.Eq
-open import Tactic.Nat
+open import Tactic.Nat.Prelude
 
 open import Numeric.Nat.DivMod
 open import Numeric.Nat.Divide

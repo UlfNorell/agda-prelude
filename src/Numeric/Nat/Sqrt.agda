@@ -3,7 +3,7 @@ module Numeric.Nat.Sqrt where
 
 open import Prelude hiding (_<?_)
 open import Numeric.Nat.Properties
-open import Tactic.Nat
+open import Tactic.Nat.Prelude
 open import Numeric.Nat.BinarySearch
 
 data Sqrt (n : Nat) : Set where

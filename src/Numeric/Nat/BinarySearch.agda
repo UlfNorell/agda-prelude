@@ -3,7 +3,7 @@ module Numeric.Nat.BinarySearch where
 
 open import Prelude
 open import Numeric.Nat.Properties
-open import Tactic.Nat
+open import Tactic.Nat.Prelude
 open import Control.WellFounded
 open import Numeric.Nat.DivMod
 

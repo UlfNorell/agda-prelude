@@ -3,7 +3,7 @@ module Numeric.Nat.Properties where
 
 open import Prelude
 open import Numeric.Nat.Properties.Core public
-open import Tactic.Nat
+open import Tactic.Nat.Prelude
 
 --- Subtraction ---
 
