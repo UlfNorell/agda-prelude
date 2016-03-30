@@ -7,6 +7,7 @@ open import Tactic.Reflection.DeBruijn   public
 open import Tactic.Reflection.Telescope  public
 open import Tactic.Reflection.Substitute public
 open import Tactic.Reflection.Free       public
+open import Tactic.Reflection.Equality   public
 
 set₀ : Type
 set₀ = agda-sort (lit 0)

@@ -7,11 +7,12 @@ open import Builtin.Reflection
 open import Control.Monad.State
 open import Tactic.Reflection.Quote
 open import Tactic.Reflection.DeBruijn
+open import Tactic.Reflection.Equality
 
 open import Tactic.Nat.Reflect
 open import Tactic.Nat.Subtract.Exp
 
-⟨suc⟩s : SubExp → SubExp
+⟨suc⟩s : SubExp →  SubExp
 ⟨suc⟩s (lit n) = lit (suc n)
 ⟨suc⟩s (lit n ⟨+⟩ e) = lit (suc n) ⟨+⟩ e
 ⟨suc⟩s e = lit 1 ⟨+⟩ e
