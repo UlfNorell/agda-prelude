@@ -41,6 +41,13 @@ record Ord {a} (A : Set a) : Set (lsuc a) where
 
 open Ord {{...}} public
 
+{-# DISPLAY Ord._<_ _ a b = a < b #-}
+{-# DISPLAY Ord._≤_ _ a b = a ≤ b #-}
+{-# DISPLAY Ord.compare     _ a b = compare a b #-}
+{-# DISPLAY Ord.eq-to-leq   _ eq = eq-to-leq eq #-}
+{-# DISPLAY Ord.lt-to-leq   _ eq = lt-to-leq eq #-}
+{-# DISPLAY Ord.leq-to-lteq _ eq = leq-to-lteq eq #-}
+
 module _ {a} {A : Set a} {{_ : Ord A}} where
 
   _>_ : A → A → Set a
