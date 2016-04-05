@@ -7,7 +7,7 @@ open import Numeric.Nat.Divide
 open import Numeric.Nat.DivMod
 open import Numeric.Nat.Sqrt
 open import Numeric.Nat.Properties
-open import Tactic.Nat.Prelude
+open import Tactic.Nat
 
 Coprime : Nat → Nat → Set
 Coprime a b = gcd! a b ≡ 1

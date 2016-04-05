@@ -4,7 +4,7 @@ module Numeric.Nat.Modulo where
 
 open import Prelude
 open import Numeric.Nat.DivMod
-open import Tactic.Nat.Prelude
+open import Tactic.Nat
 
 data IntMod (n : Nat) : Set where
   modn : ∀ k → k < n → IntMod n

@@ -3,7 +3,7 @@ module NatTactic where
   module _ where
     open import Agda.Builtin.Nat
     open import Agda.Builtin.List
-    
+
     -- n .. 1
     downFrom : Nat → List Nat
     downFrom zero    = []
@@ -11,21 +11,21 @@ module NatTactic where
 
   module AgdaPreludeTest where
     open import Prelude
-    open import Tactic.Nat (quote _≤_) (quote id) (quote id)
+    open import Tactic.Nat
 
 -- All tactics know about addition, multiplication and subtraction
 -- of natural numbers, and can prove equalities and inequalities (_<_).
 -- The available tactics are:
-     
+
 {-
   auto
- 
+
     Prove an equation or inequality.
 -}
 
     auto-example₁ : (a b : Nat) → (a - b) * (a + b) ≡ a ^ 2 - b ^ 2
     auto-example₁ a b = auto
-   
+
     auto-example₂ : (a b : Nat) → (a + b) ^ 2 ≥ a ^ 2 + b ^ 2
     auto-example₂ a b = auto
 
@@ -53,13 +53,13 @@ module NatTactic where
     by-example₁ : (xs ys : List Nat) → sum (xs ++ ys) ≡ sum ys + sum xs
     by-example₁ []       ys = auto
     by-example₁ (x ∷ xs) ys = by (by-example₁ xs ys)
-   
+
     by-example₂ : (a b c : Nat) → a + c < b + c → a < b
     by-example₂ a b c lt = by lt
-   
+
     by-example₃ : (a b : Nat) → a ≡ b * 2 → a + b < (b + 1) * 3
     by-example₃ a b eq = by eq
-   
+
     by-example₄ : (a b c : Nat) → a + b + c ≤ b → 2 * c ≡ c
     by-example₄ a b c lt = by lt
 
@@ -75,7 +75,7 @@ module NatTactic where
 
     refute-example₁ : {Anything : Set} (a : Nat) → a ≡ 2 * a + 1 → Anything
     refute-example₁ a eq = refute eq
-   
+
     refute-example₂ : {Anything : Set} (a b : Nat) → a + b < a → Anything
     refute-example₂ a b lt = refute lt
 
@@ -117,14 +117,14 @@ module NatTactic where
     lemma₁ : (a b : Nat) → a + b ≡ 0 → a ≡ 0
     lemma₁ zero    b eq = refl
     lemma₁ (suc a) b eq = refute eq
-   
+
     simplify-example₁ : ∀ a b → (a + 1) * (b + 1) ≡ a * b + 1 → a ≡ 0
     simplify-example₁ a b eq = simplify eq λ eq′ → lemma₁ a b eq′
-   
+
     lemma₂ : (a b : Nat) → a + b ≡ 0 → a < suc 0
     lemma₂ zero    b eq = auto
     lemma₂ (suc a) b eq = refute eq
-   
+
     simplify-example₂ : ∀ a b → (a + 1) * (b + 1) ≡ a * b + 1 → a < suc 0
     simplify-example₂ a b eq = simplify eq λ eq′ → by (lemma₂ a b eq′)
 
@@ -148,19 +148,19 @@ module NatTactic where
   module EquivalenceOf≤ where
     open import Agda.Builtin.Equality
     open import Agda.Builtin.Nat
-    
-    open import Data.Nat using (less-than-or-equal) renaming (_≤_ to _≤ₛ_)
+
+    open import Data.Nat using (less-than-or-equal) renaming (_≤_ to _≤s_)
     open import Data.Nat.Properties using (≤⇒≤″; ≤″⇒≤)
-    open import Prelude using (diff; id) renaming (_≤_ to _≤ₚ_)
+    open import Prelude using (diff; id) renaming (_≤_ to _≤p_)
 
-    open import Tactic.Nat (quote _≤ₚ_) (quote id) (quote id) using (by)
+    open import Tactic.Nat.Generic (quote _≤p_) (quote id) (quote id) using (by)
 
-    ≤ₚ→≤ₛ : ∀ {a b} → a ≤ₚ b → a ≤ₛ b
-    ≤ₚ→≤ₛ (diff k b₊₁≡k₊₁+a) = ≤″⇒≤ (less-than-or-equal {k = k} (by b₊₁≡k₊₁+a))
-   
-    ≤ₛ→≤ₚ : ∀ {a b} → a ≤ₛ b → a ≤ₚ b
-    ≤ₛ→≤ₚ a≤ₛb with ≤⇒≤″ a≤ₛb
-    ≤ₛ→≤ₚ _ | less-than-or-equal {k = k} a+k≡b = diff k (by a+k≡b)
+    ≤p→≤s : ∀ {a b} → a ≤p b → a ≤s b
+    ≤p→≤s (diff k b₊₁≡k₊₁+a) = ≤″⇒≤ (less-than-or-equal {k = k} (by b₊₁≡k₊₁+a))
+
+    ≤s→≤p : ∀ {a b} → a ≤s b → a ≤p b
+    ≤s→≤p a≤sb with ≤⇒≤″ a≤sb
+    ≤s→≤p _ | less-than-or-equal {k = k} a+k≡b = diff k (by a+k≡b)
 
   module StandardLibraryTest where
     open import Agda.Builtin.Equality
@@ -173,26 +173,26 @@ module NatTactic where
       _^_ : ℕ → ℕ → ℕ
       n ^ zero  = 1
       n ^ suc m = n ^ m * n
-    
+
     open EquivalenceOf≤
-    open import Tactic.Nat (quote _≤_) (quote ≤ₛ→≤ₚ) (quote ≤ₚ→≤ₛ)
+    open import Tactic.Nat.Generic (quote _≤_) (quote ≤s→≤p) (quote ≤p→≤s)
 
     auto-example₁ : (a b : ℕ) → (a ∸ b) * (a + b) ≡ a ^ 2 ∸ b ^ 2
     auto-example₁ a b = auto
-   
+
     auto-example₂ : (a b : ℕ) → (a + b) ^ 2 ≥ a ^ 2 + b ^ 2
     auto-example₂ a b = auto
 
     by-example₁ : (xs ys : List ℕ) → sum (xs ++ ys) ≡ sum ys + sum xs
     by-example₁ []       ys = auto
     by-example₁ (x ∷ xs) ys = by (by-example₁ xs ys)
-   
+
     by-example₂ : (a b c : ℕ) → a + c < b + c → a < b
     by-example₂ a b c lt = by lt
-   
+
     by-example₃ : (a b : ℕ) → a ≡ b * 2 → a + b < (b + 1) * 3
     by-example₃ a b eq = by eq
-   
+
     by-example₄ : (a b c : ℕ) → a + b + c ≤ b → 2 * c ≡ c
     by-example₄ a b c lt = by lt
 
@@ -201,7 +201,7 @@ module NatTactic where
 
     refute-example₁ : {Anything : Set} (a : ℕ) → a ≡ 2 * a + 1 → Anything
     refute-example₁ a eq = refute eq
-   
+
     refute-example₂ : {Anything : Set} (a b : ℕ) → a + b < a → Anything
     refute-example₂ a b lt = refute lt
 
@@ -223,20 +223,20 @@ module NatTactic where
     lemma₁ : (a b : ℕ) → a + b ≡ 0 → a ≡ 0
     lemma₁ zero    b eq = refl
     lemma₁ (suc a) b eq = refute eq
-   
+
     simplify-example₁ : ∀ a b → (a + 1) * (b + 1) ≡ a * b + 1 → a ≡ 0
     simplify-example₁ a b eq = simplify eq λ eq′ → lemma₁ a b eq′
-   
+
     lemma₂ : (a b : ℕ) → a + b ≡ 0 → a < suc 0
     lemma₂ zero    b eq = s≤s z≤n
     lemma₂ (suc a) b eq = refute eq
-   
+
     simplify-example₂ : ∀ a b → (a + 1) * (b + 1) ≡ a * b + 1 → a < suc 0
     simplify-example₂ a b eq = simplify eq λ eq′ → by (lemma₂ a b eq′)
 
     simplify-example₃ : (a b c : ℕ) → a + b ≡ b + c → 2 + a ≡ 1 + c + 1
     simplify-example₃ a b c eq = simplify eq λ eq′ → eq′
-    
+
     induction-example₁ : ∀ n → sum (downFrom n) * 2 ≡ n * (n + 1)
     induction-example₁ = induction
 
