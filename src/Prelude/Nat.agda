@@ -12,18 +12,14 @@ open import Prelude.Ord
 open import Prelude.Number
 open import Prelude.Semiring
 
-import Agda.Builtin.Nat as Builtin
-
-open Builtin public
-  hiding   ( _+_; _*_; _-_ )
-  renaming ( _==_       to eqNat
+open import Agda.Builtin.Nat public
+  renaming ( _+_        to _+N_
+           ; _*_        to _*N_
+           ; _-_        to _-N_
+           ; _==_       to eqNat
            ; _<_        to lessNat
            ; div-helper to divAux
            ; mod-helper to modAux )
-
--- Trickery to make the display forms work.
-private module NatOps = Builtin
-open NatOps public using () renaming ( _+_ to _+N_; _*_ to _*N_; _-_ to _-N_ )
 
 {-# DISPLAY _+N_ = _+_ #-}
 {-# DISPLAY _-N_ = _-_ #-}
