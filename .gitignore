@@ -13,3 +13,4 @@ test/PrimeTest_p
 *.agda#
 *.agda~
 .#*.agda
+test/Everything.agda

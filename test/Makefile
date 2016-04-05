@@ -3,6 +3,10 @@ agda = agda
 
 default : compile-main
 
+everything :
+	@echo "module Everything where" > Everything.agda
+	@find ../src -name '*.agda' | sed -e 's/\.\.\/src\///;s/\//./g;s/\.agda$$//;s/^/import /' >> Everything.agda
+
 compile-main :
 	$(agda) Main.agda -c $(agda-flags)
 
@@ -11,7 +15,7 @@ compile-prime :
 
 test : main-test prime-test
 
-main-test :
+main-test : everything
 	$(MAKE) compile-main agda-flags=--ignore-interfaces
 	@if [ "`./Main`" == "`cat expected.out`" ]; \
 			then echo "OK"; \
