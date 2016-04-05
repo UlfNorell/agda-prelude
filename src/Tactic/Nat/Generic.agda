@@ -1,6 +1,8 @@
 open import Agda.Builtin.Reflection using (Name)
 module Tactic.Nat.Generic (`_≤ₐ_ `≤ₐ→≤₀ `≤₀→≤ₐ : Name) where
 
+-- See Tactic.Nat for a description of the various tactics.
+
 open import Prelude
 open import Tactic.Reflection
 open import Tactic.Nat.Induction using (nat-induction)
