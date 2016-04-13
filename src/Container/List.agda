@@ -10,8 +10,8 @@ data All {a b} {A : Set a} (P : A → Set b) : List A → Set (a ⊔ b) where
 
 data Any {a b} {A : Set a} (P : A → Set b) : List A → Set (a ⊔ b) where
   instance
-  zero : ∀ {x xs} (p : P x) → Any P (x ∷ xs)
-  suc  : ∀ {x xs} (i : Any P xs) → Any P (x ∷ xs)
+    zero : ∀ {x xs} (p : P x) → Any P (x ∷ xs)
+    suc  : ∀ {x xs} (i : Any P xs) → Any P (x ∷ xs)
 
 pattern zero! = zero refl
 
@@ -57,3 +57,34 @@ module _ {a b} {A : Set a} {P Q : A → Set b} (f : ∀ {x} → P x → Q x) whe
   mapAny : ∀ {xs} → Any P xs → Any Q xs
   mapAny (zero x) = zero (f x)
   mapAny (suc i)  = suc (mapAny i)
+
+-- Equality --
+
+module _ {a b} {A : Set a} {P : A → Set b} {{EqP : ∀ {x} → Eq (P x)}} where
+
+  private
+    z : ∀ {x xs} → P x → Any P (x ∷ xs)
+    z = zero
+
+    zero-inj : ∀ {x} {xs : List A} {p q : P x} → Any.zero {xs = xs} p ≡ z q → p ≡ q
+    zero-inj refl = refl
+
+    sucAny-inj : ∀ {x xs} {i j : Any P xs} → Any.suc {x = x} i ≡ Any.suc {x = x} j → i ≡ j
+    sucAny-inj refl = refl
+
+    cons-inj₁ : ∀ {x xs} {p q : P x} {ps qs : All P xs} → p All.∷ ps ≡ q ∷ qs → p ≡ q
+    cons-inj₁ refl = refl
+
+    cons-inj₂ : ∀ {x xs} {p q : P x} {ps qs : All P xs} → p All.∷ ps ≡ q ∷ qs → ps ≡ qs
+    cons-inj₂ refl = refl
+
+  instance
+    EqAny : ∀ {xs} → Eq (Any P xs)
+    _==_ {{EqAny}} (zero p) (zero q) = decEq₁ zero-inj   (p == q)
+    _==_ {{EqAny}} (suc i)  (suc j)  = decEq₁ sucAny-inj (i == j)
+    _==_ {{EqAny}} (zero _) (suc _)  = no λ ()
+    _==_ {{EqAny}} (suc _)  (zero _) = no λ ()
+
+    EqAll : ∀ {xs} → Eq (All P xs)
+    _==_ {{EqAll}} []       []       = yes refl
+    _==_ {{EqAll}} (x ∷ xs) (y ∷ ys) = decEq₂ cons-inj₁ cons-inj₂ (x == y) (xs == ys)

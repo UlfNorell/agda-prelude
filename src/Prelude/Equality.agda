@@ -80,3 +80,9 @@ x ≡⟨ refl ⟩ʳ p = p
 
 _∎ : ∀ {a} {A : Set a} (x : A) → x ≡ x
 x ∎ = refl
+
+-- Instances --
+
+instance
+  EqEq : ∀ {a} {A : Set a} {x y : A} → Eq (x ≡ y)
+  _==_ {{EqEq}} refl refl = yes refl
