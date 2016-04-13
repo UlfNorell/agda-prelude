@@ -15,11 +15,12 @@ open Eq {{...}} public
 sym : ∀ {a} {A : Set a} {x y : A} → x ≡ y → y ≡ x
 sym refl = refl
 
-infixr 0 trans _⟨≡⟩ʳ_ _ʳ⟨≡⟩_ _ʳ⟨≡⟩ʳ_
-syntax trans p q = p ⟨≡⟩ q
+infixr 0 _⟨≡⟩_ _⟨≡⟩ʳ_ _ʳ⟨≡⟩_ _ʳ⟨≡⟩ʳ_
 
 trans : ∀ {a} {A : Set a} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
 trans refl eq = eq
+
+_⟨≡⟩_ = trans
 
 _⟨≡⟩ʳ_ : ∀ {a} {A : Set a} {x y z : A} → x ≡ y → z ≡ y → x ≡ z
 eq ⟨≡⟩ʳ refl = eq
