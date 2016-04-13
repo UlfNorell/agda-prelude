@@ -9,6 +9,7 @@ data All {a b} {A : Set a} (P : A → Set b) : List A → Set (a ⊔ b) where
   _∷_ : ∀ {x xs} (p : P x) (ps : All P xs) → All P (x ∷ xs)
 
 data Any {a b} {A : Set a} (P : A → Set b) : List A → Set (a ⊔ b) where
+  instance
   zero : ∀ {x xs} (p : P x) → Any P (x ∷ xs)
   suc  : ∀ {x xs} (i : Any P xs) → Any P (x ∷ xs)
 
@@ -32,14 +33,6 @@ instance
       natToIx (x ∷ xs) (suc n) = suc (natToIx xs n)
 
 
--- Allows indices to be computed by instance search.
-instance
-  inst-Any-zero : ∀ {a b} {A : Set a} {P : A → Set b} {xs : List A} {x} {{p : P x}} → Any P (x ∷ xs)
-  inst-Any-zero {{p}} = zero p
-
-  inst-Any-suc : ∀ {a b} {A : Set a} {P : A → Set b} {xs : List A} {x} {{i : Any P xs}} → Any P (x ∷ xs)
-  inst-Any-suc {{i}} = suc i
-
 infix 3 _∈_
 _∈_ : ∀ {a} {A : Set a} → A → List A → Set a
 x ∈ xs = Any (_≡_ x) xs
@@ -56,10 +49,11 @@ lookup∈ : ∀ {a b} {A : Set a} {P : A → Set b} {xs x} → All P xs → x �
 lookup∈ (p ∷ ps) (zero refl) = p
 lookup∈ (p ∷ ps) (suc i)     = lookup∈ ps i
 
-mapAll : ∀ {a b} {A : Set a} {P Q : A → Set b} {xs} → (∀ {x} → P x → Q x) → All P xs → All Q xs
-mapAll f [] = []
-mapAll f (x ∷ xs) = f x ∷ mapAll f xs
+module _ {a b} {A : Set a} {P Q : A → Set b} (f : ∀ {x} → P x → Q x) where
+  mapAll : ∀ {xs} → All P xs → All Q xs
+  mapAll [] = []
+  mapAll (x ∷ xs) = f x ∷ mapAll xs
 
-map∈ : ∀ {a b} {A : Set a} {B : Set b} (f : A → B) {x xs} → x ∈ xs → f x ∈ map f xs
-map∈ f (zero refl) = zero refl
-map∈ f (suc i)     = suc (map∈ f i)
+  mapAny : ∀ {xs} → Any P xs → Any Q xs
+  mapAny (zero x) = zero (f x)
+  mapAny (suc i)  = suc (mapAny i)
