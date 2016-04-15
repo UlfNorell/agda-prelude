@@ -31,6 +31,10 @@ fromJust : ∀ {a} {A : Set a} (m : Maybe A) → FromJust m
 fromJust nothing  = _
 fromJust (just x) = x
 
+maybeYes : ∀ {a} {A : Set a} → Dec A → Maybe A
+maybeYes (yes x) = just x
+maybeYes (no _)  = nothing
+
 --- Equality ---
 
 just-inj : ∀ {a} {A : Set a} {x y : A} → just x ≡ just y → x ≡ y
