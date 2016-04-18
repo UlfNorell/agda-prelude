@@ -127,16 +127,16 @@ private
   unify s            t            | yes _ = pure (positive [])
   unify (var x [])   (var y [])   | no  _ =
     if (x <? y) -- In var-var case, instantiate the one that is bound the closest to us.
-    then pure $ positive ((x , var y []) ∷ [])
-    else pure $ positive ((y , var x []) ∷ [])
+    then pure (positive ((x , var y []) ∷ []))
+    else pure (positive ((y , var x []) ∷ []))
   unify (var x [])   t            | no  _ =
     if (elem x (freeVars t))
     then failure "cyclic occurrence" -- We don't currently know if the occurrence is rigid or not
-    else pure $ positive ((x , t) ∷ [])
+    else pure (positive ((x , t) ∷ []))
   unify t            (var x [])   | no  _ =
     if (elem x (freeVars t))
     then failure "cyclic occurrence"
-    else pure $ positive ((x , t) ∷ [])
+    else pure (positive ((x , t) ∷ []))
   unify (con c₁ xs₁) (con c₂ xs₂) | no  _ =
     if (isYes (c₁ == c₂))
     then unifyArgs xs₁ xs₂
@@ -295,11 +295,11 @@ private
     caseM classifyArgs c of λ { (_ , args) →
     do paramPats ← map (fmap λ _ → var "A") ∘ hideTel <$> params c
     -| params    ← makeParams args
-    -| pure $
-         clause (paramPats ++
-                 vArg (con c (makeLeftPattern args)) ∷
-                 vArg (con c (makeRightPattern args)) ∷ [])
-                (checkEqArgs c params args) }
+    -| pure
+         (clause (paramPats ++
+                  vArg (con c (makeLeftPattern args)) ∷
+                  vArg (con c (makeRightPattern args)) ∷ [])
+                 (checkEqArgs c params args)) }
     where
       args = classifyArgs c
 
@@ -328,9 +328,9 @@ private
     -| args₂ ← argsTel c₂
     -| #args₁ := length args₁
     -| #args₂ := length args₂
-    -| pure $ clause (vArg (con c₁ (makePattern (#args₁ + #args₂ - 1) args₁)) ∷
-                      vArg (con c₂ (makePattern (#args₂ - 1) args₂)) ∷ [])
-                     (con (quote no) ([ vArg (pat-lam ([ absurd-clause ([ vArg absurd ]) ]) []) ]))
+    -| pure (clause (vArg (con c₁ (makePattern (#args₁ + #args₂ - 1) args₁)) ∷
+                     vArg (con c₂ (makePattern (#args₂ - 1) args₂)) ∷ [])
+                    (con (quote no) ([ vArg (pat-lam ([ absurd-clause ([ vArg absurd ]) ]) []) ])))
     where
       makePattern : (k : Nat) (args : List (Arg Type)) → List (Arg Pattern)
       makePattern k [] = []

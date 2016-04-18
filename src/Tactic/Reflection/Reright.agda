@@ -1,6 +1,6 @@
 module Tactic.Reflection.Reright where
   open import Prelude
-  
+
   open import Container.Traversable
 
   open import Tactic.Reflection
@@ -37,7 +37,7 @@ module Tactic.Reflection.Reright where
       ... | (less    _) = x ∷ (xs ∪ (y ∷ ys))
       ... | (equal   _) = x ∷ (xs ∪ ys)
       ... | (greater _) = y ∷ ((x ∷ xs) ∪ ys)
-     
+
       go : Nat → Maybe VarSet
       go v = weaken (suc v) $ join $ freeDependencies (drop (suc v) Γ) <$> (unArg <$> index Γ v)
 
@@ -69,7 +69,7 @@ module Tactic.Reflection.Reright where
 
       [iᶜ∣iᶜ∈FVᴬ] : VarSet
       [iᶜ∣iᶜ∈FVᴬ] = maybe [] id $ freeDependencies Γᶜ A -- TODO this is a hack; I don't expect freeDependencies will return 'nothing', but if it does, I hope(!) the rest of the computation will fail
-      
+
       [iᶜ∣iᶜ∉FVᴬ] : VarSet
       [iᶜ∣iᶜ∉FVᴬ] = filter (not ∘ flip elem [iᶜ∣iᶜ∈FVᴬ]) (from 0 for (length Γᶜ))
 
@@ -80,7 +80,7 @@ module Tactic.Reflection.Reright where
           iᶜ∈FVᴬ : Bool
           iʷ : Nat
           γᶜᵢ∈Γʳ : Bool
-   
+
         gᶜᵢ : Type
         gᶜᵢ = unArg γᶜᵢ
 
@@ -115,7 +115,7 @@ module Tactic.Reflection.Reright where
             go _ [] = just []
             go [] _ = nothing
             go (iʷ ∷ [iʷ]) (γᶜᵢ ∷ Γᶜ) = _∷_ <$> (strengthen (suc iʷ) $ reorderVars [iʷ] <$> γᶜᵢ) <*> (go [iʷ] Γᶜ)
-            
+
         Γʷ/ᴬ = join $ subsetList <$> Γʷ/ᶜ <*> pure [iᶜ∣iᶜ∈FVᴬ]
         Γʷ/⁻ᴬ = join $ subsetList <$> Γʷ/ᶜ <*> pure [iᶜ∣iᶜ∉FVᴬ]
 
@@ -126,7 +126,7 @@ module Tactic.Reflection.Reright where
         Γʷ = caseF Γʷ' of _R[ var₀ (length [iᶜ∣iᶜ∉FVᴬ]) / Lʷ ] where
           Γʷ' : Maybe (List (Arg Type))
           Γʷ' = _++_ <$> Γʷ/⁻ᴬ <*> (_∷_ <$> (strengthen (length [iᶜ∣iᶜ∉FVᴬ] + 1) $ hArg (reorderVars [iʷ] A)) <*> Γʷ/ᴬ) where
-   
+
         𝐺ʷ = reorderVars [iʷ] 𝐺 r[ var₀ (length [iᶜ∣iᶜ∉FVᴬ]) / Lʷ ]
 
       module _ where
@@ -139,12 +139,12 @@ module Tactic.Reflection.Reright where
           go [] [] 𝐺 = just 𝐺
           go (γʷ ∷ Γʷ) (iʷ ∷ iʷs) 𝐺 = go Γʷ iʷs $ pi (weaken (1 + iʷ) γʷ) $ abs "_" $ weaken 1 𝐺 r[ var₀ 0 / var₀ $ weaken 1 iʷ ]
           go _ _ _ = nothing
-   
+
           gʳ' : Maybe (List (Arg Type))
           gʳ' = join $ subsetList <$> (caseF Γʷ of _R[ Rʷ / var₀ (length [iᶜ∣iᶜ∉FVᴬ]) ]) <*> pure [iʷ∣γᶜᵢ∈Γʳ]
-   
+
           𝐺ʷʳ = 𝐺ʷ r[ Rʷ / var₀ (length [iᶜ∣iᶜ∉FVᴬ]) ]
-        
+
         helper-type : Maybe Type
         helper-type = telPi <$> (_++_ <$> (reverse <$> Γʷ) <*> (_∷_ <$> (pure $ vArg (def₂ (quote _≡_) (var₀ (length [iᶜ∣iᶜ∉FVᴬ])) Rʷ)) <*> ([_] ∘ vArg <$> (weaken 1 <$> gʳ)))) <*> pure (weaken 2 𝐺ʷ)
 
@@ -152,7 +152,7 @@ module Tactic.Reflection.Reright where
       make-vars-from-args [] [] = pure []
       make-vars-from-args (i ∷ is) (x ∷ xs) = _∷_ <$> pure (var₀ i <$ x) <*> make-vars-from-args is xs
       make-vars-from-args _ _ = nothing
-      
+
       defineHelper : Name → TC ⊤
       defineHelper n =
         maybe (typeError ( strErr "error constructing helper function type, patterns, or term" ∷
@@ -174,7 +174,7 @@ module Tactic.Reflection.Reright where
                            strErr "\n[iᶜ∣iᶜ∈FVᴬ]" ∷ termErr (` [iᶜ∣iᶜ∈FVᴬ]) ∷
                            strErr "\n[iᶜ∣iᶜ∉FVᴬ]" ∷ termErr (` [iᶜ∣iᶜ∉FVᴬ]) ∷
                            strErr "\n[iʷ]" ∷ termErr (` [iʷ]) ∷
-                           [] )) 
+                           [] ))
               (λ {(helper-type , helper-patterns , helper-term) →
                 catchTC
                   (define (vArg n) helper-type [ clause helper-patterns helper-term ])
@@ -202,15 +202,15 @@ module Tactic.Reflection.Reright where
                   })
               (_,_ <$> helper-type <*> (_,_ <$> helper-patterns <*> helper-term))
         where
-        
+
         helper-patterns : Maybe (List (Arg Pattern))
         helper-patterns = (λ pa w p-a pr → pa ++ w ∷ (p-a ++ pr)) <$> (telePat ∘ reverse <$> Γʷ/ᴬ) <*> just (hArg dot) <*> (telePat ∘ reverse <$> Γʷ/⁻ᴬ) <*> pure (vArg (con₀ (quote refl)) ∷ [ vArg (var "_") ])
 
         helper-term : Maybe Term
-        helper-term = 
+        helper-term =
           γʷs ← join $ subsetList <$> Γʷ <*> pure [iʷ∣γᶜᵢ∈Γʳ] -|
           iʷs ← make-vars-from-args [iʷ∣γᶜᵢ∈Γʳ] γʷs -|
-          pure $ var 0 (reverse (weaken 1 iʷs))
+          pure (var 0 (reverse (weaken 1 iʷs)))
 
       callHelper : Name → Tactic
       callHelper n hole =
@@ -218,14 +218,14 @@ module Tactic.Reflection.Reright where
               (unify hole)
               $ helper-call n
         where
-        
+
         helper-call : Name → Maybe Term
         helper-call n = def n <$> (reverse <$> (_∷_ <$> pure (vArg l≡r) <*> Γʰ)) where
           Γʰ : Maybe $ List $ Arg Term
           Γʰ = (λ xs → take (length [iᶜ∣iᶜ∉FVᴬ]) xs ++ hArg unknown ∷ drop (length [iᶜ∣iᶜ∉FVᴬ]) xs) <$> (join $ make-vars-from-args <$> pure ([iᶜ∣iᶜ∉FVᴬ] ++ [iᶜ∣iᶜ∈FVᴬ]) <*> Γʰ') where
             Γʰ' : Maybe (List (Arg Type))
             Γʰ' = _++_ <$> subsetList Γᶜ [iᶜ∣iᶜ∉FVᴬ] <*> subsetList Γᶜ [iᶜ∣iᶜ∈FVᴬ]
-     
+
     inferGoal : Term → TC Type
     inferGoal hole = unPi =<< forceFun =<< inferType hole where
       unPi : Type → TC Type
@@ -248,6 +248,6 @@ module Tactic.Reflection.Reright where
     reright l≡r hole =
       q ← getRequest l≡r hole -|
       n ← freshName "reright" -|
-      let open Request q in 
+      let open Request q in
       defineHelper n ~|
       callHelper n hole
