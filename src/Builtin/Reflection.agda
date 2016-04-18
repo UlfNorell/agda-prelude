@@ -86,6 +86,19 @@ pattern iArg x = arg (arg-info instance′ relevant) x
 unArg : ∀ {A} → Arg A → A
 unArg (arg _ x) = x
 
+getArgInfo : ∀ {A} → Arg A → ArgInfo
+getArgInfo (arg i _) = i
+
+getVisibility : ∀ {A} → Arg A → Visibility
+getVisibility (arg (arg-info v _) _) = v
+
+getRelevance : ∀ {A} → Arg A → Relevance
+getRelevance (arg (arg-info _ r) _) = r
+
+isVisible : ∀ {A} → Arg A → Bool
+isVisible (arg (arg-info visible _) _) = true
+isVisible _ = false
+
 instance
   FunctorArg : Functor Arg
   FunctorArg = record { fmap = λ { f (arg i x) → arg i (f x) } }
