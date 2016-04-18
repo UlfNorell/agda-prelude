@@ -37,3 +37,6 @@ module _ {a b} {F : Set a → Set b} {A : Set a} {{_ : Alternative F}} where
   guardA : ∀ {p} {P : Set p} (d : Dec P) → ({{_ : P}} → F A) → F A
   guardA (yes p) x = x {{p}}
   guardA (no  _) _ = empty
+
+  choice : List (F A) → F A
+  choice = foldr _<|>_ empty
