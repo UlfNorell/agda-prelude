@@ -58,6 +58,14 @@ filter p [] = []
 filter p (x ∷ xs) = if p x then x ∷ filter p xs
                            else filter p xs
 
+all? : ∀ {a} {A : Set a} → (A → Bool) → List A → Bool
+all? p []       = true
+all? p (x ∷ xs) = p x && all? p xs
+
+any? : ∀ {a} {A : Set a} → (A → Bool) → List A → Bool
+any? p []       = true
+any? p (x ∷ xs) = p x || any? p xs
+
 take : ∀ {a} {A : Set a} → Nat → List A → List A
 take zero    _        = []
 take (suc n) []       = []
@@ -92,6 +100,12 @@ index (x ∷ xs) (suc i) = index xs i
 replicate : ∀ {a} {A : Set a} → Nat → A → List A
 replicate zero x = []
 replicate (suc n) x = x ∷ replicate n x
+
+module _ {a b} {F : Set a → Set b} {{_ : Applicative F}} {A : Set a} where
+
+  replicateA : Nat → F A → F (List A)
+  replicateA zero    _ = pure []
+  replicateA (suc n) x = pure _∷_ <*> x <*> replicateA n x
 
 module _ {a} {A : Set a} {{_ : Semiring A}} where
   sum : List A → A
