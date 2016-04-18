@@ -46,7 +46,7 @@ infixl 9 _`∘_
 _`∘_ : Term → Term → Term
 _`∘_ = def₂ (quote _∘_)
 
-infixr 0 _`$_
+infixr -20 _`$_
 _`$_ : Term → Term → Term
 _`$_ = def₂ (quote _$_)
 
