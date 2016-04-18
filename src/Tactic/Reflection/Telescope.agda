@@ -11,6 +11,9 @@ telView : Type → Telescope × Type
 telView (pi a (abs _ b)) = first (_∷_ a) (telView b)
 telView a                = [] , a
 
+visibleArity : Type → Nat
+visibleArity = length ∘ filter isVisible ∘ fst ∘ telView
+
 telPi : Telescope → Type → Type
 telPi tel b = foldr (λ a b → pi a (abs "_" b)) b tel
 

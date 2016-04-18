@@ -150,6 +150,9 @@ define f a cs = declareDef f a >> defineFun (unArg f) cs
 newMeta : Type → TC Term
 newMeta = checkType unknown
 
+newMeta! : TC Term
+newMeta! = newMeta unknown
+
 typeErrorS : ∀ {a} {A : Set a} → String → TC A
 typeErrorS s = typeError (strErr s ∷ [])
 
