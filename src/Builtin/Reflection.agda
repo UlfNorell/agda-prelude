@@ -126,14 +126,20 @@ instance
   return {{MonadTC}} = returnTC
   _>>=_  {{MonadTC}} = bindTC
 
+  MonadTC′ : ∀ {a b} → Monad′ {a} {b} TC
+  _>>=′_ {{MonadTC′}} = bindTC
+
   ApplicativeTC : ∀ {a} → Applicative {a} TC
   ApplicativeTC = defaultMonadApplicative
+
+  ApplicativeTC′ : ∀ {a b} → Applicative′ {a} {b} TC
+  _<*>′_ {{ApplicativeTC′}} mf mx = mf >>=′ λ f → mx >>=′ λ x → return (f x)
 
   FunctorTC : ∀ {a} → Functor {a} TC
   FunctorTC = defaultMonadFunctor
 
-  MonadTC′ : ∀ {a b} → Monad′ {a} {b} TC
-  _>>=′_ {{MonadTC′}} = bindTC
+  FunctorTC′ : ∀ {a b} → Functor′ {a} {b} TC
+  fmap′ {{FunctorTC′}} f m = pure f <*>′ m
 
   AlternativeTC : ∀ {a} → Alternative {a} TC
   empty {{AlternativeTC}} = typeError []
