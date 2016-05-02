@@ -58,13 +58,6 @@ module DeriveEqTest where
 
   module Test₆ where
 
-    instance  EqAny : ∀ {a} {A : Set a} {{_ : Eq A}}
-                        {b} {P : A → Set b} {{_ : ∀ {x} → Eq (P x)}}
-                        {xs : List A} → Eq (Any P xs)
-    unquoteDef EqAny = defineEqInstance EqAny (quote Any)
-
-    unquoteDecl EqId = deriveEq EqId (quote _≡_)
-
     data Test (A : Set) (xs : List A) (x : A) : Set where
       test : x ∈ xs → Test A xs x
 
