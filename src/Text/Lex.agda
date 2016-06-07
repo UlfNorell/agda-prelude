@@ -69,25 +69,23 @@ module _ {s : Level} {A Tok : Set} where
 
     tokenize-loop : List DFA → List (Σ DFA State) → List A → List Tok
     tokenize-loop idle active [] =
-      case accepts active of
-      λ { []      → []  -- not quite right if there are active DFAs
-        ; (t ∷ _) → [ t ]
-        }
+      case accepts active of λ where
+        []      → []  -- not quite right if there are active DFAs
+        (t ∷ _) → [ t ]
+    tokenize-loop idle [] (x ∷ xs) =
+      flip uncurry (partitionMap (feed x) (map init idle)) λ where
+        idle₁ []      → []
+        idle₁ active₁ → tokenize-loop idle₁ active₁ xs
     tokenize-loop idle active (x ∷ xs) =
-      let idle₀   = if null active then []            else idle
-          active₀ = if null active then map init idle else active
-      in flip uncurry (partitionMap (feed x) active₀) λ idle₁ active₁ →
-         case active₁ of
-         λ { [] → case accepts active of
-                   λ { []      → []
-                     ; (t ∷ _) →
-                       flip uncurry (partitionMap (feed x) (map init (idle₀ ++ idle₁)))
-                       λ { _ [] → t ∷ []
-                         ; idle₂ active₂ → t List.∷ tokenize-loop idle₂ active₂ xs
-                         }
-                     }
-           ; _  → tokenize-loop (idle₀ ++ idle₁) active₁ xs
-           }
+      flip uncurry (partitionMap (feed x) active) λ where
+        idle₁ [] →
+          case accepts active of λ where
+            []      → []
+            (t ∷ _) →
+              flip uncurry (partitionMap (feed x) (map init (idle ++ idle₁))) λ where
+                _ []          → t ∷ []
+                idle₂ active₂ → t List.∷ tokenize-loop idle₂ active₂ xs
+        idle₁ active₁ → tokenize-loop (idle ++ idle₁) active₁ xs
 
   tokenize : List (TokenDFA {s = s} A Tok) → List A → List Tok
   tokenize dfas xs = tokenize-loop dfas [] xs

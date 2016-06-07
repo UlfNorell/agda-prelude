@@ -133,10 +133,10 @@ instance
 
 _-nf′_ : SubNF → SubNF → SubNF
 a -nf′ b =
-  case cancel a b of λ
-  { (x  , []) → x
-  ; ([] ,  _) → []
-  ; (a′  , b′) → [ 1 , [ a′ ⟨-⟩ b′ ] ] }
+  case cancel a b of λ where
+    (x  , []) → x
+    ([] ,  _) → []
+    (a′  , b′) → [ 1 , [ a′ ⟨-⟩ b′ ] ]
 
 data IsSubtraction : SubNF → Set where
   _⟨-⟩_ : ∀ a b → IsSubtraction [ 1 , [ a ⟨-⟩ b ] ]
@@ -150,7 +150,7 @@ infixl 6 _-nf_
 infixl 7 _*nf₁_ _*tm_ _*ktm_ _*ktm′_
 _-nf_ : SubNF → SubNF → SubNF
 a  -nf b with is-subtraction a
-._ -nf c | a ⟨-⟩ b = a -nf′ (b +nf c)
+_  -nf c | a ⟨-⟩ b = a -nf′ (b +nf c)
 a  -nf b | no     = a -nf′ b
 
 data IsSubtractionTm : Nat × Tm SubAtom → Set where
@@ -166,7 +166,7 @@ _*ktm′_ : Nat × Tm SubAtom → SubNF → SubNF
 
 _*tm_ : Nat × Tm SubAtom → Nat × Tm SubAtom → SubNF
 s *tm t with is-subtraction-tm t
-s       *tm ._      | b ⟨-⟩ c = s *ktm′ b -nf s *ktm′ c
+s       *tm _       | b ⟨-⟩ c = s *ktm′ b -nf s *ktm′ c
 (a , x) *tm (b , y) | no     = [ a * b , merge x y ]
 
 t *ktm′ [] = []
@@ -174,8 +174,8 @@ t *ktm′ (x ∷ a) = t *tm x +nf t *ktm′ a
 
 _*ktm_ : Nat × Tm SubAtom → SubNF → SubNF
 t *ktm a with is-subtraction-tm t
-._ *ktm c | a ⟨-⟩ b = a *nf₁ c -nf b *nf₁ c
-t  *ktm a | no     = t *ktm′ a
+_ *ktm c | a ⟨-⟩ b = a *nf₁ c -nf b *nf₁ c
+t *ktm a | no     = t *ktm′ a
 
 []      *nf₁ b = []
 (t ∷ a) *nf₁ b = t *ktm b +nf (a *nf₁ b)

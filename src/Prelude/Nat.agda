@@ -73,6 +73,7 @@ instance
 
 --- Division and modulo ---
 
+infixl 7 natDiv natMod
 syntax natDiv m n = n div m
 natDiv : (m : Nat) {{nz : NonZero m}} → Nat → Nat
 natDiv zero {{}} n
