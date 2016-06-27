@@ -14,6 +14,7 @@ open import Prelude.Decidable
 open import Prelude.Equality
 open import Prelude.Ord
 open import Prelude.Semiring
+open import Prelude.Strict
 
 open import Agda.Builtin.List public
 
@@ -43,6 +44,10 @@ foldr f z (x ∷ xs) = f x (foldr f z xs)
 foldl : ∀ {a b} {A : Set a} {B : Set b} → (B → A → B) → B → List A → B
 foldl f z []       = z
 foldl f z (x ∷ xs) = foldl f (f z x) xs
+
+foldl! : ∀ {a b} {A : Set a} {B : Set b} → (B → A → B) → B → List A → B
+foldl! f z []       = z
+foldl! f z (x ∷ xs) = force (f z x) λ z′ → foldl! f z′ xs
 
 reverse : ∀ {a} {A : Set a} → List A → List A
 reverse xs = foldl (flip _∷_) [] xs
@@ -101,6 +106,15 @@ replicate : ∀ {a} {A : Set a} → Nat → A → List A
 replicate zero x = []
 replicate (suc n) x = x ∷ replicate n x
 
+zipWith : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+            (A → B → C) → List A → List B → List C
+zipWith f [] _ = []
+zipWith f _ [] = []
+zipWith f (x ∷ xs) (y ∷ ys) = f x y ∷ zipWith f xs ys
+
+zip : ∀ {a b} {A : Set a} {B : Set b} → List A → List B → List (A × B)
+zip = zipWith _,_
+
 module _ {a b} {F : Set a → Set b} {{_ : Applicative F}} {A : Set a} where
 
   replicateA : Nat → F A → F (List A)
@@ -123,15 +137,23 @@ module _ {a} {A : Set a} {{_ : Ord A}} where
   sort [] = []
   sort (x ∷ xs) = insert x (sort xs)
 
-infix 10 from_for_
+infix 10 from_for_ from_to_ from_for_step_ from-to-step
 from_for_ : Nat → Nat → List Nat
-from_for_ 0  0   = []  -- make strict
-from_for_ a  0   = []
-from_for_ a (suc d) = a ∷ from suc a for d
+from 0 for 0     = []  -- make strict
+from a for 0     = []
+from a for suc d = a ∷ from suc a for d
 
-infix 10 from_to_
+from_for_step_ : Nat → Nat → Nat → List Nat
+from 0 for 0     step _  = []  -- make strict
+from a for 0     step _  = []
+from a for suc c step d = a ∷ from a + d for c step d
+
 from_to_ : Nat → Nat → List Nat
 from a to b = from a for (suc b - a)
+
+syntax from-to-step d a b = from a to b step d
+from-to-step : (d : Nat) {{_ : NonZero d}} → Nat → Nat → List Nat
+from-to-step d a b = from a for 1 + (b - a) div d step d
 
 --- Equality ---
 
