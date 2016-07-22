@@ -75,3 +75,9 @@ instance
   ListIsString : IsString (List Char)
   IsString.Constraint ListIsString _ = ⊤
   IsString.fromString ListIsString s = unpackString s
+
+
+instance
+  open import Prelude.Monoid
+  MonoidString : Monoid String
+  MonoidString = record { mempty = "" ; _<>_ = primStringAppend }
