@@ -13,7 +13,7 @@ compile-main :
 compile-prime :
 	$(agda) PrimeTest.agda -c $(agda-flags)
 
-test : main-test prime-test
+test : main-test prime-test files-test
 
 main-test : everything
 	$(MAKE) compile-main agda-flags=--ignore-interfaces
@@ -26,6 +26,15 @@ main-test : everything
 
 prime-test : compile-prime
 	@if [ "`./PrimeTest`" == "true" ]; \
+			then echo "OK"; \
+			else echo "Fail:\n`./PrimeTest`"; false; \
+	 fi
+
+compile-files :
+	$(agda) Files.agda -c $(agda-flags)
+
+files-test : compile-files
+	@if [ "`./Files`" == "true" ]; \
 			then echo "OK"; \
 			else echo "Fail:\n`./PrimeTest`"; false; \
 	 fi

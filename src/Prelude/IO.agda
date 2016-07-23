@@ -60,20 +60,6 @@ postulate
 print : ∀ {a} {A : Set a} {{ShowA : Show A}} → A → IO Unit
 print = putStrLn ∘ show
 
---- File IO ---
-
-FilePath = String
-
-postulate
-  readFile  : FilePath → IO String
-  writeFile : FilePath → String → IO Unit
-
-{-# COMPILED readFile  Data.Text.IO.readFile  . Data.Text.unpack #-}
-{-# COMPILED writeFile Data.Text.IO.writeFile . Data.Text.unpack #-}
-
-{-# COMPILED_UHC readFile  (UHC.Agda.Builtins.primReadFile) #-}
-{-# COMPILED_UHC writeFile (UHC.Agda.Builtins.primWriteFile) #-}
-
 --- Command line arguments ---
 
 {-# IMPORT System.Environment #-}
