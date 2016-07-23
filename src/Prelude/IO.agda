@@ -10,6 +10,7 @@ open import Prelude.String
 open import Prelude.Char
 open import Prelude.Unit
 open import Prelude.Show
+open import Prelude.Nat
 
 open import Agda.Builtin.IO public
 
@@ -83,3 +84,23 @@ postulate
 
 {-# COMPILED getArgs     fmap (map Data.Text.pack) System.Environment.getArgs #-}
 {-# COMPILED getProgName fmap Data.Text.pack System.Environment.getProgName   #-}
+
+--- Misc ---
+
+{-# IMPORT System.Exit #-}
+
+data ExitCode : Set where
+  Success : ExitCode
+  -- TODO we probably should also enforce an upper limit?
+  Failure : (n : Nat) → {p : NonZero n} → ExitCode
+
+private
+  {-# HASKELL exitWith' x = System.Exit.exitWith (if x == 0 then System.Exit.ExitSuccess else System.Exit.ExitFailure $ fromInteger x) #-}
+
+  postulate
+    exitWith' : Nat → IO Unit
+  {-# COMPILED exitWith' exitWith' #-}
+
+exitWith : ExitCode → IO Unit
+exitWith Success = exitWith' 0
+exitWith (Failure i) = exitWith' i
