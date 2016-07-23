@@ -28,11 +28,11 @@ abstract
   listContents' : ∀ {k} → Path k Dir → IO (List (BarePath k))
   listContents' p = fmap (mkBarePath ∘ ((toString p <> "/") <>_)) <$> Internal.listContents (toString p)
 
-  stat : ∀ {k} → BarePath k → IO (T-Path k)
-  stat p = caseF Internal.doesFileExist (BarePath.path p) of (λ
+  resolve : ∀ {k} → BarePath k → IO (T-Path k)
+  resolve p = caseF Internal.doesFileExist (BarePath.path p) of (λ
     { false → Dir , (unsafeFromString (BarePath.path p))
     ; true → File , (unsafeFromString (BarePath.path p)) })
 
 
   listContents : ∀ {k} → Path k Dir → IO (List (T-Path k))
-  listContents p = listContents' p >>= traverse stat
+  listContents p = listContents' p >>= traverse resolve
