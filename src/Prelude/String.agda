@@ -76,6 +76,7 @@ instance
   IsString.Constraint ListIsString _ = ⊤
   IsString.fromString ListIsString s = unpackString s
 
+-- Monoid --
 
 instance
   open import Prelude.Monoid

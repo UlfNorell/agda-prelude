@@ -11,6 +11,7 @@ open import Prelude.String      public
 open import Prelude.Bool        public
 open import Prelude.Nat         public
 open import Prelude.Int         public
+open import Prelude.Bytes       public
 open import Prelude.Product     public
 open import Prelude.Sum         public
 open import Prelude.List        public
