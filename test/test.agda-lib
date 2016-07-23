@@ -1,4 +1,4 @@
 name: prelude-test
 include: .
          ../src
-depend: standard-library
+depend: agda-prelude
