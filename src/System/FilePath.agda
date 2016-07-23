@@ -42,3 +42,6 @@ abstract
 
   relativeFile : String → Path Rel File
   relativeFile = mkPath
+
+  unsafeFromString : ∀ {k t} → String → Path k t
+  unsafeFromString  = mkPath
