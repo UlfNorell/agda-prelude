@@ -6,6 +6,9 @@ test/hello
 test/Main
 test/PrimeTest
 test/PrimeTest_p
+test/Files
+test/test_files_bin.out
+test/test_files_txt.out
 *.prof
 *.treeless
 *.hi

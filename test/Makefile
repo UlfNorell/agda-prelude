@@ -34,8 +34,9 @@ compile-files :
 	$(agda) Files.agda -c $(agda-flags)
 
 files-test : compile-files
-	@if [ "`./Files`" == "true" ]; \
+	@./Files; \
+   if [ $$? -eq 0 ]; \
 			then echo "OK"; \
-			else echo "Fail:\n`./PrimeTest`"; false; \
+			else echo "Fail:\n`./Files`"; false; \
 	 fi
 
