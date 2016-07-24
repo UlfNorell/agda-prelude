@@ -6,13 +6,8 @@ data Kind : Set where
   Rel : Kind
   Abs : Kind
 
-data Target : Set where
-  File : Target
-  Dir : Target
-
-
 abstract
-  record Path (kind : Kind) (target : Target) : Set where
+  record Path (kind : Kind) : Set where
     constructor mkPath
     field
       path : String
@@ -20,28 +15,17 @@ abstract
   open import Prelude.Monoid
   open Path
 
-  _/_ : ∀ {k t} → Path k Dir → Path Rel t → Path k t
-  x / y = mkPath (path x <> "/" <> path y)
+  _//_ : ∀ {k} → Path k → Path Rel → Path k
+  x // y = mkPath (path x <> "/" <> path y)
 
-  _∙_ : ∀ {k} → Path k File → String → Path k File
+  _∙_ : ∀ {k} → Path k → String → Path k
   p ∙ ext = mkPath (path p <> "." <> ext)
 
-
-  toString : ∀ {a b} → Path a b → String
+  toString : ∀ {k} → Path k → String
   toString p = path p
 
+  relative : String → Path Rel
+  relative = mkPath
 
-  absoluteDir : String → Path Abs Dir
-  absoluteDir = mkPath
-
-  relativeDir : String → Path Rel Dir
-  relativeDir = mkPath
-
-  absoluteFile : String → Path Abs File
-  absoluteFile = mkPath
-
-  relativeFile : String → Path Rel File
-  relativeFile = mkPath
-
-  unsafeFromString : ∀ {k t} → String → Path k t
-  unsafeFromString  = mkPath
+  absolute : String → Path Abs
+  absolute = mkPath

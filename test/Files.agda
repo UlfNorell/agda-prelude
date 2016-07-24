@@ -5,7 +5,7 @@ open import System.Files
 open import System.FilePath
 open import Prelude.Equality
 
-fileIsEqual : ∀ {a b} → Path a File → Path b File → IO Unit
+fileIsEqual : ∀ {k} → Path k → Path k → IO Unit
 fileIsEqual a b = _≟_ <$> readBinaryFile a <*> readBinaryFile b >>= λ x →
   if x then return unit else exitWith (Failure 1)
   where
@@ -23,7 +23,7 @@ main =
   fileIsEqual fIn fTxtOut >>
   fileIsEqual fIn fBinOut
   where
-    fIn = relativeFile "Files.agda"
-    fTxtOut = relativeFile "test_files_txt.out"
-    fBinOut = relativeFile "test_files_bin.out"
+    fIn = relative "Files.agda"
+    fTxtOut = relative "test_files_txt.out"
+    fBinOut = relative "test_files_bin.out"
 
