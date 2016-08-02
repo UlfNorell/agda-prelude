@@ -1,4 +1,4 @@
-module System.Files where
+module System.File where
 
 open import System.FilePath
 open import Prelude.IO

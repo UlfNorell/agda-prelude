@@ -1,7 +1,7 @@
 module Files where
 
 open import Prelude
-open import System.Files
+open import System.File
 open import System.FilePath
 open import Prelude.Equality
 
