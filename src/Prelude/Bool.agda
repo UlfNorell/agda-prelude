@@ -13,6 +13,7 @@ infix 0 if_then_else_
 if_then_else_ : ∀ {a} {A : Set a} → Bool → A → A → A
 if true  then x else y = x
 if false then x else y = y
+{-# INLINE if_then_else_ #-}
 
 infixr 3 _&&_
 infixr 2 _||_
@@ -20,10 +21,12 @@ infixr 2 _||_
 _||_ : Bool → Bool → Bool
 true  || _ = true
 false || x = x
+{-# INLINE _||_ #-}
 
 _&&_ : Bool → Bool → Bool
 true  && x = x
 false && _ = false
+{-# INLINE _&&_ #-}
 
 not : Bool → Bool
 not true  = false
