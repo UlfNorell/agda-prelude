@@ -1,3 +1,12 @@
+-- | NOTE: This module can only represent file paths which are valid strings.
+-- On Linux, a file path may be an arbitrary sequence of bytes, but using anything
+-- except utf8 for file paths is a terrible idea.
+--
+-- What should happen if we come across a non utf8 path from an untrusted source?
+-- crash -> denial-of-service
+-- ignore -> maybe security holes
+--
+-- Currently, the behaviour for non-textual file paths is undefined.
 module System.FilePath where
 
 open import Prelude.String
