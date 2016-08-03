@@ -32,12 +32,23 @@ unquoteDecl QuotableEither     = deriveQuotable QuotableEither     (quote Either
 unquoteDecl QuotableΣ          = deriveQuotable QuotableΣ          (quote Σ)
 unquoteDecl Quotable⊤          = deriveQuotable Quotable⊤          (quote ⊤)
 unquoteDecl Quotable⊥          = deriveQuotable Quotable⊥          (quote ⊥)
-unquoteDecl QuotableFin        = deriveQuotable QuotableFin        (quote Fin)
-unquoteDecl QuotableVec        = deriveQuotable QuotableVec        (quote Vec)
 unquoteDecl Quotable≡          = deriveQuotable Quotable≡          (quote _≡_)
 unquoteDecl QuotableComparison = deriveQuotable QuotableComparison (quote Comparison)
 unquoteDecl QuotableLessNat    = deriveQuotable QuotableLessNat    (quote LessNat)
 unquoteDecl QuotableInt        = deriveQuotable QuotableInt        (quote Int)
+
+-- The reflection machinery can't deal with computational irrelevance (..)
+-- unquoteDecl QuotableFin        = deriveQuotable QuotableFin        (quote Fin)
+-- unquoteDecl QuotableVec        = deriveQuotable QuotableVec        (quote Vec)
+
+instance
+  QuotableFin : ∀ {n} → Quotable (Fin n)
+  ` {{QuotableFin}} zero    = con (quote Fin.zero) []
+  ` {{QuotableFin}} (suc i) = con (quote Fin.suc) (vArg (` i) ∷ [])
+
+  QuotableVec : ∀ {a} {A : Set a} {n} {{_ : Quotable A}} → Quotable (Vec A n)
+  ` {{QuotableVec}} []       = con (quote Vec.[]) []
+  ` {{QuotableVec}} (x ∷ xs) = con (quote Vec._∷_) (vArg (` x) ∷ vArg (` xs) ∷ [])
 
 -- Reflection types --
 

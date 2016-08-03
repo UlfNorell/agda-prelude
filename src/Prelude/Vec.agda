@@ -15,7 +15,7 @@ open import Prelude.Semiring
 infixr 5 _∷_
 data Vec {a} (A : Set a) : Nat → Set a where
   []  : Vec A zero
-  _∷_ : ∀ {n} (x : A) (xs : Vec A n) → Vec A (suc n)
+  _∷_ : ∀ ..{n} (x : A) (xs : Vec A n) → Vec A (suc n)
 
 private
   -- These are private. Use pure and _<*>_ instead.
@@ -23,11 +23,11 @@ private
   vec {n = zero } x = []
   vec {n = suc n} x = x ∷ vec x
 
-  vapp : ∀ {a b} {A : Set a} {B : Set b} {n} → Vec (A → B) n → Vec A n → Vec B n
+  vapp : ∀ {a b} {A : Set a} {B : Set b} ..{n} → Vec (A → B) n → Vec A n → Vec B n
   vapp  []       _       = []
   vapp (f ∷ fs) (x ∷ xs) = f x ∷ vapp fs xs
 
-vecToList : ∀ {a} {A : Set a} {n} → Vec A n → List A
+vecToList : ∀ {a} {A : Set a} ..{n} → Vec A n → List A
 vecToList []       = []
 vecToList (x ∷ xs) = x ∷ vecToList xs
 
@@ -37,7 +37,7 @@ listToVec (x ∷ xs) = x ∷ listToVec xs
 
 --- Lookup ---
 
-indexVec : ∀ {a} {A : Set a} {n} → Vec A n → Fin n → A
+indexVec : ∀ {a} {A : Set a} ..{n} → Vec A n → Fin n → A
 indexVec (x ∷ xs) zero    = x
 indexVec (x ∷ xs) (suc i) = indexVec xs i
 
@@ -47,11 +47,11 @@ tabulate {n = suc n} f = f zero ∷ tabulate (f ∘ suc)
 
 --- Folding ---
 
-vfoldr : ∀ {a b} {A : Set a} {B : Nat → Set b} → (∀ {n} → A → B n → B (suc n)) → B 0 → ∀ {n} → Vec A n → B n
+vfoldr : ∀ {a b} {A : Set a} {B : Nat → Set b} → (∀ ..{n} → A → B n → B (suc n)) → B 0 → ∀ ..{n} → Vec A n → B n
 vfoldr f z [] = z
 vfoldr f z (x ∷ xs) = f x (vfoldr (λ {n} → f {n}) z xs)
 
-vfoldl : ∀ {a b} {A : Set a} {B : Nat → Set b} → (∀ {n} → B n → A → B (suc n)) → B 0 → ∀ {n} → Vec A n → B n
+vfoldl : ∀ {a b} {A : Set a} {B : Nat → Set b} → (∀ ..{n} → B n → A → B (suc n)) → B 0 → ∀ ..{n} → Vec A n → B n
 vfoldl         f z [] = z
 vfoldl {B = B} f z (x ∷ xs) = vfoldl {B = B ∘ suc} f (f z x) xs
 
@@ -60,11 +60,11 @@ vfoldl {B = B} f z (x ∷ xs) = vfoldl {B = B ∘ suc} f (f z x) xs
 module _ {a} {A : Set a} where
 
   infixr 5 _v++_
-  _v++_ : ∀ {m n} → Vec A m → Vec A n → Vec A (m + n)
+  _v++_ : ∀ ..{m n} → Vec A m → Vec A n → Vec A (m + n)
   []       v++ ys = ys
-  (x ∷ xs) v++ ys = x ∷ xs v++ ys 
+  (x ∷ xs) v++ ys = x ∷ xs v++ ys
 
-  vreverse : ∀ {n} → Vec A n → Vec A n
+  vreverse : ∀ ..{n} → Vec A n → Vec A n
   vreverse xs = vfoldl {B = Vec A} (flip _∷_) [] xs
 
 --- Equality ---
@@ -78,7 +78,7 @@ vcons-inj-tail : ∀ {a} {A : Set a} {x y : A} {n}
 vcons-inj-tail refl = refl
 
 private
-  eqVec : ∀ {a} {A : Set a} {{EqA : Eq A}} {n} (xs ys : Vec A n) → Dec (xs ≡ ys)
+  eqVec : ∀ {a} {A : Set a} {{EqA : Eq A}} ..{n} (xs ys : Vec A n) → Dec (xs ≡ ys)
   eqVec [] []             = yes refl
   eqVec (x ∷ xs) (y ∷ ys) with x == y
   eqVec (x ∷ xs) (y ∷ ys)    | no neq   = no λ eq → neq (vcons-inj-head eq)
@@ -93,11 +93,11 @@ instance
 --- Ord ---
 
 data LessVec {a} {A : Set a} {{OrdA : Ord A}} : ∀ {n} → Vec A n → Vec A n → Set a where
-  head< : ∀ {x y n} {xs ys : Vec A n} → x < y → LessVec (x ∷ xs) (y ∷ ys)
-  tail< : ∀ {x n} {xs ys : Vec A n}   → LessVec xs ys → LessVec (x ∷ xs) (x ∷ ys)
+  head< : ∀ ..{x y n} ..{xs ys : Vec A n} → x < y → LessVec (x ∷ xs) (y ∷ ys)
+  tail< : ∀ ..{x n} ..{xs ys : Vec A n}   → LessVec xs ys → LessVec (x ∷ xs) (x ∷ ys)
 
 private
-  compareVec : ∀ {a} {A : Set a} {{OrdA : Ord A}} {n} (xs ys : Vec A n) → Comparison LessVec xs ys
+  compareVec : ∀ {a} {A : Set a} {{OrdA : Ord A}} ..{n} (xs ys : Vec A n) → Comparison LessVec xs ys
   compareVec [] [] = equal refl
   compareVec (x ∷ xs) (y  ∷  ys) with compare x y
   compareVec (x ∷ xs) (y  ∷  ys) | less    x<y  = less    (head< x<y)
