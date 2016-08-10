@@ -39,16 +39,13 @@ maybeSafe unknown = just (safe unknown _)
 
 instance
   DeBruijnSafeTerm : DeBruijn SafeTerm
-  DeBruijnSafeTerm = record { strengthenFrom = str ; weakenFrom = wk }
-    where
-      -- Strengthening or weakening safe terms always results in safe terms,
-      -- but proving that is a bit of a bother, thus maybeSafe.
-      str : Nat → Nat → SafeTerm → Maybe SafeTerm
-      str k n (safe v _) = v₁ ← strengthenFrom k n v
-                        -| maybeSafe v₁
-
-      wk : Nat → Nat → SafeTerm → SafeTerm
-      wk k n (safe v p) = maybe (safe unknown _) id (maybeSafe (weakenFrom k n v))
+  strengthenFrom {{DeBruijnSafeTerm}} k n (safe v _) =
+    -- Strengthening or weakening safe terms always results in safe terms,
+    -- but proving that is a bit of a bother, thus maybeSafe.
+    do v₁ ← strengthenFrom k n v
+    -| maybeSafe v₁
+  weakenFrom {{DeBruijnSafeTerm}} k n (safe v p) =
+    maybe (safe unknown _) id (maybeSafe (weakenFrom k n v))
 
 safe-term : SafeTerm → Term
 safe-term (safe v _) = v

@@ -41,13 +41,10 @@ data IsFalse : Bool → Set where
 
 instance
   EqBool : Eq Bool
-  EqBool = record { _==_ = eqBool }
-    where
-      eqBool : (x y : Bool) → Dec (x ≡ y)
-      eqBool false false = yes refl
-      eqBool false true  = no (λ ())
-      eqBool true  false = no (λ ())
-      eqBool true  true  = yes refl
+  _==_ {{EqBool}} false false = yes refl
+  _==_ {{EqBool}} false true  = no λ ()
+  _==_ {{EqBool}} true  false = no λ ()
+  _==_ {{EqBool}} true  true  = yes refl
 
 decBool : ∀ b → Dec (IsTrue b)
 decBool false = no λ ()

@@ -20,12 +20,11 @@ record Monad {a b} (M : Set a → Set b) : Set (lsuc a ⊔ b) where
   _=<<_ = flip _>>=_
 
   defaultMonadFunctor : Functor M
-  defaultMonadFunctor = record { fmap = λ f m → return ∘ f =<< m }
+  fmap {{defaultMonadFunctor}} f m = return ∘ f =<< m
 
   defaultMonadApplicative : Applicative M
-  defaultMonadApplicative =
-    record { pure  = return
-           ; _<*>_ = λ mf mx → mf >>= λ f → mx >>= λ x → return (f x) }
+  pure  {{defaultMonadApplicative}} = return
+  _<*>_ {{defaultMonadApplicative}} mf mx = mf >>= λ f → mx >>= λ x → return (f x)
 
 open Monad {{...}} public
 

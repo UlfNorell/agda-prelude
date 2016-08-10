@@ -7,43 +7,31 @@ open import Builtin.Float
 
 instance
   EqVisibility : Eq Visibility
-  EqVisibility = record { _==_ = eqVis }
-    where
-      eqVis : ∀ x y → Dec (x ≡ y)
-      eqVis visible  visible  = yes refl
-      eqVis visible  hidden   = no (λ ())
-      eqVis visible  instance′ = no (λ ())
-      eqVis hidden   visible  = no (λ ())
-      eqVis hidden   hidden   = yes refl
-      eqVis hidden   instance′ = no (λ ())
-      eqVis instance′ visible  = no (λ ())
-      eqVis instance′ hidden   = no (λ ())
-      eqVis instance′ instance′ = yes refl
+  _==_ {{EqVisibility}} visible  visible  = yes refl
+  _==_ {{EqVisibility}} visible  hidden   = no (λ ())
+  _==_ {{EqVisibility}} visible  instance′ = no (λ ())
+  _==_ {{EqVisibility}} hidden   visible  = no (λ ())
+  _==_ {{EqVisibility}} hidden   hidden   = yes refl
+  _==_ {{EqVisibility}} hidden   instance′ = no (λ ())
+  _==_ {{EqVisibility}} instance′ visible  = no (λ ())
+  _==_ {{EqVisibility}} instance′ hidden   = no (λ ())
+  _==_ {{EqVisibility}} instance′ instance′ = yes refl
 
   EqRelevance : Eq Relevance
-  EqRelevance = record { _==_ = eqRel }
-    where
-      eqRel : ∀ x y → Dec (x ≡ y)
-      eqRel relevant   relevant   = yes refl
-      eqRel relevant   irrelevant = no (λ ())
-      eqRel irrelevant relevant   = no (λ ())
-      eqRel irrelevant irrelevant = yes refl
+  _==_ {{EqRelevance}} relevant   relevant   = yes refl
+  _==_ {{EqRelevance}} relevant   irrelevant = no (λ ())
+  _==_ {{EqRelevance}} irrelevant relevant   = no (λ ())
+  _==_ {{EqRelevance}} irrelevant irrelevant = yes refl
 
   EqArgInfo : Eq ArgInfo
-  EqArgInfo = record { _==_ = eqArgInfo }
-    where
-      eqArgInfo : ∀ x y → Dec (x ≡ y)
-      eqArgInfo (arg-info v r) (arg-info v₁ r₁) =
-        decEq₂ arg-info-inj₁ arg-info-inj₂ (v == v₁) (r == r₁)
+  _==_ {{EqArgInfo}} (arg-info v r) (arg-info v₁ r₁) =
+    decEq₂ arg-info-inj₁ arg-info-inj₂ (v == v₁) (r == r₁)
 
   EqArg : ∀ {A} {{EqA : Eq A}} → Eq (Arg A)
-  EqArg = record { _==_ = eqArg }
-    where
-      eqArg : ∀ x y → Dec (x ≡ y)
-      eqArg (arg i x) (arg i₁ x₁) = decEq₂ arg-inj₁ arg-inj₂ (i == i₁) (x == x₁)
+  _==_ {{EqArg}} (arg i x) (arg i₁ x₁) = decEq₂ arg-inj₁ arg-inj₂ (i == i₁) (x == x₁)
 
   EqLiteral : Eq Literal
-  EqLiteral = record { _==_ = eqLit }
+  _==_ {{EqLiteral}} = eqLit
     where
       eqLit : ∀ x y → Dec (x ≡ y)
       eqLit (nat    x) (nat    y) = decEq₁ nat-inj    (x == y)

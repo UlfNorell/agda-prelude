@@ -39,14 +39,11 @@ charToNat-inj refl | ._ = unsafeEqual  -- need to be strict in the proof!
 eqChar : Char → Char → Bool
 eqChar = eqNat on charToNat
 
-decEqChar : (x y : Char) → Dec (x ≡ y)
-decEqChar x y with eqChar x y
-... | false = no  unsafeNotEqual
-... | true  = yes unsafeEqual
-
 instance
   EqChar : Eq Char
-  EqChar = record { _==_ = decEqChar }
+  _==_ {{EqChar}} x y with eqChar x y
+  ... | false = no  unsafeNotEqual
+  ... | true  = yes unsafeEqual
 
 -- Missing primitive isUpper
 isUpper : Char → Bool

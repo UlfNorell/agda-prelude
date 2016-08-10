@@ -189,7 +189,7 @@ private
 
 instance
   EqList : ∀ {a} {A : Set a} {{EqA : Eq A}} → Eq (List A)
-  EqList = record { _==_ = eqList }
+  _==_ {{EqList}} = eqList
 
 --- Ord ---
 
@@ -224,13 +224,14 @@ instance
 
 instance
   FunctorList : ∀ {a} → Functor (List {a})
-  FunctorList = record { fmap = map }
+  fmap {{FunctorList}} = map
 
   MonadList : ∀ {a} → Monad (List {a})
-  MonadList = record { return = λ x → x ∷ [] ; _>>=_ = flip concatMap }
+  return {{MonadList}} x    = x ∷ []
+  _>>=_  {{MonadList}} xs f = concatMap f xs
 
   MonadList′ : ∀ {a b} → Monad′ {a} {b} List
-  MonadList′ = record { _>>=′_ = flip concatMap }
+  _>>=′_ {{MonadList′}} xs f = concatMap f xs
 
   ApplicativeList : ∀ {a} → Applicative (List {a})
   ApplicativeList = defaultMonadApplicative

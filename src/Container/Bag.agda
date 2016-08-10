@@ -7,7 +7,7 @@ Bag : Set → Set
 Bag A = List (Nat × A)
 
 FunctorBag : Functor Bag
-FunctorBag = record { fmap = λ f b → map (second f) b }
+fmap {{FunctorBag}} f b = map (second f) b
 
 union : {A : Set} {{OrdA : Ord A}} → Bag A → Bag A → Bag A
 union a [] = a

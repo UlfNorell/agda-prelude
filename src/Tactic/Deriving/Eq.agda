@@ -183,16 +183,12 @@ private
 
   instance
     DeBruijnForced : DeBruijn Forced
-    DeBruijnForced = record
-      { strengthenFrom = λ _ _ → just
-      ; weakenFrom     = λ _ _ → id
-      }
+    strengthenFrom {{DeBruijnForced}} _ _ = just
+    weakenFrom     {{DeBruijnForced}} _ _ = id
 
     DeBruijnProd : {A B : Set} {{_ : DeBruijn A}} {{_ : DeBruijn B}} → DeBruijn (A × B)
-    DeBruijnProd = record
-      { strengthenFrom = λ { m n (x , y) → _,_ <$> (strengthenFrom m n x) <*> (strengthenFrom m n y) }
-      ; weakenFrom     = λ { m n (x , y) → weakenFrom m n x , weakenFrom m n y }
-      }
+    strengthenFrom {{DeBruijnProd}} m n (x , y) = ⦇ strengthenFrom m n x , strengthenFrom m n y ⦈
+    weakenFrom     {{DeBruijnProd}} m n (x , y) = weakenFrom m n x , weakenFrom m n y
 
   RemainingArgs : Nat → Set
   RemainingArgs = Vec (Arg (Forced × Term × Term))

@@ -47,17 +47,11 @@ parseNat = parseNat′ ∘ unpackString
 
 -- Eq --
 
-private
-  eqString = primStringEquality
-
-  decEqString : (x y : String) → Dec (x ≡ y)
-  decEqString x y with eqString x y
-  ... | true  = yes unsafeEqual
-  ... | false = no  unsafeNotEqual
-
 instance
   EqString : Eq String
-  EqString = record { _==_ = decEqString }
+  _==_ {{EqString}} x y with primStringEquality x y
+  ... | true  = yes unsafeEqual
+  ... | false = no  unsafeNotEqual
 
 -- Ord --
 
@@ -81,4 +75,5 @@ instance
 instance
   open import Prelude.Monoid
   MonoidString : Monoid String
-  MonoidString = record { mempty = "" ; _<>_ = primStringAppend }
+  mempty {{MonoidString}} = ""
+  _<>_   {{MonoidString}} = primStringAppend

@@ -19,17 +19,13 @@ open Builtin public
 
 instance
   ShowName : Show Name
-  ShowName = record { showsPrec = λ _ x → showString (primShowQName x) }
-
-private
-  eqName : (x y : Name) → Dec (x ≡ y)
-  eqName x y with primQNameEquality x y
-  ... | true  = yes unsafeEqual
-  ... | false = no  unsafeNotEqual
+  showsPrec {{ShowName}} _ x = showString (primShowQName x)
 
 instance
   EqName : Eq Name
-  EqName = record { _==_ = eqName }
+  _==_ {{EqName}} x y with primQNameEquality x y
+  ... | true  = yes unsafeEqual
+  ... | false = no unsafeNotEqual
 
 data LessName (x y : Name) : Set where
   less-name : primQNameLess x y ≡ true → LessName x y
@@ -52,15 +48,11 @@ instance
   ShowMeta : Show Meta
   showsPrec {{ShowMeta}} _ x = showString (primShowMeta x)
 
-private
-  eqMeta : (x y : Meta) → Dec (x ≡ y)
-  eqMeta x y with primMetaEquality x y
-  ... | true  = yes unsafeEqual
-  ... | false = no  unsafeNotEqual
-
 instance
   EqMeta : Eq Meta
-  EqMeta = record { _==_ = eqMeta }
+  _==_ {{EqMeta}} x y with primMetaEquality x y
+  ... | true  = yes unsafeEqual
+  ... | false = no  unsafeNotEqual
 
 data LessMeta (x y : Meta) : Set where
   less-name : primMetaLess x y ≡ true → LessMeta x y
@@ -101,20 +93,20 @@ isVisible _ = false
 
 instance
   FunctorArg : Functor Arg
-  FunctorArg = record { fmap = λ { f (arg i x) → arg i (f x) } }
+  fmap {{FunctorArg}} f (arg i x) = arg i (f x)
 
   TraversableArg : Traversable Arg
-  TraversableArg = record { traverse = λ { f (arg i x) → pure (arg i) <*> f x } }
+  traverse {{TraversableArg}} f (arg i x) = ⦇ (arg i) (f x) ⦈
 
 unAbs : ∀ {A} → Abs A → A
 unAbs (abs _ x) = x
 
 instance
   FunctorAbs : Functor Abs
-  FunctorAbs = record { fmap = λ { f (abs s x) → abs s (f x) } }
+  fmap {{FunctorAbs}} f (abs s x) = abs s (f x)
 
   TraversableAbs : Traversable Abs
-  TraversableAbs = record { traverse = λ { f (abs s x) → pure (abs s) <*> f x } }
+  traverse {{TraversableAbs}} f (abs s x) = ⦇ (abs s) (f x) ⦈
 
 absurd-lam : Term
 absurd-lam = pat-lam (absurd-clause (vArg absurd ∷ []) ∷ []) []

@@ -65,13 +65,13 @@ private
 
 instance
   FreeTerm : FreeVars Term
-  FreeTerm = record { freeVars = freeTerm 0 }
+  freeVars {{FreeTerm}} = freeTerm 0
 
   FreeSort : FreeVars Sort
-  FreeSort = record { freeVars = freeSort 0 }
+  freeVars {{FreeSort}} = freeSort 0
 
-  FreeArg : FreeVars (Arg Term)
-  FreeArg = record { freeVars = freeArgTerm 0 }
+  FreeArg : ∀ {A} {{_ : FreeVars A}} → FreeVars (Arg A)
+  freeVars {{FreeArg}} (arg _ x) = freeVars x
 
-  FreeArgs : FreeVars (List (Arg Term))
-  FreeArgs = record { freeVars = freeArgs 0 }
+  FreeList : ∀ {a} {A : Set a} {{_ : FreeVars A}} → FreeVars (List A)
+  freeVars {{FreeList}} = foldr (λ x → freeVars x ∪_) ∅

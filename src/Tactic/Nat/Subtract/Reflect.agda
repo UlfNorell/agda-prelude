@@ -77,18 +77,12 @@ termToSubHyps t = runR (termToSubHypsR t)
 
 instance
   QuotableSubExp : Quotable SubExp
-  QuotableSubExp = record { ` = quoteSubExp }
-    where
-      quoteSubExp : SubExp → Term
-      quoteSubExp (var x) = con (quote SubExp.var) (vArg (` x) ∷ [])
-      quoteSubExp (lit n) = con (quote SubExp.lit) (vArg (` n) ∷ [])
-      quoteSubExp (e ⟨+⟩ e₁) = con (quote SubExp._⟨+⟩_) (map defaultArg $ quoteSubExp e ∷ quoteSubExp e₁ ∷ [])
-      quoteSubExp (e ⟨-⟩ e₁) = con (quote SubExp._⟨-⟩_) (map defaultArg $ quoteSubExp e ∷ quoteSubExp e₁ ∷ [])
-      quoteSubExp (e ⟨*⟩ e₁) = con (quote SubExp._⟨*⟩_) (map defaultArg $ quoteSubExp e ∷ quoteSubExp e₁ ∷ [])
+  ` {{QuotableSubExp}} (var x) = con (quote SubExp.var) (vArg (` x) ∷ [])
+  ` {{QuotableSubExp}} (lit n) = con (quote SubExp.lit) (vArg (` n) ∷ [])
+  ` {{QuotableSubExp}} (e ⟨+⟩ e₁) = con (quote SubExp._⟨+⟩_) (map defaultArg $ ` e ∷ ` e₁ ∷ [])
+  ` {{QuotableSubExp}} (e ⟨-⟩ e₁) = con (quote SubExp._⟨-⟩_) (map defaultArg $ ` e ∷ ` e₁ ∷ [])
+  ` {{QuotableSubExp}} (e ⟨*⟩ e₁) = con (quote SubExp._⟨*⟩_) (map defaultArg $ ` e ∷ ` e₁ ∷ [])
 
   QuotableEqn : Quotable Eqn
-  QuotableEqn = record { ` = quoteEqn }
-    where
-      quoteEqn : Eqn → Term
-      quoteEqn (a :≡ b) = con (quote _:≡_) (vArg (` a) ∷ vArg (` b) ∷ [])
-      quoteEqn (a :< b) = con (quote _:<_) (vArg (` a) ∷ vArg (` b) ∷ [])
+  ` {{QuotableEqn}} (a :≡ b) = con (quote _:≡_) (vArg (` a) ∷ vArg (` b) ∷ [])
+  ` {{QuotableEqn}} (a :< b) = con (quote _:<_) (vArg (` a) ∷ vArg (` b) ∷ [])

@@ -12,13 +12,13 @@ open Smashed {{...}} public
 
 instance
   Smash⊤ : Smashed ⊤
-  Smash⊤ = record { smashed = refl }
+  smashed {{Smash⊤}} = refl
 
   Smash⊥ : Smashed ⊥
-  Smash⊥ = record { smashed = λ {} }
+  smashed {{Smash⊥}} {}
 
   Smash≡ : ∀ {a} {A : Set a} {a b : A} → Smashed (a ≡ b)
-  Smashed.smashed Smash≡ {x = refl} {refl} = refl
+  smashed {{Smash≡}} {x = refl} {refl} = refl
 
 -- Can't be instance, since this would interfere with the ⊤ and ⊥ instances.
 SmashNonZero : ∀ {n : Nat} → Smashed (NonZero n)

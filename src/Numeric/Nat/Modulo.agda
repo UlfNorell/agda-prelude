@@ -17,17 +17,15 @@ negIntMod (modn (suc k) (diff j eq)) = modn (suc j) (by (sym eq))
 
 {-# DISPLAY negIntMod a = negate a #-}
 
-private
-  toMod : ∀ {n} → Nat → IntMod (suc n)
-  toMod {n} k with k divmod suc n
-  toMod k | qr _ r lt _ = modn r lt
-
 instance
   NumberIntMod : ∀ {n} → Number (IntMod (suc n))
-  NumberIntMod {n} = record { Constraint = λ _ → ⊤ ; fromNat = λ k → toMod k }
+  Number.Constraint NumberIntMod _ = ⊤
+  fromNat {{NumberIntMod {n}}} k with k divmod suc n
+  ... | qr _ r lt _ = modn r lt
 
   NegativeIntMod : ∀ {n} → Negative (IntMod (suc n))
-  NegativeIntMod {n} = record { Constraint = λ _ → ⊤ ; fromNeg = λ k → negIntMod (fromNat k) }
+  Negative.Constraint NegativeIntMod _ = ⊤
+  fromNeg {{NegativeIntMod}} k = negIntMod (fromNat k)
 
 addIntMod : ∀ {n} → IntMod (suc n) → IntMod (suc n) → IntMod (suc n)
 addIntMod {n} (modn a _) (modn b _) = force (a + b) λ a+b → fromNat a+b ofType IntMod (suc n)
@@ -44,7 +42,11 @@ subIntMod a b = addIntMod a (negIntMod b)
 
 instance
   SemiringIntMod : ∀ {n} → Semiring (IntMod (suc n))
-  SemiringIntMod = record { zro = 0 ; one = 1 ; _+_ = addIntMod ; _*_ = mulIntMod }
+  zro {{SemiringIntMod}} = 0
+  one {{SemiringIntMod}} = 1
+  _+_ {{SemiringIntMod}} = addIntMod
+  _*_ {{SemiringIntMod}} = mulIntMod
 
   SubtractiveIntMod : ∀ {n} → Subtractive (IntMod (suc n))
-  SubtractiveIntMod {n} = record { _-_ = subIntMod ; negate = negIntMod }
+  _-_    {{SubtractiveIntMod}} = subIntMod
+  negate {{SubtractiveIntMod}} = negIntMod

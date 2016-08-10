@@ -74,14 +74,11 @@ sigma-inj-snd refl = refl
 
 instance
   EqSigma : ∀ {a b} {A : Set a} {B : A → Set b} {{EqA : Eq A}} {{EqB : ∀ {x} → Eq (B x)}} → Eq (Σ A B)
-  EqSigma {A = A} {B} = record { _==_ = eqSigma }
-    where
-      eqSigma : (x y : Σ A B) → Dec (x ≡ y)
-      eqSigma (x , y) (x₁ , y₁) with x == x₁
-      eqSigma (x , y) (x₁ , y₁) | no  neq  = no λ eq → neq (sigma-inj-fst eq)
-      eqSigma (x , y) (.x , y₁) | yes refl with y == y₁
-      eqSigma (x , y) (.x , y₁) | yes refl | no neq = no λ eq → neq (sigma-inj-snd eq)
-      eqSigma (x , y) (.x , .y) | yes refl | yes refl = yes refl
+  _==_ {{EqSigma}} (x , y) (x₁ , y₁) with x == x₁
+  _==_ {{EqSigma}} (x , y) (x₁ , y₁) | no  neq  = no λ eq → neq (sigma-inj-fst eq)
+  _==_ {{EqSigma}} (x , y) (.x , y₁) | yes refl with y == y₁
+  _==_ {{EqSigma}} (x , y) (.x , y₁) | yes refl | no neq = no λ eq → neq (sigma-inj-snd eq)
+  _==_ {{EqSigma}} (x , y) (.x , .y) | yes refl | yes refl = yes refl
 
 -- Ord instance --
 

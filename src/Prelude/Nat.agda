@@ -33,11 +33,14 @@ instance
   Number.fromNat    NumberNat n = n
 
   SemiringNat : Semiring Nat
-  SemiringNat = record { zro = zero ; one = suc zero
-                       ; _+_ = _+N_ ; _*_ = _*N_ }
+  zro {{SemiringNat}} = 0
+  one {{SemiringNat}} = 1
+  _+_ {{SemiringNat}} = _+N_
+  _*_ {{SemiringNat}} = _*N_
 
   SubtractiveNat : Subtractive Nat
-  SubtractiveNat = record { _-_ = _-N_ ; negate = λ _ → 0 }
+  _-_    {{SubtractiveNat}}   = _-N_
+  negate {{SubtractiveNat}} _ = 0
 
 --- Equality ---
 
@@ -69,7 +72,7 @@ private
 
 instance
   EqNat : Eq Nat
-  EqNat = record { _==_ = decEqNat }
+  _==_ {{EqNat}} = decEqNat
 
 --- Division and modulo ---
 

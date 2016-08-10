@@ -26,20 +26,16 @@ private
   postulate eqBytes : Bytes → Bytes → Bool
   {-# COMPILED eqBytes (==) #-}
 
-  decEqBytes : (x y : Bytes) → Dec (x ≡ y)
-  decEqBytes x y with eqBytes x y
-  ... | true = yes unsafeEqual
-  ... | false = no unsafeNotEqual
-
 instance
   EqBytes : Eq Bytes
-  EqBytes = record { _==_ = decEqBytes }
+  _==_ {{EqBytes}} x y with eqBytes x y
+  ... | true = yes unsafeEqual
+  ... | false = no unsafeNotEqual
 
 -- Monoid --
 
 instance
   open import Prelude.Monoid
   MonoidBytes : Monoid Bytes
-  MonoidBytes = record { mempty = Internal.empty; _<>_ = Internal.append }
-
-
+  mempty {{MonoidBytes}} = Internal.empty
+  _<>_   {{MonoidBytes}} = Internal.append

@@ -60,28 +60,29 @@ right-inj : ∀ {b} {B : Set b} {x y : B} {a} {A : Set a} →
             right {A = A} x ≡ right y → x ≡ y
 right-inj refl = refl
 
-eqEither : ∀ {a b} {A : Set a} {B : Set b} {{EqA : Eq A}} {{EqB : Eq B}}
-             (x y : Either A B) → Dec (x ≡ y)
-eqEither (left x)  (right y) = no (λ ())
-eqEither (right x) (left y)  = no (λ ())
-eqEither (left x)  (left y)  with x == y
-eqEither (left x) (left .x)     | yes refl = yes refl
-eqEither (left x) (left y)      | no neq   = no λ eq → neq (left-inj eq)
-eqEither (right x) (right y) with x == y
-eqEither (right x) (right .x)   | yes refl = yes refl
-eqEither (right x) (right y)    | no neq   = no λ eq → neq (right-inj eq)
+private
+  eqEither : ∀ {a b} {A : Set a} {B : Set b} {{EqA : Eq A}} {{EqB : Eq B}}
+               (x y : Either A B) → Dec (x ≡ y)
+  eqEither (left x)  (right y) = no (λ ())
+  eqEither (right x) (left y)  = no (λ ())
+  eqEither (left x)  (left y)  with x == y
+  ... | yes eq = yes (left $≡ eq)
+  ... | no neq = no λ eq → neq (left-inj eq)
+  eqEither (right x) (right y) with x == y
+  ... | yes eq = yes (right $≡ eq)
+  ... | no neq = no λ eq → neq (right-inj eq)
 
 instance
   EqEither : ∀ {a b} {A : Set a} {B : Set b} {{EqA : Eq A}} {{EqB : Eq B}} →
                Eq (Either A B)
-  EqEither = record { _==_ = eqEither }
+  _==_ {{EqEither}} = eqEither
 
 --- Monad instance ---
 
 instance
   MonadEither : ∀ {a b} {A : Set a} → Monad (Either {b = b} A)
-  MonadEither = record { return = right
-                       ; _>>=_  = λ m f → either left f m }
+  return {{MonadEither}} = right
+  _>>=_  {{MonadEither}} m f = either left f m
 
   FunctorEither : ∀ {a b} {A : Set a} → Functor (Either {b = b} A)
   FunctorEither = defaultMonadFunctor

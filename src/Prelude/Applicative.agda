@@ -17,13 +17,13 @@ record Applicative {a b} (F : Set a → Set b) : Set (lsuc a ⊔ b) where
     _<*>_ : ∀ {A B} → F (A → B) → F A → F B
 
   defaultApplicativeFunctor : Functor F
-  defaultApplicativeFunctor = record { fmap = λ f x → pure f <*> x }
+  fmap {{defaultApplicativeFunctor}} f x = ⦇ f x ⦈
 
   _<*_ : ∀ {A B} → F A → F B → F A
-  a <* b = pure const <*> a <*> b
+  a <* b = ⦇ const a b ⦈
 
   _*>_ : ∀ {A B} → F A → F B → F B
-  a *> b = pure (const id) <*> a <*> b
+  a *> b = ⦇ (const id) a b ⦈
 
 open Applicative {{...}} public
 

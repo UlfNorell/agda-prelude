@@ -12,7 +12,10 @@ open MonadZero {{...}} public
 
 instance
   MonadZeroMaybe : ∀ {a} → MonadZero {a} Maybe
-  MonadZeroMaybe = record { mzero = nothing }
+  mzero {{MonadZeroMaybe}} = nothing
+
+  MonadZeroList : ∀ {a} → MonadZero {a} List
+  mzero {{MonadZeroList}} = []
 
 module _ {a b} {M : Set a → Set b} {{_ : MonadZero M}} where
 

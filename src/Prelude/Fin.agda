@@ -30,7 +30,8 @@ natToFin {suc n} (suc m) = suc (natToFin m)
 
 instance
   NumberFin : ∀ {n} → Number (Fin n)
-  NumberFin {n} = record { Constraint = λ k → IsTrue (lessNat k n) ; fromNat = natToFin }
+  Number.Constraint (NumberFin {n}) k = IsTrue (lessNat k n)
+  fromNat {{NumberFin}} = natToFin
 
 --- Equality ---
 
@@ -48,7 +49,7 @@ private
 
 instance
   EqFin : ∀ {n} → Eq (Fin n)
-  EqFin = record { _==_ = eqFin }
+  _==_ {{EqFin}} = eqFin
 
 --- Ord ---
 

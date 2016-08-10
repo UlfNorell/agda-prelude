@@ -125,9 +125,8 @@ private
 
 DeBruijnTraversable : ∀ {a} {F : Set a → Set a} {{_ : Functor F}} {{_ : Traversable F}}
                         {A : Set a} {{_ : DeBruijn A}} → DeBruijn (F A)
-DeBruijnTraversable =
-  record { strengthenFrom = λ lo k → traverse (strengthenFrom lo k)
-         ; weakenFrom = λ lo k → fmap (weakenFrom lo k) }
+strengthenFrom {{DeBruijnTraversable}} lo k = traverse (strengthenFrom lo k)
+weakenFrom     {{DeBruijnTraversable}} lo k = fmap     (weakenFrom lo k)
 
 instance
   DeBruijnNat : DeBruijn Nat
@@ -135,7 +134,8 @@ instance
   weakenFrom     {{DeBruijnNat}} = wkVar
 
   DeBruijnTerm : DeBruijn Term
-  DeBruijnTerm = record { strengthenFrom = strTerm ; weakenFrom = wk }
+  strengthenFrom {{DeBruijnTerm}} = strTerm
+  weakenFrom     {{DeBruijnTerm}} = wk
 
   DeBruijnList : ∀ {a} {A : Set a} {{_ : DeBruijn A}} → DeBruijn (List A)
   DeBruijnList = DeBruijnTraversable

@@ -40,17 +40,14 @@ maybeYes (no _)  = nothing
 just-inj : ∀ {a} {A : Set a} {x y : A} → just x ≡ just y → x ≡ y
 just-inj refl = refl
 
-eqMaybe : ∀ {a} {A : Set a} {{EqA : Eq A}} (x y : Maybe A) → Dec (x ≡ y)
-eqMaybe nothing nothing  = yes refl
-eqMaybe nothing (just x) = no (λ ())
-eqMaybe (just x) nothing = no (λ ())
-eqMaybe (just x) (just y) with x == y
-eqMaybe (just x) (just .x) | yes refl = yes refl
-eqMaybe (just x) (just y)  | no  neq  = no (λ eq → neq (just-inj eq))
-
 instance
   EqMaybe : ∀ {a} {A : Set a} {{EqA : Eq A}} → Eq (Maybe A)
-  EqMaybe = record { _==_ = eqMaybe }
+  _==_ {{EqMaybe}} nothing nothing  = yes refl
+  _==_ {{EqMaybe}} nothing (just x) = no λ ()
+  _==_ {{EqMaybe}} (just x) nothing = no λ ()
+  _==_ {{EqMaybe}} (just x) (just y) with x == y
+  ... | yes eq  = yes (just $≡ eq)
+  ... | no  neq = no (λ eq → neq (just-inj eq))
 
 --- Monad ---
 

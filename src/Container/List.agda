@@ -16,22 +16,22 @@ data Any {a b} {A : Set a} (P : A → Set b) : List A → Set (a ⊔ b) where
 pattern zero! = zero refl
 
 -- Literal overloading for Any
-instance
-  NumberAny : ∀ {a b} {A : Set a} {P : A → Set b} {xs : List A} → Number (Any P xs)
-  NumberAny {a} {b} {A = A} {P} {xs} =
-      record { Constraint = AnyConstraint xs
-             ; fromNat = natToIx xs }
-    where
-      AnyConstraint : List A → Nat → Set (a ⊔ b)
-      AnyConstraint []        _      = ⊥′
-      AnyConstraint (x ∷  _)  zero   = ⊤′ {a} × P x   -- hack to line up levels
-      AnyConstraint (_ ∷ xs) (suc i) = AnyConstraint xs i
+module _ {a b} {A : Set a} {P : A → Set b} where
+  private
+    AnyConstraint : List A → Nat → Set (a ⊔ b)
+    AnyConstraint []        _      = ⊥′
+    AnyConstraint (x ∷  _)  zero   = ⊤′ {a} × P x   -- hack to line up levels
+    AnyConstraint (_ ∷ xs) (suc i) = AnyConstraint xs i
 
-      natToIx : ∀ (xs : List A) n → {{_ : AnyConstraint xs n}} → Any P xs
-      natToIx [] n {{}}
-      natToIx (x ∷ xs)  zero {{_ , px}} = zero px
-      natToIx (x ∷ xs) (suc n) = suc (natToIx xs n)
+    natToIx : ∀ (xs : List A) n → {{_ : AnyConstraint xs n}} → Any P xs
+    natToIx [] n {{}}
+    natToIx (x ∷ xs)  zero {{_ , px}} = zero px
+    natToIx (x ∷ xs) (suc n) = suc (natToIx xs n)
 
+  instance
+    NumberAny : ∀ {xs} → Number (Any P xs)
+    Number.Constraint (NumberAny {xs}) = AnyConstraint xs
+    fromNat {{NumberAny {xs}}} = natToIx xs
 
 infix 3 _∈_
 _∈_ : ∀ {a} {A : Set a} → A → List A → Set a

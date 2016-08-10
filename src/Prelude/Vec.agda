@@ -77,18 +77,14 @@ vcons-inj-tail : ∀ {a} {A : Set a} {x y : A} {n}
                    {xs ys : Vec A n} → x Vec.∷ xs ≡ y ∷ ys → xs ≡ ys
 vcons-inj-tail refl = refl
 
-private
-  eqVec : ∀ {a} {A : Set a} {{EqA : Eq A}} ..{n} (xs ys : Vec A n) → Dec (xs ≡ ys)
-  eqVec [] []             = yes refl
-  eqVec (x ∷ xs) (y ∷ ys) with x == y
-  eqVec (x ∷ xs) (y ∷ ys)    | no neq   = no λ eq → neq (vcons-inj-head eq)
-  eqVec (x ∷ xs) (.x ∷ ys)   | yes refl with eqVec xs ys
-  eqVec (x ∷ xs) (.x ∷ ys)   | yes refl    | no neq = no λ eq → neq (vcons-inj-tail eq)
-  eqVec (x ∷ xs) (.x ∷ .xs)  | yes refl    | yes refl = yes refl
-
 instance
   EqVec : ∀ {a} {A : Set a} {{EqA : Eq A}} {n} → Eq (Vec A n)
-  EqVec = record { _==_ = eqVec }
+  _==_ {{EqVec}} [] []             = yes refl
+  _==_ {{EqVec}} (x ∷ xs) (y ∷ ys) with x == y
+  ... | no neq   = no λ eq → neq (vcons-inj-head eq)
+  ... | yes eq with xs == ys
+  ...   | no neq  = no λ eq₁ → neq (vcons-inj-tail eq₁)
+  ...   | yes eq₁ = yes (_∷_ $≡ eq *≡ eq₁)
 
 --- Ord ---
 
@@ -115,7 +111,8 @@ instance
 
 instance
   ApplicativeVec : ∀ {a n} → Applicative {a} (flip Vec n)
-  ApplicativeVec = record { pure = vec ; _<*>_ = vapp }
+  pure  {{ApplicativeVec}} = vec
+  _<*>_ {{ApplicativeVec}} = vapp
 
   FunctorVec : ∀ {a n} → Functor {a} (flip Vec n)
   FunctorVec = defaultApplicativeFunctor

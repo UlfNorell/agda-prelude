@@ -58,7 +58,8 @@ parse! p s with filter (null ∘ snd) (parse p s)
 
 instance
   MonadP : Monad P
-  MonadP = record { return = ret ; _>>=_ = bind }
+  return {{MonadP}} = ret
+  _>>=_  {{MonadP}} = bind
 
   ApplicativeP : Applicative P
   ApplicativeP = defaultMonadApplicative
@@ -67,7 +68,8 @@ instance
   FunctorP = defaultMonadFunctor
 
   MonoidP : ∀ {A} → Monoid (P A)
-  MonoidP = record { mempty = fail ; _<>_ = _+++_ }
+  mempty {{MonoidP}} = fail
+  _<>_   {{MonoidP}} = _+++_
 
 --- Derived combinators ---
 

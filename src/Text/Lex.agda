@@ -13,45 +13,35 @@ record TokenDFA {s} (A : Set) (Tok : Set) : Set (lsuc s) where
 
 instance
   FunctorTokenDFA : ∀ {s} {A : Set} → Functor (TokenDFA {s = s} A)
-  FunctorTokenDFA =
-    record { fmap = λ f dfa →
-      record { State   = TokenDFA.State dfa
-             ; initial = TokenDFA.initial dfa
-             ; accept  = λ s → f <$> TokenDFA.accept dfa s
-             ; consume = TokenDFA.consume dfa
-             }
-    }
+  TokenDFA.State   (fmap {{FunctorTokenDFA}} f dfa) = TokenDFA.State dfa
+  TokenDFA.initial (fmap {{FunctorTokenDFA}} f dfa) = TokenDFA.initial dfa
+  TokenDFA.accept  (fmap {{FunctorTokenDFA}} f dfa) s = f <$> TokenDFA.accept dfa s
+  TokenDFA.consume (fmap {{FunctorTokenDFA}} f dfa) = TokenDFA.consume dfa
 
 keywordToken : {A : Set} {{EqA : Eq A}} → List A → TokenDFA A ⊤
-keywordToken {A = A} kw =
-  record { State   = List A
-         ; initial = kw
-         ; accept  = λ s → if null s then just _ else nothing
-         ; consume = consume }
-  where
-    consume : A → List A → Maybe (List A)
-    consume y []       = nothing
-    consume y (x ∷ xs) = ifYes (x == y) then just xs else nothing
+TokenDFA.State   (keywordToken {A = A} kw)    = List A
+TokenDFA.initial (keywordToken kw)            = kw
+TokenDFA.accept  (keywordToken kw) []         = just _
+TokenDFA.accept  (keywordToken kw) (_ ∷ _)    = nothing
+TokenDFA.consume (keywordToken kw) _ []       = nothing
+TokenDFA.consume (keywordToken kw) y (x ∷ xs) = ifYes (x == y) then just xs else nothing
 
 matchToken : ∀ {A : Set} (p : A → Bool) → TokenDFA A (List (Σ A (IsTrue ∘ p)))
-matchToken {A = A} p =
-  record { State   = List (Σ A (IsTrue ∘ p))
-         ; initial = []
-         ; accept  = λ xs → just (reverse xs)
-         ; consume = λ x xs → if′ p x then just ((x , it) ∷ xs) else nothing
-         }
+TokenDFA.State (matchToken {A = A} p) = List (Σ A (IsTrue ∘ p))
+TokenDFA.initial (matchToken _)       = []
+TokenDFA.accept  (matchToken _) xs    = just (reverse xs)
+TokenDFA.consume (matchToken p) x xs  = if′ p x then just ((x , it) ∷ xs) else nothing
 
 natToken : TokenDFA Char Nat
 natToken = pNat <$> matchToken isDigit
   where pNat = foldl (λ { n (d , _) → 10 * n + (charToNat d - charToNat '0') }) 0
 
 identToken : ∀ {A : Set} → (A → Bool) → (A → Bool) → TokenDFA A (List A)
-identToken {A = A} first then =
-  record { State   = Maybe (List A)
-         ; initial = nothing
-         ; accept  = fmap reverse
-         ; consume = λ { x nothing   → if first x then just (just [ x ])    else nothing
-                       ; x (just xs) → if then  x then just (just (x ∷ xs)) else nothing } }
+TokenDFA.State   (identToken {A = A} _ _) = Maybe (List A)
+TokenDFA.initial (identToken _ _) = nothing
+TokenDFA.accept  (identToken _ _) = fmap reverse
+TokenDFA.consume (identToken first _) x nothing   = if first x then just (just [ x ])    else nothing
+TokenDFA.consume (identToken _ then)  x (just xs) = if then  x then just (just (x ∷ xs)) else nothing
 
 module _ {s : Level} {A Tok : Set} where
   private

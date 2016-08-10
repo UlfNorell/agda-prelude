@@ -17,7 +17,10 @@ private
       precision : Maybe Nat
 
   defaultFlags : Flags
-  defaultFlags = record { padding = noPad ; padChar = ' ' ; alternate = false; precision = nothing }
+  Flags.padding   defaultFlags = noPad
+  Flags.padChar   defaultFlags = ' '
+  Flags.alternate defaultFlags = false
+  Flags.precision defaultFlags = nothing
 
   data Format : Set where
     natArg    : Flags → Format

@@ -16,12 +16,9 @@ intToFloat (negsuc x) = primFloatMinus -1.0 (natToFloat x)
 
 instance
   EqFloat : Eq Float
-  EqFloat = record { _==_ = eqFloat }
-    where
-      eqFloat : ∀ x y → Dec (x ≡ y)
-      eqFloat x y with primFloatEquality x y
-      ... | true  = yes unsafeEqual
-      ... | false = no  unsafeNotEqual
+  _==_ {{EqFloat}} x y with primFloatEquality x y
+  ... | true  = yes unsafeEqual
+  ... | false = no  unsafeNotEqual
 
 data LessFloat (x y : Float) : Set where
   less-float : primFloatLess x y ≡ true → LessFloat x y

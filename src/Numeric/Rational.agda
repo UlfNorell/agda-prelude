@@ -104,8 +104,11 @@ instance
 
 instance
   NumberRational : Number Rational
-  NumberRational = record { Constraint = λ _ → ⊤ ; fromNat = λ n → n :/ 1 }
+  Number.Constraint NumberRational _ = ⊤
+  fromNat {{NumberRational}} n = n :/ 1
 
   SemiringRational : Semiring Rational
-  SemiringRational = record { zro = 0 :/ 1 ; one = 1 :/ 1
-                            ; _+_ = _+Q_ ; _*_ = _*Q_ }
+  zro {{SemiringRational}} = 0 :/ 1
+  one {{SemiringRational}} = 1 :/ 1
+  _+_ {{SemiringRational}} = _+Q_
+  _*_ {{SemiringRational}} = _*Q_

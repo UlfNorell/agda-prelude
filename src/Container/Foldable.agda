@@ -15,7 +15,7 @@ fold = foldMap id
 --- Instances ---
 
 FoldableList : ∀ {a w} → Foldable {a = a} {w = w} List
-FoldableList = record { foldMap = λ f → foldr (λ x w → f x <> w) mempty }
+foldMap {{FoldableList}} f = foldr (λ x w → f x <> w) mempty
 
 FoldableMaybe : ∀ {a w} → Foldable {a = a} {w = w} Maybe
-FoldableMaybe = record { foldMap = maybe mempty }
+foldMap {{FoldableMaybe}} = maybe mempty

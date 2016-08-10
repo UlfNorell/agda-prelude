@@ -59,7 +59,7 @@ private
 
 instance
   EqLeaf : Eq Leaf
-  EqLeaf = record { _==_ = eq-leaf }
+  _==_ {{EqLeaf}} = eq-leaf
 
 private
   eq-tree  : (x y : TreeRep) → Dec (x ≡ y)
@@ -77,7 +77,7 @@ private
 
 instance
   EqTree : Eq TreeRep
-  EqTree = record { _==_ = eq-tree }
+  _==_ {{EqTree}} = eq-tree
 
 --- Ord instance ---
 
