@@ -252,21 +252,24 @@ private
     where
       remainingFree = countFree args
 
+      wk : {A : Set} {{_ : DeBruijn A}} → Nat → A → A
+      wk k = weaken (k + remainingFree)
+
       checkEqArgsYes : Term
       checkEqArgsYes =
         def (quote transport) (
           (vArg (vLam "x" (nPi (rightArgsFree args) (def₁ (quote Dec)
-            (weaken (2 + remainingFree)
+            (wk 2
                (con c (xs ++ arg i y ∷ (leftArgs args)))
              `≡
-             con c (weaken (2 + remainingFree) xs ++
+             con c (wk 2 xs ++
                     arg i (var remainingFree []) ∷
-                    rightArgs (refreshArgs (weaken (2 + remainingFree) args)))))))) ∷
+                    rightArgs (refreshArgs (wk 2 args)))))))) ∷
           (vArg (var 0 [])) ∷
           (vArg (nLam (rightArgsFree args)
             (checkEqArgs c
-              (weaken (1 + remainingFree) (xs ++ [ arg i y ]))
-              (refreshArgs (weaken (1 + remainingFree) args))))) ∷
+              (wk 1 (xs ++ [ arg i y ]))
+              (refreshArgs (wk 1 args))))) ∷
           weaken 1 (rightArgsFree args))
 
       checkEqArgsNo : Term
@@ -274,11 +277,11 @@ private
         con₁ (quote no) (vLam "eq" (var 1 (vArg (def₃ (quote _∋_)
           (nPi (hideTel (arg i z ∷ rightArgsFree args))
             (weaken (3 + remainingFree) (con c (xs ++ arg i y ∷ leftArgs args))
-              `≡ con c (weaken (3 + remainingFree) xs ++
+              `≡ con c (wk 3 xs ++
                         arg i (var remainingFree []) ∷
-                        rightArgs (refreshArgs (weaken (3 + remainingFree) args)))
+                        rightArgs (refreshArgs (wk 3 args)))
             `→
-             weaken (4 + remainingFree) y `≡ var (1 + remainingFree) []))
+             wk 4 y `≡ var (1 + remainingFree) []))
           (pat-lam (clause
             (replicate (1 + remainingFree) (hArg dot) ++ vArg `refl ∷ [])
             `refl ∷ []) [])
