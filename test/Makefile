@@ -3,6 +3,8 @@ agda = agda
 
 default : compile-main
 
+prof-flags=-prof -auto-all -osuf=p_o -hisuf=p_hi
+
 everything :
 	@echo "module Everything where" > Everything.agda
 	@find ../src -name '*.agda' | sed -e 's/\.\.\/src\///;s/\//./g;s/\.agda$$//;s/^/import /' >> Everything.agda
@@ -12,6 +14,9 @@ compile-main :
 
 compile-prime :
 	$(agda) PrimeTest.agda -c $(agda-flags)
+
+prof :
+	$(agda) PrimeTest.agda -c $(patsubst %,--ghc-flag="%",$(prof-flags) -o PrimeTest_p)
 
 test : main-test prime-test files-test
 
