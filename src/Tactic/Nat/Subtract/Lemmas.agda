@@ -77,7 +77,7 @@ lem-eval-sns-sn ((k , t) ∷ t₁ ∷ n) ρ = _+_ $≡ (_*_ k $≡ lem-eval-sns-
 -- same as the one we want to write.
 
 private
-  lem-eval-sn-n-t : ∀ t ρ → ⟦ t ⟧st ρ ≡ product (map (atomEnv ρ) t)
+  lem-eval-sn-n-t : ∀ t ρ → ⟦ t ⟧st ρ ≡ productR (map (atomEnv ρ) t)
   lem-eval-sn-n-t [] ρ = refl
   lem-eval-sn-n-t (x ∷ t) ρ = (⟦ x ⟧sa ρ *_) $≡ lem-eval-sn-n-t t ρ
 

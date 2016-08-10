@@ -12,8 +12,8 @@ map++ : ∀ {a b} {A : Set a} {B : Set b} (f : A → B) (xs ys : List A) →
 map++ f [] ys = refl
 map++ f (x ∷ xs) ys rewrite map++ f xs ys = refl
 
-prod++ : (xs ys : List Nat) → product (xs ++ ys) ≡ product xs * product ys
-prod++ [] ys = sym (add-0-r (product ys))
+prod++ : (xs ys : List Nat) → productR (xs ++ ys) ≡ productR xs * productR ys
+prod++ [] ys = sym (add-0-r (productR ys))
 prod++ (x ∷ xs) ys rewrite prod++ xs ys = mul-assoc x _ _
 
 private
@@ -51,16 +51,16 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
   ⟨+⟩-sound (t ∷ v₁)  []        ρ = sym (add-0-r _)
   ⟨+⟩-sound ((i , t₁) ∷ v₁) ((j , t₂) ∷ v₂) ρ with compare t₁ t₂
   ... | less _ rewrite ⟨+⟩-sound v₁ ((j , t₂) ∷ v₂) ρ
-                     = add-assoc (i * product (map ρ t₁)) _ _
+                     = add-assoc (i * productR (map ρ t₁)) _ _
   ... | equal eq rewrite eq | ⟨+⟩-sound v₁ v₂ ρ
-                       | mul-distr-r i j (product (map ρ t₂))
+                       | mul-distr-r i j (productR (map ρ t₂))
                        = shuffle₂ (⟦ i , t₂ ⟧t ρ) (⟦ j , t₂ ⟧t ρ) _ _
   ... | greater _ rewrite ⟨+⟩-sound ((i , t₁) ∷ v₁) v₂ ρ
                         = shuffle₁ (⟦ j , t₂ ⟧t ρ) (⟦ i , t₁ ⟧t ρ) _ _
 
-  map-merge : ∀ x y (ρ : Env Atom) → product (map ρ (merge x y)) ≡ product (map ρ x) * product (map ρ y)
+  map-merge : ∀ x y (ρ : Env Atom) → productR (map ρ (merge x y)) ≡ productR (map ρ x) * productR (map ρ y)
   map-merge [] [] ρ = refl
-  map-merge [] (x ∷ xs) ρ = sym (add-0-r (product (ρ x ∷ map ρ xs)))
+  map-merge [] (x ∷ xs) ρ = sym (add-0-r (productR (ρ x ∷ map ρ xs)))
   map-merge (x ∷ xs) [] ρ = sym (mul-1-r _)
   map-merge (x ∷ xs) (y ∷ ys) ρ with x <? y
   ... | true  rewrite map-merge xs (y ∷ ys) ρ = mul-assoc (ρ x) _ _
@@ -122,7 +122,7 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
 
   module _ (ρ₁ ρ₂ : Env Atom) (eq : ∀ x → ρ₁ x ≡ ρ₂ x) where
     private
-      lem-eval-env-a : ∀ a → product (map ρ₁ a) ≡ product (map ρ₂ a)
+      lem-eval-env-a : ∀ a → productR (map ρ₁ a) ≡ productR (map ρ₂ a)
       lem-eval-env-a []       = refl
       lem-eval-env-a (x ∷ xs) = _*_ $≡ eq x *≡ lem-eval-env-a xs
 

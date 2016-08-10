@@ -122,11 +122,18 @@ module _ {a b} {F : Set a → Set b} {{_ : Applicative F}} {A : Set a} where
   replicateA (suc n) x = pure _∷_ <*> x <*> replicateA n x
 
 module _ {a} {A : Set a} {{_ : Semiring A}} where
+
   sum : List A → A
-  sum = foldr _+_ zro
+  sum = foldl! _+_ zro
 
   product : List A → A
-  product = foldr _*_ one
+  product = foldl! _*_ one
+
+  sumR : List A → A
+  sumR = foldr _+_ zro
+
+  productR : List A → A
+  productR = foldr _*_ one
 
 module _ {a} {A : Set a} {{_ : Ord A}} where
   insert : A → List A → List A

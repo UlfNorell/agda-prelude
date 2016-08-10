@@ -10,7 +10,7 @@ open import Numeric.Nat.Properties.Core
 open import Container.List.Properties
 open import Tactic.Nat.Auto.Lemmas
 
-product1-sound : ∀ xs → product1 xs ≡ product xs
+product1-sound : ∀ xs → product1 xs ≡ productR xs
 product1-sound [] = refl
 product1-sound (x ∷ xs)
   rewrite sym (cong (λ x → foldl _*_ x xs) (mul-1-r x))
@@ -135,7 +135,7 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
 
   private
     prod : Env Atom → List Atom → Nat
-    prod ρ x = product (map ρ x)
+    prod ρ x = productR (map ρ x)
 
   private
     lem-complete : ∀ a b ρ f g (xs : NF Atom × NF Atom) →

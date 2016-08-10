@@ -50,10 +50,10 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
   norm (e ⟨*⟩ e₁) = norm e *nf norm e₁
 
   ⟦_⟧t : Nat × Tm Atom → Env Atom → Nat
-  ⟦ k , v ⟧t ρ = k * product (map ρ v)
+  ⟦ k , v ⟧t ρ = k * productR (map ρ v)
 
   ⟦_⟧n : NF Atom → Env Atom → Nat
-  ⟦ nf ⟧n ρ = sum (map (flip ⟦_⟧t ρ) nf)
+  ⟦ nf ⟧n ρ = sumR (map (flip ⟦_⟧t ρ) nf)
 
   ⟦_⟧ts : Nat × Tm Atom → Env Atom → Nat
   ⟦ 1 , v ⟧ts ρ = product1 (map ρ v)
