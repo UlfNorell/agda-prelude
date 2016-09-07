@@ -226,6 +226,9 @@ instance
   FunctorList : ∀ {a} → Functor (List {a})
   fmap {{FunctorList}} = map
 
+  FunctorList′ : ∀ {a b} → Functor′ {a} {b} List
+  fmap′ {{FunctorList′}} = map
+
   MonadList : ∀ {a} → Monad (List {a})
   return {{MonadList}} x    = x ∷ []
   _>>=_  {{MonadList}} xs f = concatMap f xs
