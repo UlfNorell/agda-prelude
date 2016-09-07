@@ -5,6 +5,7 @@ open import Prelude
 open import Prelude.Equality.Unsafe
 open import Builtin.Float
 open import Container.Traversable
+open import Control.Monad.Zero
 
 open import Agda.Builtin.Reflection as Builtin
 open Builtin public
@@ -136,6 +137,9 @@ instance
   AlternativeTC : ∀ {a} → Alternative {a} TC
   empty {{AlternativeTC}} = typeError []
   _<|>_ {{AlternativeTC}} = catchTC
+
+  MonadZeroTC : ∀ {a} → MonadZero {a} TC
+  mzero {{MonadZeroTC}} = empty
 
 Tactic = Term → TC ⊤
 
