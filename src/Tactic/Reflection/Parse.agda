@@ -11,7 +11,7 @@ open import Container.Traversable
 ParseTerm : (Set → Set) → Set → Set
 ParseTerm M = StateT (Nat × List (Term × Nat)) M
 
-module _ {M : Set → Set} {{_ : Functor M}} {{_ : Monad M}} where
+module _ {M : Set → Set} {{_ : Functor M}} {{_ : Monad M}} {{_ : MonadZero M}} where
 
   runParse : ∀ {A} → ParseTerm M A → M (A × List Term)
   runParse r =
@@ -28,12 +28,16 @@ module _ {M : Set → Set} {{_ : Functor M}} {{_ : Monad M}} where
     pAtom v = maybe (fresh v) pure =<< gets (flip lookup v ∘ snd)
 
   module _ {F : Set → Set} {{_ : Functor F}} {{_ : Traversable F}} {E : Set}
-           (mkVar : Nat → E) (matchTm : Term → Maybe (F Term)) (fold : F E → M E) where
+           (mkVar : Nat → F E) (matchTm : Term → Maybe (F Term)) (fold : F E → E) where
 
     {-# TERMINATING #-}
     parseTerm : Term → ParseTerm M E
     parseTerm v =
-      case matchTm v of λ
-      { nothing  → mkVar <$> pAtom v
-      ; (just s) → lift ∘ fold =<< traverse parseTerm s
-      }
+      case matchTm v of λ where
+        nothing  → fold ∘ mkVar <$> pAtom v
+        (just s) → fold <$> traverse parseTerm s
+
+    parseEqn : Term → ParseTerm M (E × E)
+    parseEqn (def (quote _≡_) (_ ∷ _ ∷ vArg x ∷ vArg y ∷ [])) =
+      ⦇ parseTerm x , parseTerm y ⦈
+    parseEqn goal = mzero

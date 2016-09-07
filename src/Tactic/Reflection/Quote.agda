@@ -60,7 +60,7 @@ private
   deriveQuotableTermTypes : Vec Name _ → TC ⊤
   deriveQuotableTermTypes is =
     do ts  := quote Term ∷ quote Clause ∷ quote Sort ∷ [] ofType Vec Name _
-    -| its := _,_ <$> is <*> ts
+    -| its := ⦇ is , ts ⦈
     -| traverse (uncurry declareQuotableInstance) its
     ~| traverse (uncurry defineQuotableInstance)  its
     ~| pure _
@@ -78,3 +78,6 @@ unquoteDecl QuotableVisibility QuotableRelevance QuotableArgInfo
 unquoteDecl QuotablePattern QuotableTerm QuotableClause QuotableSort =
   do deriveQuotable QuotablePattern (quote Pattern)
   ~| deriveQuotableTermTypes (QuotableTerm ∷ QuotableClause ∷ QuotableSort ∷ [])
+
+quoteList : List Term → Term
+quoteList = foldr (λ x xs → con (quote List._∷_) (vArg x ∷ vArg xs ∷ [])) (con (quote List.[]) [])

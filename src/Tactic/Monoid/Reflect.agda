@@ -9,34 +9,33 @@ open import Control.Monad.State
 open import Container.Traversable
 
 open import Tactic.Monoid.Exp
-open import Tactic.Reflection.Parse
+open import Tactic.Reflection.Parse renaming (parseEqn to parseEq)
 
 private
   data ExpF (A : Set) : Set where
+    eVar  : Nat → ExpF A
     eZero : ExpF A
     ePlus : A → A → ExpF A
 
   instance
     FunctorExpF : Functor ExpF
+    fmap {{FunctorExpF}} _ (eVar i) = eVar i
     fmap {{FunctorExpF}} _ eZero = eZero
     fmap {{FunctorExpF}} f (ePlus x y) = ePlus (f x) (f y)
 
     TraversableExpF : Traversable ExpF
+    traverse {{TraversableExpF}} f (eVar i)    = pure (eVar i)
     traverse {{TraversableExpF}} f eZero       = pure eZero
-    traverse {{TraversableExpF}} f (ePlus x y) = pure ePlus <*> f x <*> f y
+    traverse {{TraversableExpF}} f (ePlus x y) = ⦇ ePlus (f x) (f y) ⦈
 
   mkExp : ExpF Exp → Exp
+  mkExp (eVar i)    = var i
   mkExp eZero       = ε
   mkExp (ePlus x y) = x ⊕ y
 
 module _ (match : Term → Maybe (ExpF Term)) where
-  parseExp : Term → ParseTerm TC Exp
-  parseExp v = parseTerm var match (pure ∘ mkExp) v
-
   parseEqn : Term → ParseTerm TC (Exp × Exp)
-  parseEqn (def (quote _≡_) (_ ∷ _ ∷ vArg x ∷ vArg y ∷ [])) =
-    _,_ <$> parseExp x <*> parseExp y
-  parseEqn goal = lift $ typeError (strErr "Not an equality goal:" ∷ termErr goal ∷ [])
+  parseEqn v = parseEq eVar match mkExp v
 
   parseGoal : Term → TC ((Exp × Exp) × List Term)
   parseGoal v = runParse (parseEqn v)

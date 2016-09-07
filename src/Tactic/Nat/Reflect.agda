@@ -140,10 +140,6 @@ stripImplicitArg (arg (arg-info visible r) x) = arg (arg-info visible r) (stripI
 stripImplicitArg (arg (arg-info hidden r) x) = []
 stripImplicitArg (arg (arg-info instance′ r) x) = []
 
-quoteList : List Term → Term
-quoteList []       = con (quote List.[]) []
-quoteList (t ∷ ts) = con (quote List._∷_) (defaultArg t ∷ defaultArg (quoteList ts) ∷ [])
-
 quotedEnv : List Term → Term
 quotedEnv ts = def (quote buildEnv) $ defaultArg (quoteList $ map stripImplicit ts) ∷ []
 
@@ -174,4 +170,3 @@ cantProve _ = _
 
 invalidGoal : Set → ⊤
 invalidGoal _ = _
-
