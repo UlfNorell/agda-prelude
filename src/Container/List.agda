@@ -58,6 +58,12 @@ module _ {a b} {A : Set a} {P Q : A → Set b} (f : ∀ {x} → P x → Q x) whe
   mapAny (zero x) = zero (f x)
   mapAny (suc i)  = suc (mapAny i)
 
+traverseAll : ∀ {a b} {A : Set a} {B : A → Set a} {F : Set a → Set b}
+                {{AppF : Applicative F}} →
+                (∀ x → F (B x)) → (xs : List A) → F (All B xs)
+traverseAll f []       = pure []
+traverseAll f (x ∷ xs) = ⦇ f x ∷ traverseAll f xs ⦈
+
 -- Equality --
 
 module _ {a b} {A : Set a} {P : A → Set b} {{EqP : ∀ {x} → Eq (P x)}} where
