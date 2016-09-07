@@ -28,8 +28,6 @@ instance
   idRight {{MonoidLawsMaybe}} nothing  = refl
   idRight {{MonoidLawsMaybe}} (just _) = refl
   <>assoc {{MonoidLawsMaybe}} nothing  y z = refl
-  <>assoc {{MonoidLawsMaybe}} (just x) nothing  z = refl
-  <>assoc {{MonoidLawsMaybe}} (just x) (just y) nothing  = refl
-  <>assoc {{MonoidLawsMaybe}} (just x) (just y) (just z) = just $≡ <>assoc x y z
+  <>assoc {{MonoidLawsMaybe}} (just x) y z = refl
 
   -- Can't do function lifting because no extentionality.

@@ -31,11 +31,10 @@ instance
   mempty {{MonoidFun}}     _ = mempty
   _<>_   {{MonoidFun}} f g x = f x <> g x
 
-  MonoidMaybe : ∀ {a} {A : Set a} {{_ : Monoid A}} → Monoid (Maybe A)
+  MonoidMaybe : ∀ {a} {A : Set a} → Monoid (Maybe A)
   mempty {{MonoidMaybe}} = nothing
-  _<>_   {{MonoidMaybe}} nothing  y        = y
-  _<>_   {{MonoidMaybe}} x        nothing  = x
-  _<>_   {{MonoidMaybe}} (just x) (just y) = just (x <> y)
+  _<>_   {{MonoidMaybe}} nothing  y = y
+  _<>_   {{MonoidMaybe}} (just x) _ = just x
 
 record Sum {a} (A : Set a) : Set a where
   constructor mkSum
