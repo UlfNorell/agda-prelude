@@ -28,6 +28,11 @@ record Monad {a b} (M : Set a → Set b) : Set (lsuc a ⊔ b) where
 
 open Monad {{...}} public
 
+{-# DISPLAY Monad._>>=_  _ = _>>=_  #-}
+{-# DISPLAY Monad._=<<_  _ = _=<<_  #-}
+{-# DISPLAY Monad._>>_   _ = _>>_   #-}
+{-# DISPLAY Monad.return _ = return #-}
+
 join : ∀ {a} {M : Set a → Set a} {{_ : Monad M}} {A : Set a} → M (M A) → M A
 join = _=<<_ id
 

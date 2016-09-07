@@ -16,6 +16,10 @@ record Functor {a b} (F : Set a → Set b) : Set (lsuc a ⊔ b) where
 
 open Functor {{...}} public
 
+{-# DISPLAY Functor.fmap  _ = fmap  #-}
+{-# DISPLAY Functor._<$>_ _ = _<$>_ #-}
+{-# DISPLAY Functor._<$_  _ = _<$_  #-}
+
 -- Level polymorphic functors
 record Functor′ {a b} (F : ∀ {a} → Set a → Set a) : Set (lsuc (a ⊔ b)) where
   infixl 4 _<$>′_ _<$′_

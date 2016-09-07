@@ -27,6 +27,11 @@ record Applicative {a b} (F : Set a → Set b) : Set (lsuc a ⊔ b) where
 
 open Applicative {{...}} public
 
+{-# DISPLAY Applicative.pure  _ = pure  #-}
+{-# DISPLAY Applicative._<*>_ _ = _<*>_ #-}
+{-# DISPLAY Applicative._<*_  _ = _<*_  #-}
+{-# DISPLAY Applicative._*>_  _ = _*>_  #-}
+
 -- Level polymorphic functors
 record Applicative′ {a b} (F : ∀ {a} → Set a → Set a) : Set (lsuc (a ⊔ b)) where
   infixl 4 _<*>′_
