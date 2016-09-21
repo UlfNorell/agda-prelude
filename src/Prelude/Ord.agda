@@ -128,5 +128,6 @@ private
   compareBool true false  = greater false<true
   compareBool true true   = equal refl
 
-OrdBool : Ord Bool
-OrdBool = defaultOrd compareBool
+instance
+  OrdBool : Ord Bool
+  OrdBool = defaultOrd compareBool
