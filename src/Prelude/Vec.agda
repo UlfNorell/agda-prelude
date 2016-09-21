@@ -27,6 +27,10 @@ private
   vapp  []       _       = []
   vapp (f ∷ fs) (x ∷ xs) = f x ∷ vapp fs xs
 
+  vmap : ∀ {a b} {A : Set a} {B : Set b} ..{n} → (A → B) → Vec A n → Vec B n
+  vmap f []       = []
+  vmap f (x ∷ xs) = f x ∷ vmap f xs
+
 vecToList : ∀ {a} {A : Set a} ..{n} → Vec A n → List A
 vecToList []       = []
 vecToList (x ∷ xs) = x ∷ vecToList xs
@@ -110,9 +114,15 @@ instance
 --- Functor instances ---
 
 instance
+  FunctorVec : ∀ {a n} → Functor {a} (flip Vec n)
+  fmap {{FunctorVec}} = vmap
+
+  FunctorVec′ : ∀ {a b n} → Functor′ {a} {b} (flip Vec n)
+  fmap′ {{FunctorVec′}} = vmap
+
   ApplicativeVec : ∀ {a n} → Applicative {a} (flip Vec n)
   pure  {{ApplicativeVec}} = vec
   _<*>_ {{ApplicativeVec}} = vapp
 
-  FunctorVec : ∀ {a n} → Functor {a} (flip Vec n)
-  FunctorVec = defaultApplicativeFunctor
+  ApplicativeVec′ : ∀ {a b n} → Applicative′ {a} {b} (flip Vec n)
+  _<*>′_ {{ApplicativeVec′}} = vapp
