@@ -5,7 +5,7 @@ open import Prelude
 
 record Traversable {a} (T : Set a → Set a) : Set (lsuc a) where
   field
-    traverse : ∀ {F A B} {{AppF : Applicative F}} → (A → F B) → T A → F (T B)
+    traverse : ∀ {F : Set a → Set a} {A B} {{AppF : Applicative F}} → (A → F B) → T A → F (T B)
 
 open Traversable {{...}} public
 
