@@ -21,16 +21,16 @@ instance
   ... | false = no  unsafeNotEqual
 
 data LessFloat (x y : Float) : Set where
-  less-float : primFloatLess x y ≡ true → LessFloat x y
+  less-float : primFloatNumericalLess x y ≡ true → LessFloat x y
 
 instance
   OrdFloat : Ord Float
   OrdFloat = defaultOrd cmpFloat
     where
       cmpFloat : ∀ x y → Comparison LessFloat x y
-      cmpFloat x y with inspect (primFloatLess x y)
+      cmpFloat x y with inspect (primFloatNumericalLess x y)
       ... | true  with≡ eq = less (less-float eq)
-      ... | false with≡ _ with inspect (primFloatLess y x)
+      ... | false with≡ _ with inspect (primFloatNumericalLess y x)
       ...   | true  with≡ eq = greater (less-float eq)
       ...   | false with≡ _  = equal unsafeEqual
 
@@ -50,8 +50,8 @@ instance
   Semiring._*_ SemiringFloat = primFloatTimes
 
   SubFloat : Subtractive Float
-  Subtractive._-_    SubFloat   = primFloatMinus
-  Subtractive.negate SubFloat x = 0.0 - x
+  Subtractive._-_    SubFloat = primFloatMinus
+  Subtractive.negate SubFloat = primFloatNegate
 
   NegFloat : Negative Float
   Negative.Constraint NegFloat _ = ⊤
