@@ -112,3 +112,7 @@ instance
   one {{SemiringRational}} = 1 :/ 1
   _+_ {{SemiringRational}} = _+Q_
   _*_ {{SemiringRational}} = _*Q_
+
+  ShowRational : Show Rational
+  showsPrec {{ShowRational}} _ (ratio p 1 _) = shows p
+  showsPrec {{ShowRational}} _ (ratio p q _) = shows p ∘ showString "/" ∘ shows q
