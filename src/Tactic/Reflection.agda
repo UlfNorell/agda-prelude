@@ -61,7 +61,7 @@ _=′_ : Term → Term → TC ⊤
 _=′_ = unify
 
 on-goal : (Type → Tactic) → Tactic
-on-goal tac hole = inferType hole >>= λ goal → tac goal hole
+on-goal tac hole = inferNormalisedType hole >>= λ goal → tac goal hole
 
 forceFun : Type → TC Type
 forceFun a =

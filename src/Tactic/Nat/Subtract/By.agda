@@ -155,7 +155,7 @@ private
 
 by-tactic : Term → Type → TC Term
 by-tactic prf g =
-  inferType prf >>= λ h →
+  inferNormalisedType prf >>= λ h →
   let t = pi (vArg h) (abs "_" (weaken 1 g)) in
   caseM termToSubHyps t of
   λ { (just (hyp ∷ goal ∷ [] , Γ)) → pure $

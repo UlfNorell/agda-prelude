@@ -58,7 +58,7 @@ get-refute-proof eq x y = ⊥-elim (get-absurd-proof eq x y)
 
 refutesub-tactic : Term → TC Term
 refutesub-tactic prf =
-  inferType prf >>= λ a →
+  inferNormalisedType prf >>= λ a →
   caseM termToSubEqn a of λ
   { nothing → pure $ failedProof (quote invalidEquation) a
   ; (just (eqn , Γ)) → pure $

@@ -13,7 +13,7 @@ open import Tactic.Monoid.Proofs
 
 monoidTactic : ∀ {a} {A : Set a} {{_ : Monoid A}} {{_ : MonoidLaws A}} → Tactic
 monoidTactic {A = A} {{dict}} {{laws}} hole =
-  do goal   ← inferType hole
+  do goal   ← inferNormalisedType hole
   -| `A     ← quoteTC A
   -| catchTC (unify goal (def (quote _≡_) (hArg unknown ∷ hArg `A ∷ vArg unknown ∷ vArg unknown ∷ [])))
              (typeError $ strErr "Goal is not an equality" ∷ termErr goal ∷ [])

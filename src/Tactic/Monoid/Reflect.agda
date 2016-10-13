@@ -56,7 +56,7 @@ private
     -| pure (isYes ∘ (v ==_))
 
 monoidMatcher : ∀ {a} {A : Set a} → Monoid A → TC (Term → Maybe (ExpF Term))
-monoidMatcher dict =
+monoidMatcher dict = withNormalisation true $
   do isZ ← matchEmpty dict
   -| isP ← match<> dict
   -| pure λ v →

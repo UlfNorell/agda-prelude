@@ -172,6 +172,9 @@ typeErrorS s = typeError (strErr s ∷ [])
 blockOnMeta! : ∀ {a} {A : Set a} → Meta → TC A
 blockOnMeta! x = commitTC >>=′ λ _ → blockOnMeta x
 
+inferNormalisedType : Term → TC Type
+inferNormalisedType t = withNormalisation true (inferType t)
+
 --- Convenient wrappers ---
 
 -- Zero for non-datatypes

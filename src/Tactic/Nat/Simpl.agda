@@ -59,7 +59,7 @@ simplify-tactic prf g =
 
 assumed-tactic : Term → Type → TC Term
 assumed-tactic prf g =
-  inferType prf >>= λ h →
+  inferNormalisedType prf >>= λ h →
   let t = pi (vArg h) (abs "_" (weaken 1 g)) in
   caseM termToHyps t of
   (λ { nothing → pure $ failedProof (quote invalidGoal) t
@@ -73,12 +73,12 @@ assumed-tactic prf g =
 macro
   follows-from : Term → Tactic
   follows-from prf hole =
-    inferType hole >>= λ goal →
+    inferNormalisedType hole >>= λ goal →
     unify hole =<< assumed-tactic prf goal
 
   simplify : Term → Tactic
   simplify prf hole =
-    inferType hole >>= λ goal →
+    inferNormalisedType hole >>= λ goal →
     unify hole =<< simplify-tactic prf goal
 
     -- rewrite-argument-tactic (quote simplify-tactic)
