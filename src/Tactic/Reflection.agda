@@ -8,6 +8,7 @@ open import Tactic.Reflection.Telescope  public
 open import Tactic.Reflection.Substitute public
 open import Tactic.Reflection.Free       public
 open import Tactic.Reflection.Equality   public
+open import Tactic.Reflection.Meta       public
 
 set₀ : Type
 set₀ = agda-sort (lit 0)
