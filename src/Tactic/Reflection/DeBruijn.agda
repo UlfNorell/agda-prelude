@@ -148,3 +148,44 @@ instance
 
   DeBruijnMaybe : {A : Set} {{_ : DeBruijn A}} → DeBruijn (Maybe A)
   DeBruijnMaybe = DeBruijnTraversable
+
+-- Strip bound names (to ensure _==_ checks α-equality)
+-- Doesn't touch pattern variables in pattern lambdas.
+
+mutual
+
+  stripBoundNames : Term → Term
+  stripBoundNames (var x args)      = var x (stripArgs args)
+  stripBoundNames (con c args)      = con c (stripArgs args)
+  stripBoundNames (def f args)      = def f (stripArgs args)
+  stripBoundNames (lam v t)         = lam v (stripAbs t)
+  stripBoundNames (pat-lam cs args) = pat-lam (stripClauses cs) (stripArgs args)
+  stripBoundNames (pi a b)          = pi (stripArg a) (stripAbs b)
+  stripBoundNames (agda-sort s)     = agda-sort (stripSort s)
+  stripBoundNames (lit l)           = lit l
+  stripBoundNames (meta x args)     = meta x (stripArgs args)
+  stripBoundNames unknown           = unknown
+
+  private
+    stripArgs : List (Arg Term) → List (Arg Term)
+    stripArgs [] = []
+    stripArgs (x ∷ xs) = stripArg x ∷ stripArgs xs
+
+    stripArg : Arg Term → Arg Term
+    stripArg (arg i t) = arg i (stripBoundNames t)
+
+    stripAbs : Abs Term → Abs Term
+    stripAbs (abs _ t) = abs "" (stripBoundNames t)
+
+    stripClauses : List Clause → List Clause
+    stripClauses [] = []
+    stripClauses (x ∷ xs) = stripClause x ∷ stripClauses xs
+
+    stripClause : Clause → Clause
+    stripClause (clause ps t) = clause ps (stripBoundNames t)
+    stripClause (absurd-clause ps) = absurd-clause ps
+
+    stripSort : Sort → Sort
+    stripSort (set t) = set (stripBoundNames t)
+    stripSort (lit n) = lit n
+    stripSort unknown = unknown
