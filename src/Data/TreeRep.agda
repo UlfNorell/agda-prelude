@@ -2,6 +2,7 @@
 module Data.TreeRep where
 
 open import Prelude
+open import Container.Traversable
 open import Builtin.Reflection
 open import Builtin.Float
 
@@ -13,7 +14,7 @@ data Leaf : Set where
 
 data TreeRep : Set where
   leaf : Leaf → TreeRep
-  node : Nat → List (TreeRep) → TreeRep
+  node : Nat → List TreeRep → TreeRep
 
 --- Eq instance ---
 
@@ -239,6 +240,13 @@ instance
 
       emb : ∀ x → dec (enc x) ≡ just x
       emb (x , y) rewrite isTreeEmbedding x | isTreeEmbedding y = refl
+
+  EncodeList : ∀ {a} {A : Set a} {{_ : TreeEncoding A}} → TreeEncoding (List A)
+  treeEncode {{EncodeList}} xs          = node 0 (map treeEncode xs)
+  treeDecode {{EncodeList}} (node _ xs) = traverse′ treeDecode xs
+  treeDecode {{EncodeList}} _           = nothing
+  isTreeEmbedding {{EncodeList}} []       = refl
+  isTreeEmbedding {{EncodeList}} (x ∷ xs) = _∷_ =$= isTreeEmbedding x =*= isTreeEmbedding xs
 
 --- Example ---
 
