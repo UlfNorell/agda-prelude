@@ -69,13 +69,19 @@ decEq₂ f-inj₁ f-inj₂ (yes refl) (yes refl) = yes refl
 
 -- Equality reasoning --
 
-infixr 0 _≡⟨_⟩_ _≡⟨_⟩ʳ_
+infixr 0 eqReasoningStep eqReasoningStepʳ
 infix  1 _∎
 
-_≡⟨_⟩_ : ∀ {a} {A : Set a} (x : A) {y z} → x ≡ y → y ≡ z → x ≡ z
+-- Giving the proofs in the reverse order means the values of x and y
+-- are inferred before checking the x ≡ y proof. This leads to significant
+-- performance improvements in some cases.
+
+syntax eqReasoningStep x q p = x ≡⟨ p ⟩ q
+eqReasoningStep : ∀ {a} {A : Set a} (x : A) {y z} → y ≡ z → x ≡ y → x ≡ z
 x ≡⟨ refl ⟩ p = p
 
-_≡⟨_⟩ʳ_ : ∀ {a} {A : Set a} (x : A) {y z} → y ≡ x → y ≡ z → x ≡ z
+syntax eqReasoningStepʳ x q p = x ≡⟨ p ⟩ʳ q
+eqReasoningStepʳ : ∀ {a} {A : Set a} (x : A) {y z} → y ≡ z → y ≡ x → x ≡ z
 x ≡⟨ refl ⟩ʳ p = p
 
 _∎ : ∀ {a} {A : Set a} (x : A) → x ≡ x
