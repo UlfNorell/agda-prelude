@@ -6,13 +6,17 @@ open import Prelude.Bool
 open import Prelude.Maybe
 open import Prelude.List
 open import Prelude.Decidable
+open import Prelude.Functor
+open import Prelude.Function
 
 record Alternative {a b} (F : Set a → Set b) : Set (lsuc (a ⊔ b)) where
   infixl 3 _<|>_
   field
     empty : ∀ {A} → F A
     _<|>_ : ∀ {A} → F A → F A → F A
+    overlap {{super}} : Functor F
 
+open Alternative public using (super)
 open Alternative {{...}} public
 
 {-# DISPLAY Alternative.empty _     = empty   #-}
@@ -24,10 +28,12 @@ instance
   empty {{AlternativeMaybe}}           = nothing
   _<|>_ {{AlternativeMaybe}} nothing y = y
   _<|>_ {{AlternativeMaybe}} x       y = x
+  super AlternativeMaybe = it
 
   AlternativeList : ∀ {a} → Alternative (List {a})
   empty {{AlternativeList}} = []
   _<|>_ {{AlternativeList}} = _++_
+  super AlternativeList = it
 
 module _ {a b} {F : Set a → Set b} {A : Set a} {{_ : Alternative F}} where
   guardA! : Bool → F A → F A

@@ -10,8 +10,8 @@ record Monad {a b} (M : Set a → Set b) : Set (lsuc a ⊔ b) where
   infixr 1 _=<<_
   infixl 1 _>>=_ _>>_
   field
-    return : ∀ {A} → A → M A
     _>>=_ : ∀ {A B} → M A → (A → M B) → M B
+    overlap {{super}} : Applicative M
 
   _>>_ : ∀ {A B} → M A → M B → M B
   m₁ >> m₂ = m₁ >>= λ _ → m₂
@@ -19,19 +19,21 @@ record Monad {a b} (M : Set a → Set b) : Set (lsuc a ⊔ b) where
   _=<<_ : ∀ {A B} → (A → M B) → M A → M B
   _=<<_ = flip _>>=_
 
-  defaultMonadFunctor : Functor M
-  fmap {{defaultMonadFunctor}} f m = return ∘ f =<< m
+return : ∀ {a b} {A : Set a} {M : Set a → Set b} {{_ : Monad M}} → A → M A
+return = pure
 
-  defaultMonadApplicative : Applicative M
-  pure  {{defaultMonadApplicative}} = return
-  _<*>_ {{defaultMonadApplicative}} mf mx = mf >>= λ f → mx >>= λ x → return (f x)
+monadAp : ∀ {a b} {A B : Set a} {M : Set a → Set b}
+            {{_ : Functor M}} →
+            (M (A → B) → ((A → B) → M B) → M B) →
+            M (A → B) → M A → M B
+monadAp _>>=_ mf mx = mf >>= λ f → fmap f mx
 
-open Monad {{...}} public
+open Monad using (super) public
+open Monad {{...}} public hiding (super)
 
 {-# DISPLAY Monad._>>=_  _ = _>>=_  #-}
 {-# DISPLAY Monad._=<<_  _ = _=<<_  #-}
 {-# DISPLAY Monad._>>_   _ = _>>_   #-}
-{-# DISPLAY Monad.return _ = return #-}
 
 join : ∀ {a} {M : Set a → Set a} {{_ : Monad M}} {A : Set a} → M (M A) → M A
 join = _=<<_ id
@@ -40,8 +42,16 @@ join = _=<<_ id
 record Monad′ {a b} (M : ∀ {a} → Set a → Set a) : Set (lsuc (a ⊔ b)) where
   field
     _>>=′_ : {A : Set a} {B : Set b} → M A → (A → M B) → M B
+    overlap {{super}} : Applicative′ {a} {b} M
 
-open Monad′ {{...}} public
+open Monad′ using (super) public
+open Monad′ {{...}} public hiding (super)
+
+monadAp′ : ∀ {a b} {A : Set a} {B : Set b} {M : ∀ {a} → Set a → Set a}
+             {{_ : Functor′ {a} {b} M}} →
+            (M (A → B) → ((A → B) → M B) → M B) →
+            M (A → B) → M A → M B
+monadAp′ _>>=_ mf mx = mf >>= λ f → fmap′ f mx
 
 infix -10 do_
 do_ : ∀ {a} {A : Set a} → A → A

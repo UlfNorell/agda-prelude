@@ -15,9 +15,7 @@ record Applicative {a b} (F : Set a → Set b) : Set (lsuc a ⊔ b) where
   field
     pure  : ∀ {A} → A → F A
     _<*>_ : ∀ {A B} → F (A → B) → F A → F B
-
-  defaultApplicativeFunctor : Functor F
-  fmap {{defaultApplicativeFunctor}} f x = ⦇ f x ⦈
+    overlap {{super}} : Functor F
 
   _<*_ : ∀ {A B} → F A → F B → F A
   a <* b = ⦇ const a b ⦈
@@ -25,24 +23,32 @@ record Applicative {a b} (F : Set a → Set b) : Set (lsuc a ⊔ b) where
   _*>_ : ∀ {A B} → F A → F B → F B
   a *> b = ⦇ (const id) a b ⦈
 
-open Applicative {{...}} public
+open Applicative public using (super)
+open Applicative {{...}} public hiding (super)
 
 {-# DISPLAY Applicative.pure  _ = pure  #-}
 {-# DISPLAY Applicative._<*>_ _ = _<*>_ #-}
 {-# DISPLAY Applicative._<*_  _ = _<*_  #-}
 {-# DISPLAY Applicative._*>_  _ = _*>_  #-}
 
+fmapApplicative : ∀ {a b} {F : Set a → Set b} →
+                    (∀ {A} → A → F A) → (∀ {A B} → F (A → B) → F A → F B) →
+                    ∀ {A B} → (A → B) → F A → F B
+fmapApplicative pure _<*>_ f m = pure f <*> m
+
 -- Level polymorphic functors
 record Applicative′ {a b} (F : ∀ {a} → Set a → Set a) : Set (lsuc (a ⊔ b)) where
   infixl 4 _<*>′_
   field
     _<*>′_ : {A : Set a} {B : Set b} → F (A → B) → F A → F B
+    overlap {{super}} : Functor′ {a} {b} F
 
-open Applicative′ {{...}} public
+open Applicative′ public using (super)
+open Applicative′ {{...}} public hiding (super)
 
 module _ {F : ∀ {a} → Set a → Set a}
-         {{_ : ∀ {a b} → Applicative′ {a} {b} F}}
          {{_ : ∀ {a} → Applicative {a} F}}
+         {{_ : ∀ {a b} → Applicative′ {a} {b} F}}
          {a b} {A : Set a} {B : Set b} where
 
   infixl 4 _<*′_ _*>′_
@@ -52,7 +58,7 @@ module _ {F : ∀ {a} → Set a → Set a}
   _*>′_ : F A → F B → F B
   a *>′ b = pure (const id) <*>′ a <*>′ b
 
-module _ {a b} {F : Set a → Set b} {{FunF : Functor F}} {{AppF : Applicative F}} where
+module _ {a b} {F : Set a → Set b} {{AppF : Applicative F}} where
 
   defaultApplicativeNumber : {A : Set a} {{NumA : Number A}} -- levels get in the way of having constraints
                              {{_ : NoNumConstraint NumA}} →

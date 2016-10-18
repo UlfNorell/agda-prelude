@@ -22,19 +22,27 @@ module _ {a} {S : Set a} {M : Set a → Set a} where
     AlternativeStateT : {{_ : Alternative M}} → Alternative {a = a} (StateT S M)
     runStateT (empty {{AlternativeStateT}})     s = empty
     runStateT (_<|>_ {{AlternativeStateT}} x y) s = runStateT x s <|> runStateT y s
+    super AlternativeStateT = it
 
   module _ {{_ : Monad M}} where
 
-    instance
-      MonadStateT : Monad {a = a} (StateT S M)
-      runStateT (return {{MonadStateT}} x)   s = return (x , s)
-      runStateT (_>>=_  {{MonadStateT}} m f) s = runStateT m s >>= λ r → uncurry (runStateT ∘ f) r
+    private
+      bindStateT : ∀ {A B} → StateT S M A → (A → StateT S M B) → StateT S M B
+      runStateT (bindStateT m f) s = runStateT m s >>= λ r → uncurry (runStateT ∘ f) r
 
+    instance
       ApplicativeStateT : Applicative {a = a} (StateT S M)
-      ApplicativeStateT = defaultMonadApplicative
+      runStateT (pure  {{ApplicativeStateT}} x)     s = pure (x , s)
+      _<*>_ {{ApplicativeStateT}} = monadAp bindStateT
+      super ApplicativeStateT = it
+
+      MonadStateT : Monad {a = a} (StateT S M)
+      _>>=_  {{MonadStateT}} = bindStateT
+      super MonadStateT = it
 
       MonadZeroStateT : {{_ : MonadZero M}} → MonadZero {a = a} (StateT S M)
       runStateT (mzero {{MonadZeroStateT}}) _ = mzero
+      super MonadZeroStateT = it
 
     lift : {A : Set a} → M A → StateT S M A
     runStateT (lift m) s = m >>= λ x → return (x , s)

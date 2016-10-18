@@ -123,7 +123,7 @@ private
 
 -- Instances --
 
-DeBruijnTraversable : ∀ {a} {F : Set a → Set a} {{_ : Functor F}} {{_ : Traversable F}}
+DeBruijnTraversable : ∀ {a} {F : Set a → Set a} {{_ : Traversable F}}
                         {A : Set a} {{_ : DeBruijn A}} → DeBruijn (F A)
 strengthenFrom {{DeBruijnTraversable}} lo k = traverse (strengthenFrom lo k)
 weakenFrom     {{DeBruijnTraversable}} lo k = fmap     (weakenFrom lo k)

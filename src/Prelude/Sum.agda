@@ -79,13 +79,19 @@ instance
 
 --- Monad instance ---
 
-instance
-  MonadEither : ∀ {a b} {A : Set a} → Monad (Either {b = b} A)
-  return {{MonadEither}} = right
-  _>>=_  {{MonadEither}} m f = either left f m
+module _ {a b} {A : Set a} where
+  instance
+    FunctorEither : Functor (Either {b = b} A)
+    fmap {{FunctorEither}} f (left x) = left x
+    fmap {{FunctorEither}} f (right x) = right (f x)
 
-  FunctorEither : ∀ {a b} {A : Set a} → Functor (Either {b = b} A)
-  FunctorEither = defaultMonadFunctor
+    ApplicativeEither : Applicative (Either {b = b} A)
+    pure  {{ApplicativeEither}} = right
+    _<*>_ {{ApplicativeEither}} (right f) (right x) = right (f x)
+    _<*>_ {{ApplicativeEither}} (right _) (left e)  = left e
+    _<*>_ {{ApplicativeEither}} (left e)  _         = left e
+    Applicative.super ApplicativeEither = it
 
-  ApplicativeEither : ∀ {a b} {A : Set a} → Applicative (Either {b = b} A)
-  ApplicativeEither = defaultMonadApplicative
+    MonadEither : Monad (Either {b = b} A)
+    _>>=_  {{MonadEither}} m f = either left f m
+    Monad.super MonadEither = it

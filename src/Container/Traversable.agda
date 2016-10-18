@@ -6,15 +6,19 @@ open import Prelude
 record Traversable {a} (T : Set a → Set a) : Set (lsuc a) where
   field
     traverse : ∀ {F : Set a → Set a} {A B} {{AppF : Applicative F}} → (A → F B) → T A → F (T B)
+    overlap {{super}} : Functor T
 
-open Traversable {{...}} public
+open Traversable public using (super)
+open Traversable {{...}} public hiding (super)
 
 record Traversable′ {a b} (T : ∀ {a} → Set a → Set a) : Set (lsuc (a ⊔ b)) where
   field
     traverse′ : ∀ {F : Set b → Set b} {A : Set a} {B : Set b}
                   {{AppF : Applicative F}} → (A → F B) → T A → F (T B)
+    overlap {{super}} : Functor′ {a} {b} T
 
-open Traversable′ {{...}} public
+open Traversable′ public using (super)
+open Traversable′ {{...}} public hiding (super)
 
 {-# DISPLAY Traversable.traverse   _ = traverse #-}
 {-# DISPLAY Traversable′.traverse′ _ = traverse′ #-}
@@ -24,28 +28,34 @@ open Traversable′ {{...}} public
 instance
   TraversableMaybe : ∀ {a} → Traversable {a} Maybe
   traverse {{TraversableMaybe}} f m = maybe (pure nothing) (λ x -> pure just <*> f x) m
+  super TraversableMaybe = it
 
   TraversableList : ∀ {a} → Traversable {a} List
   traverse {{TraversableList}} f xs = foldr (λ x fxs → pure _∷_ <*> f x <*> fxs) (pure []) xs
+  super TraversableList = it
 
   TraversableVec : ∀ {a n} → Traversable {a} (λ A → Vec A n)
   traverse {{TraversableVec}} f []       = pure []
   traverse {{TraversableVec}} f (x ∷ xs) = ⦇ f x ∷ traverse f xs ⦈
+  super TraversableVec = it
 
   Traversable′Maybe : ∀ {a b} → Traversable′ {a} {b} Maybe
   traverse′ {{Traversable′Maybe}} f m = maybe (pure nothing) (λ x -> pure just <*> f x) m
+  super Traversable′Maybe = it
 
   Traversable′List : ∀ {a b} → Traversable′ {a} {b} List
   traverse′ {{Traversable′List}} f xs = foldr (λ x fxs → pure _∷_ <*> f x <*> fxs) (pure []) xs
+  super Traversable′List = it
 
   Traversable′Vec : ∀ {a b n} → Traversable′ {a} {b} (λ A → Vec A n)
   traverse′ {{Traversable′Vec}} f []       = pure []
   traverse′ {{Traversable′Vec}} f (x ∷ xs) = ⦇ f x ∷ traverse′ f xs ⦈
+  super Traversable′Vec = it
 
 mapM : ∀ {a b} {F : Set b → Set b} {A : Set a} {B : Set b} {{AppF : Applicative F}} →
          (A → F B) → List A → F (List B)
 mapM = traverse′
 
-mapM! : ∀ {a} {F : Set → Set} {A : Set a} {{FunF : Functor F}} {{AppF : Applicative F}} →
+mapM! : ∀ {a} {F : Set → Set} {A : Set a} {{AppF : Applicative F}} →
           (A → F ⊤) → List A → F ⊤
 mapM! f xs = _ <$ mapM f xs

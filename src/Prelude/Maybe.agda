@@ -20,6 +20,11 @@ data Maybe {a} (A : Set a) : Set a where
 maybe : ∀ {a b} {A : Set a} {B : Set b} → B → (A → B) → Maybe A → B
 maybe z f nothing  = z
 maybe z f (just x) = f x
+{-# INLINE maybe #-}
+
+fromMaybe : ∀ {a} {A : Set a} → A → Maybe A → A
+fromMaybe z = maybe z id
+{-# INLINE fromMaybe #-}
 
 IsJust : ∀ {a} {A : Set a} → Maybe A → Set
 IsJust = maybe ⊥ (const ⊤)
@@ -52,23 +57,26 @@ instance
 --- Monad ---
 
 instance
-  MonadMaybe : ∀ {a} → Monad {a} Maybe
-  return {{MonadMaybe}}     = just
-  _>>=_  {{MonadMaybe}} m f = maybe nothing f m
-
-  MonadMaybe′ : ∀ {a b} → Monad′ {a} {b} Maybe
-  _>>=′_ {{MonadMaybe′}} m f = maybe nothing f m
-
   FunctorMaybe : ∀ {a} → Functor (Maybe {a})
-  FunctorMaybe = defaultMonadFunctor
-
-  FunctorMaybe′ : ∀ {a b} → Functor′ {a} {b} Maybe
-  fmap′ {{FunctorMaybe′}} f nothing  = nothing
-  fmap′ {{FunctorMaybe′}} f (just x) = just (f x)
+  fmap {{FunctorMaybe}} f m = maybe nothing (just ∘ f) m
 
   ApplicativeMaybe : ∀ {a} → Applicative (Maybe {a})
-  ApplicativeMaybe = defaultMonadApplicative
+  pure  {{ApplicativeMaybe}} = just
+  _<*>_ {{ApplicativeMaybe}} mf mx = maybe nothing (λ f → fmap f mx) mf
+  super ApplicativeMaybe = it
+
+  MonadMaybe : ∀ {a} → Monad {a} Maybe
+  _>>=_  {{MonadMaybe}} m f = maybe nothing f m
+  super MonadMaybe = it
+
+  FunctorMaybe′ : ∀ {a b} → Functor′ {a} {b} Maybe
+  fmap′ {{FunctorMaybe′}} f m = maybe nothing (just ∘ f) m
 
   ApplicativeMaybe′ : ∀ {a b} → Applicative′ {a} {b} Maybe
   _<*>′_ {{ApplicativeMaybe′}} (just f) (just x) = just (f x)
   _<*>′_ {{ApplicativeMaybe′}}  _        _       = nothing
+  super ApplicativeMaybe′ = it
+
+  MonadMaybe′ : ∀ {a b} → Monad′ {a} {b} Maybe
+  _>>=′_ {{MonadMaybe′}} m f = maybe nothing f m
+  super MonadMaybe′ = it

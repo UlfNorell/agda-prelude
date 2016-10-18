@@ -57,15 +57,17 @@ parse! p s with filter (null ∘ snd) (parse p s)
 --- Instances ---
 
 instance
-  MonadP : Monad P
-  return {{MonadP}} = ret
-  _>>=_  {{MonadP}} = bind
+  FunctorP : Functor P
+  fmap {{FunctorP}} f m = bind m λ x → ret (f x)
 
   ApplicativeP : Applicative P
-  ApplicativeP = defaultMonadApplicative
+  pure {{ApplicativeP}} = ret
+  _<*>_ {{ApplicativeP}} = monadAp bind
+  super ApplicativeP = it
 
-  FunctorP : Functor P
-  FunctorP = defaultMonadFunctor
+  MonadP : Monad P
+  _>>=_  {{MonadP}} = bind
+  super MonadP = it
 
   MonoidP : ∀ {A} → Monoid (P A)
   mempty {{MonoidP}} = fail

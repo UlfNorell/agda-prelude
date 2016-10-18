@@ -123,6 +123,8 @@ instance
   ApplicativeVec : ∀ {a n} → Applicative {a} (flip Vec n)
   pure  {{ApplicativeVec}} = vec
   _<*>_ {{ApplicativeVec}} = vapp
+  super ApplicativeVec = it
 
   ApplicativeVec′ : ∀ {a b n} → Applicative′ {a} {b} (flip Vec n)
   _<*>′_ {{ApplicativeVec′}} = vapp
+  super ApplicativeVec′ = it

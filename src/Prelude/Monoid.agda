@@ -1,10 +1,12 @@
 
 module Prelude.Monoid where
 
+open import Prelude.Function
 open import Prelude.Maybe
 open import Prelude.List
 open import Prelude.Semiring
 open import Prelude.Applicative
+open import Prelude.Functor
 
 record Monoid {a} (A : Set a) : Set a where
   infixr 6 _<>_
@@ -64,7 +66,12 @@ record Const {a b} (A : Set a) (B : Set b) : Set a where
 
 open Const public
 
-instance
-  ApplicativeConst : ∀ {a b} {A : Set a} {{MonA : Monoid A}} → Applicative {a = b} (Const A)
-  getConst (pure  {{ApplicativeConst}} x)     = mempty
-  getConst (_<*>_ {{ApplicativeConst}} wf wx) = getConst wf <> getConst wx
+module _ {a b} {A : Set a} {{MonA : Monoid A}} where
+  instance
+    FunctorConst : Functor {a = b} (Const A)
+    getConst (fmap {{FunctorConst}} f x) = getConst x
+
+    ApplicativeConst : Applicative (Const A)
+    getConst (pure  {{ApplicativeConst}} x)     = mempty
+    getConst (_<*>_ {{ApplicativeConst}} wf wx) = getConst wf <> getConst wx
+    Applicative.super ApplicativeConst = it

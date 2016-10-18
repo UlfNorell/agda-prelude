@@ -5,7 +5,9 @@ open import Prelude
 
 record MonadZero {a b} (M : Set a → Set b) : Set (lsuc a ⊔ b) where
   field mzero : ∀ {A} → M A
+        overlap {{super}} : Monad M
 
+open MonadZero public using (super)
 open MonadZero {{...}} public
 
 {-# DISPLAY MonadZero.mzero _ = mzero #-}
@@ -13,9 +15,11 @@ open MonadZero {{...}} public
 instance
   MonadZeroMaybe : ∀ {a} → MonadZero {a} Maybe
   mzero {{MonadZeroMaybe}} = nothing
+  super MonadZeroMaybe = it
 
   MonadZeroList : ∀ {a} → MonadZero {a} List
   mzero {{MonadZeroList}} = []
+  super MonadZeroList = it
 
 module _ {a b} {M : Set a → Set b} {{_ : MonadZero M}} where
 

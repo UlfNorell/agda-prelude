@@ -229,12 +229,19 @@ instance
   FunctorList′ : ∀ {a b} → Functor′ {a} {b} List
   fmap′ {{FunctorList′}} = map
 
+  ApplicativeList : ∀ {a} → Applicative (List {a})
+  pure  {{ApplicativeList}} x = x ∷ []
+  _<*>_ {{ApplicativeList}} = monadAp (flip concatMap)
+  super ApplicativeList = it
+
+  ApplicativeList′ : ∀ {a b} → Applicative′ {a} {b} List
+  _<*>′_ {{ApplicativeList′}} = monadAp′ (flip concatMap)
+  super ApplicativeList′ = it
+
   MonadList : ∀ {a} → Monad (List {a})
-  return {{MonadList}} x    = x ∷ []
   _>>=_  {{MonadList}} xs f = concatMap f xs
+  super MonadList = it
 
   MonadList′ : ∀ {a b} → Monad′ {a} {b} List
   _>>=′_ {{MonadList′}} xs f = concatMap f xs
-
-  ApplicativeList : ∀ {a} → Applicative (List {a})
-  ApplicativeList = defaultMonadApplicative
+  super MonadList′ = it

@@ -109,6 +109,7 @@ instance
 
   TraversableArg : Traversable Arg
   traverse {{TraversableArg}} f (arg i x) = ⦇ (arg i) (f x) ⦈
+  super TraversableArg = it
 
 unAbs : ∀ {A} → Abs A → A
 unAbs (abs _ x) = x
@@ -119,38 +120,48 @@ instance
 
   TraversableAbs : Traversable Abs
   traverse {{TraversableAbs}} f (abs s x) = ⦇ (abs s) (f x) ⦈
+  super TraversableAbs = it
 
 absurd-lam : Term
 absurd-lam = pat-lam (absurd-clause (vArg absurd ∷ []) ∷ []) []
 
 --- TC monad ---
 
+mapTC : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → TC A → TC B
+mapTC f m = bindTC m λ x → returnTC (f x)
+
 instance
+  FunctorTC : ∀ {a} → Functor {a} TC
+  fmap {{FunctorTC}} = mapTC
+
+  ApplicativeTC : ∀ {a} → Applicative {a} TC
+  pure  {{ApplicativeTC}} = returnTC
+  _<*>_ {{ApplicativeTC}} = monadAp bindTC
+  super ApplicativeTC = it
+
+  FunctorTC′ : ∀ {a b} → Functor′ {a} {b} TC
+  fmap′ {{FunctorTC′}} = mapTC
+
+  ApplicativeTC′ : ∀ {a b} → Applicative′ {a} {b} TC
+  _<*>′_ {{ApplicativeTC′}} = monadAp′ bindTC
+  super ApplicativeTC′ = it
+
   MonadTC : ∀ {a} → Monad {a} TC
-  return {{MonadTC}} = returnTC
   _>>=_  {{MonadTC}} = bindTC
+  super MonadTC = it
 
   MonadTC′ : ∀ {a b} → Monad′ {a} {b} TC
   _>>=′_ {{MonadTC′}} = bindTC
-
-  ApplicativeTC : ∀ {a} → Applicative {a} TC
-  ApplicativeTC = defaultMonadApplicative
-
-  ApplicativeTC′ : ∀ {a b} → Applicative′ {a} {b} TC
-  _<*>′_ {{ApplicativeTC′}} mf mx = mf >>=′ λ f → mx >>=′ λ x → return (f x)
-
-  FunctorTC : ∀ {a} → Functor {a} TC
-  FunctorTC = defaultMonadFunctor
-
-  FunctorTC′ : ∀ {a b} → Functor′ {a} {b} TC
-  fmap′ {{FunctorTC′}} f m = pure f <*>′ m
+  super MonadTC′ = it
 
   AlternativeTC : ∀ {a} → Alternative {a} TC
   empty {{AlternativeTC}} = typeError []
   _<|>_ {{AlternativeTC}} = catchTC
+  super AlternativeTC = it
 
   MonadZeroTC : ∀ {a} → MonadZero {a} TC
   mzero {{MonadZeroTC}} = empty
+  super MonadZeroTC = it
 
 Tactic = Term → TC ⊤
 

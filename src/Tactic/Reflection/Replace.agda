@@ -5,7 +5,7 @@ module Tactic.Reflection.Replace where
 
   open import Tactic.Reflection
   open import Tactic.Reflection.Equality
-  
+
   {-# TERMINATING #-}
   _r[_/_] : Term → Term → Term → Term
   p r[ r / l ] =
@@ -16,7 +16,9 @@ module Tactic.Reflection.Replace where
         ; (con c args) → con c $ args r₂[ r / l ]
         ; (def f args) → def f $ args r₂[ r / l ]
         ; (lam v t) → lam v $ t r₁[ weaken 1 r / weaken 1 l ] -- lam v <$> t r₁[ weaken 1 r / weaken 1 l ]
-        ; (pat-lam cs args) → let w = length args in pat-lam (replaceClause (weaken w l) (weaken w r) <$> cs) $ args r₂[ r / l ]
+        ; (pat-lam cs args) →
+            let w = length args in
+            pat-lam (replaceClause (weaken w l) (weaken w r) <$> cs) $ args r₂[ r / l ]
         ; (pi a b) → pi (a r₁[ r / l ]) (b r₁[ weaken 1 r / weaken 1 l ])
         ; (agda-sort s) → agda-sort $ replaceSort l r s
         ; (lit l) → lit l
@@ -34,10 +36,11 @@ module Tactic.Reflection.Replace where
       replaceSort l r (lit n) = lit n
       replaceSort l r unknown = unknown
 
-      _r₁[_/_] : {T₀ : Set → Set} {{_ : Functor T₀}} {{_ : Traversable T₀}} → T₀ Term → Term → Term → T₀ Term
+      _r₁[_/_] : {T₀ : Set → Set} {{_ : Traversable T₀}} → T₀ Term → Term → Term → T₀ Term
       p r₁[ r / l ] = _r[ r / l ] <$> p
 
-      _r₂[_/_] : {T₀ T₁ : Set → Set} {{_ : Functor T₀}} {{_ : Traversable T₀}} {{_ : Functor T₁}} {{_ : Traversable T₁}} → T₁ (T₀ Term) → Term → Term → T₁ (T₀ Term)
+      _r₂[_/_] : {T₀ T₁ : Set → Set} {{_ : Traversable T₀}} {{_ : Traversable T₁}} →
+                 T₁ (T₀ Term) → Term → Term → T₁ (T₀ Term)
       p r₂[ r / l ] = fmap _r[ r / l ] <$> p
 
   _R[_/_] : List (Arg Type) → Type → Type → List (Arg Type)

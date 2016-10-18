@@ -24,19 +24,32 @@ postulate
 {-# COMPILED_UHC ioReturn (\ _ _ x -> UHC.Agda.Builtins.primReturn x) #-}
 {-# COMPILED_UHC ioBind   (\ _ _ _ _ x y -> UHC.Agda.Builtins.primBind x y) #-}
 
+ioMap : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → IO A → IO B
+ioMap f m = ioBind m λ x → ioReturn (f x)
+
 instance
+  FunctorIO : ∀ {a} → Functor {a} IO
+  fmap {{FunctorIO}} = ioMap
+
+  ApplicativeIO : ∀ {a} → Applicative {a} IO
+  pure {{ApplicativeIO}} = ioReturn
+  _<*>_ {{ApplicativeIO}} = monadAp ioBind
+  super ApplicativeIO = it
+
   MonadIO : ∀ {a} → Monad {a} IO
-  return {{MonadIO}} = ioReturn
-  _>>=_  {{MonadIO}} = ioBind
+  _>>=_ {{MonadIO}} = ioBind
+  super MonadIO = it
+
+  FunctorIO′ : ∀ {a b} → Functor′ {a} {b} IO
+  fmap′ {{FunctorIO′}} = ioMap
+
+  ApplicativeIO′ : ∀ {a b} → Applicative′ {a} {b} IO
+  _<*>′_ {{ApplicativeIO′}} = monadAp′ ioBind
+  super ApplicativeIO′ = it
 
   MonadIO′ : ∀ {a b} → Monad′ {a} {b} IO
   _>>=′_ {{MonadIO′}} = ioBind
-
-  FunctorIO : ∀ {a} → Functor {a} IO
-  FunctorIO = defaultMonadFunctor
-
-  ApplicativeIO : ∀ {a} → Applicative {a} IO
-  ApplicativeIO = defaultMonadApplicative
+  super MonadIO′ = it
 
 --- Terminal IO ---
 
