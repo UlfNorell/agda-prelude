@@ -5,9 +5,11 @@ open import Agda.Primitive
 open import Prelude.Bool
 open import Prelude.Maybe
 open import Prelude.List
+open import Prelude.Sum
 open import Prelude.Decidable
 open import Prelude.Functor
 open import Prelude.Function
+open import Prelude.Monoid
 
 record Alternative {a b} (F : Set a → Set b) : Set (lsuc (a ⊔ b)) where
   infixl 3 _<|>_
@@ -34,6 +36,11 @@ instance
   empty {{AlternativeList}} = []
   _<|>_ {{AlternativeList}} = _++_
   super AlternativeList = it
+
+  AlternativeEither : ∀ {a b} {E : Set b} {{_ : Monoid E}} → Alternative (Either {b = a} E)
+  empty {{AlternativeEither}}     = left mempty
+  _<|>_ {{AlternativeEither}} x y = either (const y) right x
+  super AlternativeEither = it
 
 module _ {a b} {F : Set a → Set b} {A : Set a} {{_ : Alternative F}} where
   guardA! : Bool → F A → F A
