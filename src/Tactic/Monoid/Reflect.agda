@@ -5,6 +5,7 @@ open import Prelude
 open import Tactic.Reflection
 open import Tactic.Reflection.Match
 
+open import Control.Monad.Zero
 open import Control.Monad.State
 open import Container.Traversable
 
@@ -61,7 +62,7 @@ monoidMatcher dict = withNormalisation true $
   do isZ ← matchEmpty dict
   -| isP ← match<> dict
   -| pure λ v →
-       guardA! (isZ v) (pure eZero) <|>
+       guard! (isZ v) (pure eZero) <|>
        (caseF isP v of λ
         { (x ∷ y ∷ []) → ePlus x y })
 

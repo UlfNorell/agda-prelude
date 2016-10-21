@@ -40,4 +40,4 @@ module _ {M : Set → Set} {{_ : MonadZero M}} where
     parseEqn : Term → ParseTerm M (E × E)
     parseEqn (def (quote _≡_) (_ ∷ _ ∷ vArg x ∷ vArg y ∷ [])) =
       ⦇ parseTerm x , parseTerm y ⦈
-    parseEqn goal = mzero
+    parseEqn goal = empty

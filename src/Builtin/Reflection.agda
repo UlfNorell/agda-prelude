@@ -154,14 +154,13 @@ instance
   _>>=′_ {{MonadTC′}} = bindTC
   super MonadTC′ = it
 
+  FunctorZeroTC : ∀ {a} → FunctorZero {a} TC
+  empty {{FunctorZeroTC}} = typeError []
+  super FunctorZeroTC = it
+
   AlternativeTC : ∀ {a} → Alternative {a} TC
-  empty {{AlternativeTC}} = typeError []
   _<|>_ {{AlternativeTC}} = catchTC
   super AlternativeTC = it
-
-  MonadZeroTC : ∀ {a} → MonadZero {a} TC
-  mzero {{MonadZeroTC}} = empty
-  super MonadZeroTC = it
 
 Tactic = Term → TC ⊤
 

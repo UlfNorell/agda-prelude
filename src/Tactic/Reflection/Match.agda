@@ -52,17 +52,17 @@ private
   matchTerm′ k (con c args) (con c₁ args₁) = guard (c == c₁) (matchArgs k args args₁)
   matchTerm′ k (def f args) (def g args₁) = guard (f == g) (matchArgs k args args₁)
   matchTerm′ k (lam h p) (lam h₁ v) = guard (h == h₁) (matchAbs k p v)
-  matchTerm′ k (pat-lam cs args) v = mzero -- todo
+  matchTerm′ k (pat-lam cs args) v = empty -- todo
   matchTerm′ k (pi a b) (pi a₁ b₁) = matchArg k a a₁ >> matchAbs k b b₁
   matchTerm′ k (lit l) (lit l₁) = guard (l == l₁) (pure _)
   matchTerm′ k (agda-sort _) _ = pure _ -- ignore sorts
   matchTerm′ k (meta _ _) _ = pure _
   matchTerm′ k unknown _ = pure _
-  matchTerm′ k p v = mzero
+  matchTerm′ k p v = empty
 
   matchArgs k (x ∷ xs) (y ∷ ys) = matchArg k x y >> matchArgs k xs ys
   matchArgs k [] [] = pure _
-  matchArgs k _ _   = mzero
+  matchArgs k _ _   = empty
 
   matchAbs k (abs _ x) (abs _ y) = matchTerm (suc k) x y
   matchArg k (arg i x) (arg j y) = guard (i == j) (matchTerm k x y)
