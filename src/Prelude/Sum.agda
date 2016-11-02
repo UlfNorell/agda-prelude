@@ -90,8 +90,6 @@ module _ {a b} {A : Set a} where
     _<*>_ {{ApplicativeEither}} (right f) (right x) = right (f x)
     _<*>_ {{ApplicativeEither}} (right _) (left e)  = left e
     _<*>_ {{ApplicativeEither}} (left e)  _         = left e
-    Applicative.super ApplicativeEither = it
 
     MonadEither : Monad (Either {b = b} A)
     _>>=_  {{MonadEither}} m f = either left f m
-    Monad.super MonadEither = it

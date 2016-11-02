@@ -34,22 +34,18 @@ instance
   ApplicativeIO : ∀ {a} → Applicative {a} IO
   pure {{ApplicativeIO}} = ioReturn
   _<*>_ {{ApplicativeIO}} = monadAp ioBind
-  super ApplicativeIO = it
 
   MonadIO : ∀ {a} → Monad {a} IO
   _>>=_ {{MonadIO}} = ioBind
-  super MonadIO = it
 
   FunctorIO′ : ∀ {a b} → Functor′ {a} {b} IO
   fmap′ {{FunctorIO′}} = ioMap
 
   ApplicativeIO′ : ∀ {a b} → Applicative′ {a} {b} IO
   _<*>′_ {{ApplicativeIO′}} = monadAp′ ioBind
-  super ApplicativeIO′ = it
 
   MonadIO′ : ∀ {a b} → Monad′ {a} {b} IO
   _>>=′_ {{MonadIO′}} = ioBind
-  super MonadIO′ = it
 
 --- Terminal IO ---
 

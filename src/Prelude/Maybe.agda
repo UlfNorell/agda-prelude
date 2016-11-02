@@ -63,11 +63,9 @@ instance
   ApplicativeMaybe : ∀ {a} → Applicative (Maybe {a})
   pure  {{ApplicativeMaybe}} = just
   _<*>_ {{ApplicativeMaybe}} mf mx = maybe nothing (λ f → fmap f mx) mf
-  super ApplicativeMaybe = it
 
   MonadMaybe : ∀ {a} → Monad {a} Maybe
   _>>=_  {{MonadMaybe}} m f = maybe nothing f m
-  super MonadMaybe = it
 
   FunctorMaybe′ : ∀ {a b} → Functor′ {a} {b} Maybe
   fmap′ {{FunctorMaybe′}} f m = maybe nothing (just ∘ f) m
@@ -75,8 +73,6 @@ instance
   ApplicativeMaybe′ : ∀ {a b} → Applicative′ {a} {b} Maybe
   _<*>′_ {{ApplicativeMaybe′}} (just f) (just x) = just (f x)
   _<*>′_ {{ApplicativeMaybe′}}  _        _       = nothing
-  super ApplicativeMaybe′ = it
 
   MonadMaybe′ : ∀ {a b} → Monad′ {a} {b} Maybe
   _>>=′_ {{MonadMaybe′}} m f = maybe nothing f m
-  super MonadMaybe′ = it

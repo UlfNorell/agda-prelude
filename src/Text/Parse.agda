@@ -63,11 +63,9 @@ instance
   ApplicativeP : Applicative P
   pure {{ApplicativeP}} = ret
   _<*>_ {{ApplicativeP}} = monadAp bind
-  super ApplicativeP = it
 
   MonadP : Monad P
   _>>=_  {{MonadP}} = bind
-  super MonadP = it
 
   MonoidP : ∀ {A} → Monoid (P A)
   mempty {{MonoidP}} = fail

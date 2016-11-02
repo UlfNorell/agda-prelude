@@ -28,7 +28,6 @@ private
     traverse {{TraversableExpF}} f (eVar i)    = pure (eVar i)
     traverse {{TraversableExpF}} f eZero       = pure eZero
     traverse {{TraversableExpF}} f (ePlus x y) = ⦇ ePlus (f x) (f y) ⦈
-    super TraversableExpF = it
 
   mkExp : ExpF Exp → Exp
   mkExp (eVar i)    = var i

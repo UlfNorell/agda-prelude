@@ -232,16 +232,12 @@ instance
   ApplicativeList : ∀ {a} → Applicative (List {a})
   pure  {{ApplicativeList}} x = x ∷ []
   _<*>_ {{ApplicativeList}} = monadAp (flip concatMap)
-  super ApplicativeList = it
 
   ApplicativeList′ : ∀ {a b} → Applicative′ {a} {b} List
   _<*>′_ {{ApplicativeList′}} = monadAp′ (flip concatMap)
-  super ApplicativeList′ = it
 
   MonadList : ∀ {a} → Monad (List {a})
   _>>=_  {{MonadList}} xs f = concatMap f xs
-  super MonadList = it
 
   MonadList′ : ∀ {a b} → Monad′ {a} {b} List
   _>>=′_ {{MonadList′}} xs f = concatMap f xs
-  super MonadList′ = it

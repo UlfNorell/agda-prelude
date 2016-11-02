@@ -20,12 +20,10 @@ module _ {a} {S : Set a} {M : Set a → Set a} where
     runStateT (fmap {{FunctorStateT}} f m) s = first f <$> runStateT m s
 
     FunctorZeroStateT : {{_ : FunctorZero M}} → FunctorZero {a = a} (StateT S M)
-    runStateT (empty {{FunctorZeroStateT}})     s = empty
-    super FunctorZeroStateT = it
+    runStateT (empty {{FunctorZeroStateT}}) s = empty
 
     AlternativeStateT : {{_ : Alternative M}} → Alternative {a = a} (StateT S M)
     runStateT (_<|>_ {{AlternativeStateT}} x y) s = runStateT x s <|> runStateT y s
-    super AlternativeStateT = it
 
   module _ {{_ : Monad M}} where
 
@@ -37,11 +35,9 @@ module _ {a} {S : Set a} {M : Set a → Set a} where
       ApplicativeStateT : Applicative {a = a} (StateT S M)
       runStateT (pure  {{ApplicativeStateT}} x)     s = pure (x , s)
       _<*>_ {{ApplicativeStateT}} = monadAp bindStateT
-      super ApplicativeStateT = it
 
       MonadStateT : Monad {a = a} (StateT S M)
       _>>=_  {{MonadStateT}} = bindStateT
-      super MonadStateT = it
 
     lift : {A : Set a} → M A → StateT S M A
     runStateT (lift m) s = m >>= λ x → return (x , s)

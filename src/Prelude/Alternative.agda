@@ -23,10 +23,8 @@ module _ {a b} (F : Set a → Set b) where
       _<|>_ : ∀ {A} → F A → F A → F A
       overlap {{super}} : FunctorZero
 
-open FunctorZero public using (super)
 open FunctorZero {{...}} public
 
-open Alternative public using (super)
 open Alternative {{...}} public
 
 {-# DISPLAY FunctorZero.empty _     = empty   #-}
@@ -35,29 +33,23 @@ open Alternative {{...}} public
 instance
   FunctorZeroMaybe : ∀ {a} → FunctorZero (Maybe {a})
   empty {{FunctorZeroMaybe}} = nothing
-  super FunctorZeroMaybe = it
 
   -- Left-biased choice
   AlternativeMaybe : ∀ {a} → Alternative (Maybe {a})
   _<|>_ {{AlternativeMaybe}} nothing y = y
   _<|>_ {{AlternativeMaybe}} x       y = x
-  super AlternativeMaybe = it
 
   FunctorZeroList : ∀ {a} → FunctorZero (List {a})
   empty {{FunctorZeroList}} = []
-  super FunctorZeroList = it
 
   AlternativeList : ∀ {a} → Alternative (List {a})
   _<|>_ {{AlternativeList}} = _++_
-  super AlternativeList = it
 
   FunctorZeroEither : ∀ {a b} {E : Set b} {{_ : Monoid E}} → FunctorZero (Either {b = a} E)
   empty {{FunctorZeroEither}}     = left mempty
-  super FunctorZeroEither = it
 
   AlternativeEither : ∀ {a b} {E : Set b} {{_ : Monoid E}} → Alternative (Either {b = a} E)
   _<|>_ {{AlternativeEither}} x y = either (const y) right x
-  super AlternativeEither = it
 
 module _ {a b} {F : Set a → Set b} {A : Set a} {{_ : FunctorZero F}} where
   guard! : Bool → F A → F A

@@ -23,8 +23,7 @@ record Applicative {a b} (F : Set a → Set b) : Set (lsuc a ⊔ b) where
   _*>_ : ∀ {A B} → F A → F B → F B
   a *> b = ⦇ (const id) a b ⦈
 
-open Applicative public using (super)
-open Applicative {{...}} public hiding (super)
+open Applicative {{...}} public
 
 {-# DISPLAY Applicative.pure  _ = pure  #-}
 {-# DISPLAY Applicative._<*>_ _ = _<*>_ #-}
@@ -43,8 +42,7 @@ record Applicative′ {a b} (F : ∀ {a} → Set a → Set a) : Set (lsuc (a ⊔
     _<*>′_ : {A : Set a} {B : Set b} → F (A → B) → F A → F B
     overlap {{super}} : Functor′ {a} {b} F
 
-open Applicative′ public using (super)
-open Applicative′ {{...}} public hiding (super)
+open Applicative′ {{...}} public
 
 module _ {F : ∀ {a} → Set a → Set a}
          {{_ : ∀ {a} → Applicative {a} F}}

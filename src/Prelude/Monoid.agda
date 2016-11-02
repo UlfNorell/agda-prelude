@@ -74,4 +74,3 @@ module _ {a b} {A : Set a} {{MonA : Monoid A}} where
     ApplicativeConst : Applicative (Const A)
     getConst (pure  {{ApplicativeConst}} x)     = mempty
     getConst (_<*>_ {{ApplicativeConst}} wf wx) = getConst wf <> getConst wx
-    Applicative.super ApplicativeConst = it

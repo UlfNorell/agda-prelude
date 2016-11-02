@@ -28,8 +28,7 @@ monadAp : ∀ {a b} {A B : Set a} {M : Set a → Set b}
             M (A → B) → M A → M B
 monadAp _>>=_ mf mx = mf >>= λ f → fmap f mx
 
-open Monad using (super) public
-open Monad {{...}} public hiding (super)
+open Monad {{...}} public
 
 {-# DISPLAY Monad._>>=_  _ = _>>=_  #-}
 {-# DISPLAY Monad._=<<_  _ = _=<<_  #-}
@@ -44,8 +43,7 @@ record Monad′ {a b} (M : ∀ {a} → Set a → Set a) : Set (lsuc (a ⊔ b)) w
     _>>=′_ : {A : Set a} {B : Set b} → M A → (A → M B) → M B
     overlap {{super}} : Applicative′ {a} {b} M
 
-open Monad′ using (super) public
-open Monad′ {{...}} public hiding (super)
+open Monad′ {{...}} public
 
 monadAp′ : ∀ {a b} {A : Set a} {B : Set b} {M : ∀ {a} → Set a → Set a}
              {{_ : Functor′ {a} {b} M}} →
