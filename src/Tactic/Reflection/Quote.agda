@@ -29,7 +29,11 @@ unquoteDecl QuotableBool       = deriveQuotable QuotableBool       (quote Bool)
 unquoteDecl QuotableList       = deriveQuotable QuotableList       (quote List)
 unquoteDecl QuotableMaybe      = deriveQuotable QuotableMaybe      (quote Maybe)
 unquoteDecl QuotableEither     = deriveQuotable QuotableEither     (quote Either)
-unquoteDecl QuotableΣ          = deriveQuotable QuotableΣ          (quote Σ)
+
+instance
+  QuotableΣ : ∀ {a b} {A : Set a} {B : A → Set b} {{_ : Quotable A}} {{_ : {x : A} → Quotable (B x)}} → Quotable (Σ A λ a → B a)
+  QuotableΣ = record { ` = λ { (x , y) → con (quote _,_) ((vArg (` x)) ∷ vArg (` y) ∷ [])} }
+
 unquoteDecl Quotable⊤          = deriveQuotable Quotable⊤          (quote ⊤)
 unquoteDecl Quotable⊥          = deriveQuotable Quotable⊥          (quote ⊥)
 unquoteDecl Quotable≡          = deriveQuotable Quotable≡          (quote _≡_)

@@ -8,18 +8,18 @@ open import Prelude.Decidable
 open import Prelude.Ord
 
 infixr 1 _,_
-data Σ {a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
-  _,_ : (x : A) (y : B x) → Σ A B
+record Σ {a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
+  no-eta-equality
+  constructor _,_
+  field
+    fst : A
+    snd : B fst
+
+open Σ public
 
 instance
   ipair : ∀ {a b} {A : Set a} {B : A → Set b} {{x : A}} {{y : B x}} → Σ A B
   ipair {{x}} {{y}} = x , y
-
-fst : ∀ {a b} {A : Set a} {B : A → Set b} → Σ A B → A
-fst (x , y) = x
-
-snd : ∀ {a b} {A : Set a} {B : A → Set b} (p : Σ A B) → B (fst p)
-snd (x , y) = y
 
 infixr 3 _×_
 _×_ : ∀ {a b} → Set a → Set b → Set (a ⊔ b)
