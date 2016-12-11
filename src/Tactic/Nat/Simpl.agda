@@ -1,7 +1,7 @@
 
 module Tactic.Nat.Simpl where
 
-open import Prelude
+open import Prelude hiding (abs)
 open import Builtin.Reflection
 open import Tactic.Reflection.Quote
 open import Tactic.Reflection

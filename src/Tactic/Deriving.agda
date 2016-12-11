@@ -1,7 +1,7 @@
 
 module Tactic.Deriving where
 
-open import Prelude
+open import Prelude hiding (abs)
 open import Tactic.Reflection
 
 private

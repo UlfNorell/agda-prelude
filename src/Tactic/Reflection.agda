@@ -1,7 +1,7 @@
 
 module Tactic.Reflection where
 
-open import Prelude
+open import Prelude hiding (abs)
 open import Builtin.Reflection           public
 open import Tactic.Reflection.DeBruijn   public
 open import Tactic.Reflection.Telescope  public

@@ -1,7 +1,7 @@
 
 module Tactic.Reflection.DeBruijn where
 
-open import Prelude
+open import Prelude hiding (abs)
 open import Builtin.Reflection
 open import Container.Traversable
 

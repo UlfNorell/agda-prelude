@@ -1,7 +1,7 @@
 
 module Tactic.Nat.Reflect where
 
-open import Prelude
+open import Prelude hiding (abs)
 open import Control.Monad.State
 
 import Agda.Builtin.Nat as Builtin

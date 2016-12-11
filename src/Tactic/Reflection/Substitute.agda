@@ -1,7 +1,7 @@
 
 module Tactic.Reflection.Substitute where
 
-open import Prelude
+open import Prelude hiding (abs)
 open import Builtin.Reflection
 open import Tactic.Reflection.DeBruijn
 

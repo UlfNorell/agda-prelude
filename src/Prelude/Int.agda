@@ -61,6 +61,10 @@ _-Z_ : Int → Int → Int
 a -Z b = a +Z negateInt b
 {-# INLINE _-Z_ #-}
 
+abs : Int → Nat
+abs (pos n) = n
+abs (negsuc n) = suc n
+
 _*Z_ : Int → Int → Int
 pos    a *Z pos    b = pos (a * b)
 pos    a *Z negsuc b = neg (a * suc b)
@@ -135,6 +139,11 @@ data LessInt (a b : Int) : Set where
   diff : (k : Nat) (eq : b ≡ pos (suc k) + a) → LessInt a b
 
 private
+
+  abs-neg-id : (a : Nat) → abs (neg a) ≡ a
+  abs-neg-id zero = refl
+  abs-neg-id (suc a) = refl
+
   nat-plus-zero : (a : Nat) → a + 0 ≡ a
   nat-plus-zero zero = refl
   nat-plus-zero (suc a) = suc $≡ nat-plus-zero a
