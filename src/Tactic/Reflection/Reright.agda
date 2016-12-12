@@ -1,5 +1,5 @@
 module Tactic.Reflection.Reright where
-  open import Prelude
+  open import Prelude hiding (abs)
 
   open import Container.Traversable
 

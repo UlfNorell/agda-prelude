@@ -1,7 +1,7 @@
 
 module Builtin.Reflection where
 
-open import Prelude
+open import Prelude hiding (abs)
 open import Prelude.Equality.Unsafe
 open import Builtin.Float
 open import Container.Traversable
