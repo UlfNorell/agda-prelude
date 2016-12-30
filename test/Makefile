@@ -1,5 +1,5 @@
 
-agda = agda
+agda = agda-2.5.2
 
 default : compile-main
 
