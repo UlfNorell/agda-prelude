@@ -7,10 +7,9 @@ add-0-r : ∀ n → n + 0 ≡ n
 add-0-r  0 = refl
 add-0-r (suc n) rewrite add-0-r n = refl
 
-private
-  add-suc-r : (n m : Nat) → n + suc m ≡ suc n + m
-  add-suc-r zero m = refl
-  add-suc-r (suc n) m rewrite add-suc-r n m = refl
+add-suc-r : (n m : Nat) → n + suc m ≡ suc n + m
+add-suc-r zero m = refl
+add-suc-r (suc n) m rewrite add-suc-r n m = refl
 
 add-commute : (x y : Nat) → x + y ≡ y + x
 add-commute zero y = sym (add-0-r _)
