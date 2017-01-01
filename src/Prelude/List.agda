@@ -63,6 +63,10 @@ filter p [] = []
 filter p (x ∷ xs) = if p x then x ∷ filter p xs
                            else filter p xs
 
+catMaybes : ∀ {a} {A : Set a} → List (Maybe A) → List A
+catMaybes [] = []
+catMaybes (x ∷ xs) = maybe (catMaybes xs) (_∷ catMaybes xs) x
+
 all? : ∀ {a} {A : Set a} → (A → Bool) → List A → Bool
 all? p []       = true
 all? p (x ∷ xs) = p x && all? p xs
