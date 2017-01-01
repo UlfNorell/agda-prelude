@@ -20,18 +20,18 @@ HSText = String
 postulate
   HSFloat : Set
   HSFloat=>Float : HSFloat → Float
-  unsafeFloat=>HSFloat : Float → HSFloat
+  lossyFloat=>HSFloat : Float → HSFloat
 
   HSInt : Set
   HSInt=>Int : HSInt → Int
-  unsafeInt=>HSInt : Int → HSInt
+  lossyInt=>HSInt : Int → HSInt
 
 {-# COMPILED_TYPE HSFloat Float #-}
 {-# COMPILED HSFloat=>Float GHC.Float.float2Double #-}
-{-# COMPILED unsafeFloat=>HSFloat GHC.Float.double2Float #-}
+{-# COMPILED lossyFloat=>HSFloat GHC.Float.double2Float #-}
 {-# COMPILED_TYPE HSInt Int #-}
 {-# COMPILED HSInt=>Int toInteger #-}
-{-# COMPILED unsafeInt=>HSInt fromInteger #-}
+{-# COMPILED lossyInt=>HSInt fromInteger #-}
 
 {-# HASKELL type AgdaTuple a b c d = (c, d) #-}
 
