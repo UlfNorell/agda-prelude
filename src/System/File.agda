@@ -7,13 +7,15 @@ open import Prelude.Unit
 open import Prelude.Function
 open import Prelude.Bytes
 
+{-# IMPORT Data.Text #-}
+{-# IMPORT Data.Text.IO #-}
 {-# IMPORT Data.ByteString #-}
 
 private
   module Internal where
     StrFilePath : Set
     StrFilePath = String
-  
+
     postulate
       readTextFile  : StrFilePath → IO String
       writeTextFile : StrFilePath → String → IO Unit
