@@ -4,7 +4,7 @@ open import System.FilePath
 open import Prelude
 open import Container.Traversable
 
-{-# IMPORT System.Directory #-}
+{-# FOREIGN GHC import System.Directory #-}
 
 
 private
@@ -12,8 +12,8 @@ private
     postulate
       listContents : String → IO (List String)
       doesFileExist : String → IO Bool
-    {-# COMPILED listContents System.Directory.getDirectoryContents #-}
-    {-# COMPILED doesFileExist System.Directory.doesFileExist #-}
+    {-# COMPILE GHC listContents  = getDirectoryContents #-}
+    {-# COMPILE GHC doesFileExist = doesFileExist #-}
 
 
 abstract

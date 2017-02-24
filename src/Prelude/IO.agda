@@ -18,11 +18,11 @@ postulate
   ioReturn : ∀ {a} {A : Set a} → A → IO A
   ioBind   : ∀ {a b} {A : Set a} {B : Set b} → IO A → (A → IO B) → IO B
 
-{-# COMPILED ioReturn (\ _ _ -> return)    #-}
-{-# COMPILED ioBind   (\ _ _ _ _ -> (>>=)) #-}
+{-# COMPILE GHC ioReturn = (\ _ _ -> return)    #-}
+{-# COMPILE GHC ioBind =   (\ _ _ _ _ -> (>>=)) #-}
 
-{-# COMPILED_UHC ioReturn (\ _ _ x -> UHC.Agda.Builtins.primReturn x) #-}
-{-# COMPILED_UHC ioBind   (\ _ _ _ _ x y -> UHC.Agda.Builtins.primBind x y) #-}
+{-# COMPILE UHC ioReturn = (\ _ _ x -> UHC.Agda.Builtins.primReturn x) #-}
+{-# COMPILE UHC ioBind =   (\ _ _ _ _ x y -> UHC.Agda.Builtins.primBind x y) #-}
 
 ioMap : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → IO A → IO B
 ioMap f m = ioBind m λ x → ioReturn (f x)
@@ -55,34 +55,34 @@ postulate
   putStr   : String → IO Unit
   putStrLn : String → IO Unit
 
-{-# IMPORT Data.Text    #-}
-{-# IMPORT Data.Text.IO #-}
+{-# FOREIGN GHC import qualified Data.Text    as Text #-}
+{-# FOREIGN GHC import qualified Data.Text.IO as Text #-}
 
-{-# COMPILED getChar  getChar   #-}
-{-# COMPILED putChar  putChar   #-}
-{-# COMPILED putStr   Data.Text.IO.putStr   #-}
-{-# COMPILED putStrLn Data.Text.IO.putStrLn #-}
+{-# COMPILE GHC getChar =  getChar   #-}
+{-# COMPILE GHC putChar =  putChar   #-}
+{-# COMPILE GHC putStr =   Text.putStr   #-}
+{-# COMPILE GHC putStrLn = Text.putStrLn #-}
 
-{-# COMPILED_UHC putStr   (UHC.Agda.Builtins.primPutStr) #-}
-{-# COMPILED_UHC putStrLn (UHC.Agda.Builtins.primPutStrLn) #-}
+{-# COMPILE UHC putStr =   (UHC.Agda.Builtins.primPutStr) #-}
+{-# COMPILE UHC putStrLn = (UHC.Agda.Builtins.primPutStrLn) #-}
 
 print : ∀ {a} {A : Set a} {{ShowA : Show A}} → A → IO Unit
 print = putStrLn ∘ show
 
 --- Command line arguments ---
 
-{-# IMPORT System.Environment #-}
+{-# FOREIGN GHC import System.Environment (getArgs, getProgName) #-}
 
 postulate
   getArgs : IO (List String)
   getProgName : IO String
 
-{-# COMPILED getArgs     fmap (map Data.Text.pack) System.Environment.getArgs #-}
-{-# COMPILED getProgName fmap Data.Text.pack System.Environment.getProgName   #-}
+{-# COMPILE GHC getArgs =     fmap (map Text.pack) getArgs #-}
+{-# COMPILE GHC getProgName = fmap Text.pack getProgName   #-}
 
 --- Misc ---
 
-{-# IMPORT System.Exit #-}
+{-# FOREIGN GHC import System.Exit #-}
 
 data ExitCode : Set where
   Success : ExitCode
@@ -90,11 +90,11 @@ data ExitCode : Set where
   Failure : (n : Nat) → {p : NonZero n} → ExitCode
 
 private
-  {-# HASKELL exitWith' x = System.Exit.exitWith (if x == 0 then System.Exit.ExitSuccess else System.Exit.ExitFailure $ fromInteger x) #-}
+  {-# FOREIGN GHC exitWith' x = exitWith (if x == 0 then ExitSuccess else ExitFailure $ fromInteger x) #-}
 
   postulate
     exitWith' : Nat → IO Unit
-  {-# COMPILED exitWith' exitWith' #-}
+  {-# COMPILE GHC exitWith' = exitWith' #-}
 
 exitWith : ExitCode → IO Unit
 exitWith Success = exitWith' 0

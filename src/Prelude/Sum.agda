@@ -17,8 +17,8 @@ data Either {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
   left  : A → Either A B
   right : B → Either A B
 
-{-# HASKELL type AgdaEither a b = Either #-}
-{-# COMPILED_DATA Either MAlonzo.Code.Prelude.Sum.AgdaEither Left Right #-}
+{-# FOREIGN GHC type AgdaEither a b = Either #-}
+{-# COMPILE GHC Either = data MAlonzo.Code.Prelude.Sum.AgdaEither (Left | Right) #-}
 
 either : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
            (A → C) → (B → C) → Either A B → C

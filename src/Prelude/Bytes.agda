@@ -5,11 +5,11 @@ open import Prelude.Decidable
 open import Prelude.Equality
 open import Prelude.Equality.Unsafe
 
-{-# IMPORT Data.ByteString #-}
+{-# FOREIGN GHC import qualified Data.ByteString as B #-}
 
 postulate
   Bytes : Set
-{-# COMPILED_TYPE Bytes Data.ByteString.ByteString #-}
+{-# COMPILE GHC Bytes = type B.ByteString #-}
 
 
 private
@@ -17,14 +17,14 @@ private
     postulate
       empty : Bytes
       append : Bytes → Bytes → Bytes
-    {-# COMPILED empty Data.ByteString.empty #-}
-    {-# COMPILED append Data.ByteString.append #-}
+    {-# COMPILE GHC empty  = B.empty #-}
+    {-# COMPILE GHC append = B.append #-}
 
 -- Eq --
 
 private
   postulate eqBytes : Bytes → Bytes → Bool
-  {-# COMPILED eqBytes (==) #-}
+  {-# COMPILE GHC eqBytes = (==) #-}
 
 instance
   EqBytes : Eq Bytes

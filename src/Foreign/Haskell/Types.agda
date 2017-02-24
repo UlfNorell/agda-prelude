@@ -4,8 +4,8 @@ module Foreign.Haskell.Types where
 open import Prelude
 open import Builtin.Float
 
-{-# IMPORT GHC.Float #-}
-{-# IMPORT Data.Text #-}
+{-# FOREIGN GHC import qualified GHC.Float #-}
+{-# FOREIGN GHC import qualified Data.Text #-}
 
 HSUnit = ⊤
 HSBool = Bool
@@ -26,15 +26,15 @@ postulate
   HSInt=>Int : HSInt → Int
   lossyInt=>HSInt : Int → HSInt
 
-{-# COMPILED_TYPE HSFloat Float #-}
-{-# COMPILED HSFloat=>Float GHC.Float.float2Double #-}
-{-# COMPILED lossyFloat=>HSFloat GHC.Float.double2Float #-}
-{-# COMPILED_TYPE HSInt Int #-}
-{-# COMPILED HSInt=>Int toInteger #-}
-{-# COMPILED lossyInt=>HSInt fromInteger #-}
+{-# COMPILE GHC HSFloat = type Float #-}
+{-# COMPILE GHC HSFloat=>Float = GHC.Float.float2Double #-}
+{-# COMPILE GHC lossyFloat=>HSFloat = GHC.Float.double2Float #-}
+{-# COMPILE GHC HSInt = type Int #-}
+{-# COMPILE GHC HSInt=>Int = toInteger #-}
+{-# COMPILE GHC lossyInt=>HSInt = fromInteger #-}
 
-{-# HASKELL type AgdaTuple a b c d = (c, d) #-}
+{-# FOREIGN GHC type AgdaTuple a b c d = (c, d) #-}
 
 data HSTuple {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
   _,_ : A → B → HSTuple A B
-{-# COMPILED_DATA HSTuple MAlonzo.Code.Foreign.Haskell.Types.AgdaTuple (,) #-}
+{-# COMPILE GHC HSTuple = data MAlonzo.Code.Foreign.Haskell.Types.AgdaTuple ((,)) #-}

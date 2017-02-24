@@ -7,9 +7,9 @@ open import Prelude.Unit
 open import Prelude.Function
 open import Prelude.Bytes
 
-{-# IMPORT Data.Text #-}
-{-# IMPORT Data.Text.IO #-}
-{-# IMPORT Data.ByteString #-}
+{-# FOREIGN GHC import qualified Data.Text as Text #-}
+{-# FOREIGN GHC import qualified Data.Text.IO as Text #-}
+{-# FOREIGN GHC import qualified Data.ByteString as B #-}
 
 private
   module Internal where
@@ -23,13 +23,13 @@ private
       readBinaryFile  : StrFilePath → IO Bytes
       writeBinaryFile : StrFilePath → Bytes → IO Unit
 
-    {-# COMPILED readTextFile  Data.Text.IO.readFile  . Data.Text.unpack #-}
-    {-# COMPILED writeTextFile Data.Text.IO.writeFile . Data.Text.unpack #-}
-    {-# COMPILED readBinaryFile Data.ByteString.readFile . Data.Text.unpack #-}
-    {-# COMPILED writeBinaryFile Data.ByteString.writeFile . Data.Text.unpack #-}
+    {-# COMPILE GHC readTextFile    = Text.readFile  . Text.unpack #-}
+    {-# COMPILE GHC writeTextFile   = Text.writeFile . Text.unpack #-}
+    {-# COMPILE GHC readBinaryFile  = B.readFile     . Text.unpack #-}
+    {-# COMPILE GHC writeBinaryFile = B.writeFile    . Text.unpack #-}
 
-    {-# COMPILED_UHC readTextFile  (UHC.Agda.Builtins.primReadFile) #-}
-    {-# COMPILED_UHC writeTextFile (UHC.Agda.Builtins.primWriteFile) #-}
+    {-# COMPILE UHC readTextFile  = UHC.Agda.Builtins.primReadFile  #-}
+    {-# COMPILE UHC writeTextFile = UHC.Agda.Builtins.primWriteFile #-}
 
 readTextFile : ∀ {k} → Path k → IO String
 readTextFile = Internal.readTextFile ∘ toString
