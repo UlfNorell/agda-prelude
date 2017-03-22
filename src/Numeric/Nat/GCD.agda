@@ -32,7 +32,8 @@ private
 
 private
   erase-prf : ∀ {a b} → GCD a b → GCD a b
-  erase-prf (gcd-res d d|a d|b gr) = gcd-res d d|a d|b $ λ k k|a k|b → fast-divides (gr k k|a k|b)
+  erase-prf (gcd-res d d|a d|b gr) = gcd-res d (fast-divides d|a) (fast-divides d|b)
+                                     λ k k|a k|b → fast-divides (gr k k|a k|b)
 
 gcd : ∀ a b → GCD a b
 gcd 0 b = gcd-res b (factor! 0) divides-refl (λ _ _ k|b → k|b)
