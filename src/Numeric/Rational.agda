@@ -27,8 +27,8 @@ private
   nonzero-gcd : ∀ a b {{_ : NonZero b}} → NonZero (gcd! a b)
   nonzero-gcd _ 0 {{}}
   nonzero-gcd a (suc b) with gcd a (suc b)
-  nonzero-gcd a (suc b) | gcd-res 0 d|a d|b g = refute (divides-zero d|b)
-  nonzero-gcd a (suc b) | gcd-res (suc d) d|a d|b g = _
+  nonzero-gcd a (suc b) | gcd-res 0 p = refute (divides-zero (IsGCD.d|b p))
+  nonzero-gcd a (suc b) | gcd-res (suc d) _ = _
 
   mkratio-lem : ∀ p q d p′ q′ {{_ : NonZero q}} →
                 p′ * d ≡ p →
@@ -37,14 +37,14 @@ private
                 gcd! p′ q′ ≡ 1
   mkratio-lem p q d p′ q′ eqp eqq g with gcd p′ q′
   mkratio-lem ._ ._ d ._ ._ refl refl g
-    | gcd-res d′ (factor! p₂) (factor! q₂) g′ =
+    | gcd-res d′ (is-gcd (factor! p₂) (factor! q₂) g′) =
     let p′ = p₂ * d′
         q′ = q₂ * d′
         p = p′ * d
         q = q′ * d
         instance
           nzd : NonZero d
-          nzd = transport NonZero (gcd-unique p q d (factor! p′) (factor! q′) g) (nonzero-gcd p q)
+          nzd = transport NonZero (gcd-unique p q d (is-gcd (factor! p′) (factor! q′) g)) (nonzero-gcd p q)
         dd′|d : (d′ * d) Divides d
         dd′|d = g (d′ * d) (factor p₂ auto) (factor q₂ auto)
     in lem-divide-mul d′ d dd′|d
@@ -62,12 +62,12 @@ infixl 7 mkratio
 syntax mkratio p q = p :/ q
 mkratio : (p q : Nat) {{_ : NonZero q}} → Rational
 mkratio p q with gcd p q
-... | gcd-res d (factor p′ eq) (factor q′ eq₁) g =
+... | gcd-res d (is-gcd (factor p′ eq) (factor q′ eq₁) g) =
   ratio p′ q′ {{lem-nonzero-mul-l q′ d q eq₁}} (mkratio-lem p q d p′ q′ eq eq₁ g)
 
 mkratio-sound : (p q : Nat) {{_ : NonZero q}} → p * denominator (mkratio p q) ≡ q * numerator (mkratio p q)
 mkratio-sound p q with gcd p q
-mkratio-sound ._ ._ | gcd-res d (factor! p′) (factor! q′) _ = auto
+mkratio-sound ._ ._ | gcd-res d (is-gcd (factor! p′) (factor! q′) _) = auto
 
 NonZeroQ : Rational → Set
 NonZeroQ (ratio 0 _ _) = ⊥
