@@ -31,14 +31,27 @@ record ExtendedGCD (a b : Nat) : Set where
         isGCD  : IsGCD d a b
         bézout : BézoutIdentity d a b
 
--- Erasing the proof objects
+private
+  -- This is what the recursive calls compute. At the top we get
+  -- ExtendedGCD′ a b a b, which we can turn into ExtendedGCD a b.
+  -- We need this because the correctness of the Bézout coefficients
+  -- is established going down and the correctness of the gcd going
+  -- up.
+  record ExtendedGCD′ (a b r₀ r₁ : Nat) : Set where
+    no-eta-equality
+    constructor gcd-res
+    field d      : Nat
+          isGCD  : IsGCD d r₀ r₁
+          bézout : BézoutIdentity d a b
 
-eraseBézout : ∀ {a b d} → BézoutIdentity d a b → BézoutIdentity d a b
-eraseBézout (bézoutL x y eq) = bézoutL x y (eraseEquality eq)
-eraseBézout (bézoutR x y eq) = bézoutR x y (eraseEquality eq)
+  -- Erasing the proof objects.
+  eraseBézout : ∀ {a b d} → BézoutIdentity d a b → BézoutIdentity d a b
+  eraseBézout (bézoutL x y eq) = bézoutL x y (eraseEquality eq)
+  eraseBézout (bézoutR x y eq) = bézoutR x y (eraseEquality eq)
 
-eraseExtendedGCD : ∀ {a b} → ExtendedGCD a b → ExtendedGCD a b
-eraseExtendedGCD (gcd-res d p i) = gcd-res d (eraseIsGCD p) (eraseBézout i)
+  -- Convert from ExtendedGCD′ as we erase, because why not.
+  eraseExtendedGCD : ∀ {a b} → ExtendedGCD′ a b a b → ExtendedGCD a b
+  eraseExtendedGCD (gcd-res d p i) = gcd-res d (eraseIsGCD p) (eraseBézout i)
 
 private
 
@@ -104,25 +117,21 @@ private
     bézoutState-step {a} {b} eq (bézoutRL x₀ x₁ y₀ y₁ eq₀ eq₁) =
       bézoutLR x₁ (x₀ + q * x₁) y₁ (y₀ + q * y₁) eq₁ (lemma b a y₀ y₁ x₀ x₁ eq eq₀ eq₁)
 
+    extendedGCD-step : ∀ {a b} → q * r₁ + r₂ ≡ r₀ → ExtendedGCD′ a b r₁ r₂ → ExtendedGCD′ a b r₀ r₁
+    extendedGCD-step eq (gcd-res d p i) = gcd-res d (isGCD-step q eq p) i
+
 private
-  -- This differs slightly from the gcd implementation in Numeric.Nat.GCD where the
-  -- recursive call produces a GCD r₁ r₂ that we turn into a GCD r₀ r₁ on the way up.
-  -- In the extended algorithm we get Bézout coefficients for the original a and b in
-  -- the base case, so instead we push down a function proving IsGCD d a b from
-  -- IsGCD d r₀ r₁.
   extendedGCD-acc : {a b : Nat} → (r₀ r₁ : Nat) →
-                     (∀ {d} → IsGCD d r₀ r₁ → IsGCD d a b) →
-                     BézoutState a b r₀ r₁ →
-                     Acc _<_ r₁ → ExtendedGCD a b
-  extendedGCD-acc r₀ zero step s _ =
-    gcd-res r₀ (step (is-gcd (factor 1 auto) (factor! 0) (λ k p _ → p))) (getBézoutIdentity s)
-  extendedGCD-acc r₀ (suc r₁) step s (acc wf) =
+                    BézoutState a b r₀ r₁ →
+                    Acc _<_ r₁ → ExtendedGCD′ a b r₀ r₁
+  extendedGCD-acc r₀ zero s _ =
+    gcd-res r₀ (is-gcd (factor 1 auto) (factor! 0) λ k p _ → p) (getBézoutIdentity s)
+  extendedGCD-acc r₀ (suc r₁) s (acc wf) =
     forceState s λ s → -- make sure to be strict in xᵢ and yᵢ
     case r₀ divmod suc r₁ of λ where
       (qr q r₂ lt eq) →
-        extendedGCD-acc (suc r₁) r₂ (step ∘ isGCD-step q eq) (bézoutState-step q eq s) (wf r₂ lt)
+        extendedGCD-step q eq (extendedGCD-acc (suc r₁) r₂ (bézoutState-step q eq s) (wf r₂ lt))
 
--- The extended Euclidian algorithm. Compile time performance seems to be quadratic in
--- the number of digits of the inputs, which you start noticing at around ~100 digits.
+-- The extended Euclidian algorithm. Easily handles inputs of several hundred digits.
 extendedGCD : (a b : Nat) → ExtendedGCD a b
-extendedGCD a b = eraseExtendedGCD (extendedGCD-acc a b id initialState (wfNat b))
+extendedGCD a b = eraseExtendedGCD (extendedGCD-acc a b initialState (wfNat b))
