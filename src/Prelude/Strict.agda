@@ -7,6 +7,9 @@ open import Agda.Builtin.Strict
 force : ∀ {a b} {A : Set a} {B : A → Set b} (x : A) → (∀ x → B x) → B x
 force x f = primForce x f
 
+force′ : ∀ {a b} {A : Set a} {B : A → Set b} → (x : A) → (∀ y → x ≡ y → B y) → B x
+force′ x k = (force x λ y → k y) refl
+
 forceLemma = primForceLemma
 
 {-# INLINE force #-}
