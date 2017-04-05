@@ -70,8 +70,7 @@ mkratio-sound p q with gcd p q
 mkratio-sound ._ ._ | gcd-res d (is-gcd (factor! p′) (factor! q′) _) = auto
 
 NonZeroQ : Rational → Set
-NonZeroQ (ratio 0 _ _) = ⊥
-NonZeroQ (ratio (suc n) _ _) = ⊤
+NonZeroQ x = NonZero (numerator x)
 
 infixl 6 _+Q_ _-Q_
 infixl 7 _*Q_ _/Q_
