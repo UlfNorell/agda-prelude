@@ -6,6 +6,7 @@ open import Numeric.Nat.GCD
 open import Numeric.Nat.Prime
 open import Numeric.Nat.Divide
 open import Numeric.Nat.Properties
+open import Structure.Smashed
 open import Tactic.Nat
 
 data Rational : Set where
@@ -115,3 +116,25 @@ instance
   ShowRational : Show Rational
   showsPrec {{ShowRational}} _ (ratio p 1 _) = shows p
   showsPrec {{ShowRational}} _ (ratio p q _) = shows p ∘ showString "/" ∘ shows q
+
+-- Ordering --
+
+private
+  module _ {p q eq p₁ q₁ eq₁} {{_ : NonZero q}} {{_ : NonZero q₁}} where
+    ratio-inj₁ : ratio p q eq ≡ ratio p₁ q₁ eq₁ → p ≡ p₁
+    ratio-inj₁ refl = refl
+
+    ratio-inj₂ : ratio p q eq ≡ ratio p₁ q₁ eq₁ → q ≡ q₁
+    ratio-inj₂ refl = refl
+
+  lem : ∀ {p q eq p₁ q₁ eq₁} {{_ : NonZero q}} {{_ : NonZero q₁}} →
+          p ≡ p₁ → q ≡ q₁ → ratio p q eq ≡ ratio p₁ q₁ eq₁
+  lem {q = zero} {{}}
+  lem {q = suc q} refl refl = ratio _ _ $≡ smashed
+
+instance
+  EqRational : Eq Rational
+  _==_ {{EqRational}} (ratio p q prf) (ratio p₁ q₁ prf₁) with p == p₁ | q == q₁
+  ... | no p≠p₁  | _        = no (p≠p₁ ∘ ratio-inj₁)
+  ... | yes _    | no q≠q₁  = no (q≠q₁ ∘ ratio-inj₂)
+  ... | yes p=p₁ | yes q=q₁ = yes (lem p=p₁ q=q₁)
