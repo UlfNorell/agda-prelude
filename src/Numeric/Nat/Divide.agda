@@ -101,3 +101,13 @@ zero  divides? suc b = no no-divides-zero
 suc a divides? suc b with suc b divmod suc a
 suc a divides? suc b | qr q  zero    _ eq  = yes (factor q (by eq))
 suc a divides? suc b | qr q (suc r) lt eq₁ = no (no-divides-suc-mod q lt eq₁)
+
+--- Instances ---
+
+open import Structure.Smashed
+
+instance
+  SmashDivides : ∀ {a b} {{_ : NonZero a}} → Smashed (a Divides b)
+  SmashDivides {0} {{}}
+  smashed {{SmashDivides {a@(suc _)}}} {factor q eq} {factor q₁ refl} =
+    case mul-inj₁ q q₁ (suc _) eq of λ where refl → factor q $≡ smashed
