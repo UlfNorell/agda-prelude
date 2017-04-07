@@ -63,3 +63,13 @@ add-inj₂ (suc x) y z p = add-inj₂ x y z (suc-inj p)
 
 add-inj₁ : ∀ x y z → x + z ≡ y + z → x ≡ y
 add-inj₁ x y z rewrite add-commute x z | add-commute y z = add-inj₂ z x y
+
+mul-inj₁ : (x y z : Nat) {{_ : NonZero z}} → x * z ≡ y * z → x ≡ y
+mul-inj₁ x y zero {{}}
+mul-inj₁ zero zero (suc z) eq = refl
+mul-inj₁ zero (suc y) (suc z) ()
+mul-inj₁ (suc x) zero (suc z) ()
+mul-inj₁ (suc x) (suc y) (suc z) eq = suc $≡ mul-inj₁ x y (suc z) (add-inj₂ z _ _ (suc-inj eq))
+
+mul-inj₂ : (x y z : Nat) {{_ : NonZero x}} → x * y ≡ x * z → y ≡ z
+mul-inj₂ x y z eq = mul-inj₁ y z x (mul-commute y x ⟨≡⟩ eq ⟨≡⟩ mul-commute x z)
