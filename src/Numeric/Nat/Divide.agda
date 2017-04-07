@@ -37,6 +37,12 @@ divides-sub-l {b = b} {d} (factor q₁ eq) (factor! q) = factor (q₁ - q) $ by 
 divides-sub-r : ∀ {a b d} → d Divides (a + b) → d Divides b → d Divides a
 divides-sub-r {a} {b} d|ab d|b rewrite add-commute a b = divides-sub-l d|ab d|b
 
+divides-mul-cong-l : ∀ {a b} c → a Divides b → (c * a) Divides (c * b)
+divides-mul-cong-l {a} {b} c (factor q eq) = factor q (by (c *_ $≡ eq))
+
+divides-mul-cong-r : ∀ {a b} c → a Divides b → (a * c) Divides (b * c)
+divides-mul-cong-r {a} {b} c (factor q eq) = factor q (by (c *_ $≡ eq))
+
 mod-divides : ∀ {a b} {{_ : NonZero a}} → a Divides b → b mod a ≡ 0
 mod-divides {zero} {{}}
 mod-divides {suc a} {b} (factor q eq) =
