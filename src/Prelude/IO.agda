@@ -93,9 +93,9 @@ private
   {-# FOREIGN GHC exitWith' x = exitWith (if x == 0 then ExitSuccess else ExitFailure $ fromInteger x) #-}
 
   postulate
-    exitWith' : Nat → IO Unit
-  {-# COMPILE GHC exitWith' = exitWith' #-}
+    exitWith' : ∀ {a} {A : Set a} → Nat → IO A
+  {-# COMPILE GHC exitWith' = \ _ _ -> exitWith' #-}
 
-exitWith : ExitCode → IO Unit
+exitWith : ∀ {a} {A : Set a} → ExitCode → IO A
 exitWith Success = exitWith' 0
 exitWith (Failure i) = exitWith' i
