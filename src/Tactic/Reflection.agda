@@ -67,9 +67,11 @@ on-goal tac hole = inferNormalisedType hole >>= λ goal → tac goal hole
 forceFun : Type → TC Type
 forceFun a =
   do dom ← newMeta set!
-  -| rng ← newMeta set!
-  -| unify a (dom `→ weaken 1 rng)
+  -| rng ← traverse id $ traverse (const (newMeta set!)) <$> fst (telView a)
+  -| unify a (telPi! rng dom)
   ~| normalise a
+  where
+    open import Container.Traversable
 
 inferFunRange : Term → TC Type
 inferFunRange hole = unPi =<< forceFun =<< inferType hole where

@@ -17,6 +17,9 @@ visibleArity = length ∘ filter isVisible ∘ fst ∘ telView
 telPi : Telescope → Type → Type
 telPi tel b = foldr (λ a b → pi a (abs "_" b)) b tel
 
+telPi! : Telescope → Type → Type
+telPi! tel b = foldr (λ a b → pi a (abs "_" (weaken 1 b))) b tel
+
 arity : Name → TC Nat
 arity f = length ∘ fst ∘ telView <$> getType f
 
