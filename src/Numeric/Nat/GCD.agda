@@ -25,6 +25,22 @@ record GCD (a b : Nat) : Set where
 
 open GCD public using () renaming (d to get-gcd)
 
+-- Projections --
+
+is-gcd-factor₁ : ∀ {a b d} → IsGCD d a b → Nat
+is-gcd-factor₁ g = get-factor (IsGCD.d|a g)
+
+is-gcd-factor₂ : ∀ {a b d} → IsGCD d a b → Nat
+is-gcd-factor₂ g = get-factor (IsGCD.d|b g)
+
+gcd-factor₁ : ∀ {a b} → GCD a b → Nat
+gcd-factor₁ g = is-gcd-factor₁ (GCD.isGCD g)
+
+gcd-factor₂ : ∀ {a b} → GCD a b → Nat
+gcd-factor₂ g = is-gcd-factor₂ (GCD.isGCD g)
+
+-- Euclid's algorithm --
+
 isGCD-step : ∀ {d r₀ r₁ r₂} q → q * r₁ + r₂ ≡ r₀ → IsGCD d r₁ r₂ → IsGCD d r₀ r₁
 isGCD-step q refl (is-gcd d|r₁ d|r₂ g) =
   is-gcd (divides-add (divides-mul-r q d|r₁) d|r₂)
