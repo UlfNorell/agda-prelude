@@ -105,6 +105,20 @@ gcd-commute : ∀ a b → gcd! a b ≡ gcd! b a
 gcd-commute a b with gcd b a
 gcd-commute a b | gcd-res d p = gcd-unique a b d (is-gcd-commute p)
 
+private
+  _|>_ = divides-trans
+
+gcd-assoc : ∀ a b c → gcd! a (gcd! b c) ≡ gcd! (gcd! a b) c
+gcd-assoc a b c with gcd a b | gcd b c
+... | gcd-res ab (is-gcd ab|a ab|b gab)
+    | gcd-res bc (is-gcd bc|b bc|c gbc) with gcd ab c
+...    | gcd-res ab-c (is-gcd abc|ab abc|c gabc) =
+  gcd-unique a bc ab-c
+             (is-gcd (abc|ab |> ab|a)
+                     (gbc ab-c (abc|ab |> ab|b) abc|c)
+                     λ k k|a k|bc → gabc k (gab k k|a (k|bc |> bc|b))
+                                           (k|bc |> bc|c))
+
 coprime-sym : ∀ a b → Coprime a b → Coprime b a
 coprime-sym a b p = gcd-commute b a ⟨≡⟩ p
 

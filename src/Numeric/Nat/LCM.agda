@@ -88,3 +88,16 @@ is-lcm-commute (is-lcm a|m b|m g) = is-lcm b|m a|m (flip ∘ g)
 lcm-commute : ∀ {a b} → lcm! a b ≡ lcm! b a
 lcm-commute {a} {b} with lcm b a
 ... | lcm-res m lm = lcm-unique (is-lcm-commute lm)
+
+private
+  _|>_ = divides-trans
+
+lcm-assoc : ∀ a b c → lcm! a (lcm! b c) ≡ lcm! (lcm! a b) c
+lcm-assoc a b c with lcm a b | lcm b c
+... | lcm-res ab (is-lcm a|ab b|ab lab)
+    | lcm-res bc (is-lcm b|bc c|bc lbc) with lcm ab c
+...    | lcm-res ab-c (is-lcm ab|abc c|abc labc) =
+  lcm-unique {ab-c} {a} {bc}
+    (is-lcm (a|ab |> ab|abc)
+            (lbc ab-c (b|ab |> ab|abc) c|abc)
+            λ k a|k bc|k → labc k (lab k a|k (b|bc |> bc|k)) (c|bc |> bc|k))
