@@ -86,24 +86,41 @@ gcd-unique : ∀ a b d → IsGCD d a b → gcd! a b ≡ d
 gcd-unique a b d pd with gcd a b
 ... | gcd-res d′ pd′ = is-gcd-unique d′ d pd′ pd
 
-gcd-mul-l : ∀ a b → gcd! a (a * b) ≡ a
-gcd-mul-l a b = gcd-unique a (a * b) a (is-gcd divides-refl (divides-mul-l b divides-refl) λ _ k|a _ → k|a)
-
-gcd-mul-r : ∀ a b → gcd! b (a * b) ≡ b
-gcd-mul-r a b = gcd! b $≡ auto ⟨≡⟩ gcd-mul-l b a
-
-gcd-idem : ∀ a → gcd! a a ≡ a
-gcd-idem a = gcd! a $≡ auto ⟨≡⟩ gcd-mul-l a 1
-
-gcd-zero : ∀ n → gcd! 0 n ≡ n
-gcd-zero n = gcd-unique 0 n n (is-gcd (factor! 0) divides-refl λ _ _ k|n → k|n)
-
 is-gcd-commute : ∀ {d a b} → IsGCD d a b → IsGCD d b a
 is-gcd-commute (is-gcd d|a d|b g) = is-gcd d|b d|a (flip ∘ g)
 
 gcd-commute : ∀ a b → gcd! a b ≡ gcd! b a
 gcd-commute a b with gcd b a
 gcd-commute a b | gcd-res d p = gcd-unique a b d (is-gcd-commute p)
+
+gcd-divides-l : ∀ {a b} → a Divides b → gcd! a b ≡ a
+gcd-divides-l {a} (factor! b) = gcd-unique a (b * a) a (is-gcd divides-refl (divides-mul-r b divides-refl) λ _ k|a _ → k|a)
+
+gcd-divides-r : ∀ {a b} → b Divides a → gcd! a b ≡ b
+gcd-divides-r {a} {b} b|a = gcd-commute a b ⟨≡⟩ gcd-divides-l b|a
+
+gcd-idem : ∀ a → gcd! a a ≡ a
+gcd-idem a = gcd-divides-l divides-refl
+
+gcd-zero-l : ∀ n → gcd! 0 n ≡ n
+gcd-zero-l n = gcd-unique 0 n n (is-gcd (factor! 0) divides-refl λ _ _ k|n → k|n)
+
+gcd-zero-r : ∀ n → gcd! n 0 ≡ n
+gcd-zero-r n = gcd-commute n 0 ⟨≡⟩ gcd-zero-l n
+
+zero-is-gcd-l : ∀ {a b} → IsGCD 0 a b → a ≡ 0
+zero-is-gcd-l (is-gcd 0|a _ _) = divides-zero 0|a
+
+zero-is-gcd-r : ∀ {a b} → IsGCD 0 a b → b ≡ 0
+zero-is-gcd-r (is-gcd _ 0|b _) = divides-zero 0|b
+
+zero-gcd-l : ∀ a b → gcd! a b ≡ 0 → a ≡ 0
+zero-gcd-l a b eq with gcd a b
+zero-gcd-l a b refl | gcd-res .0 p = zero-is-gcd-l p
+
+zero-gcd-r : ∀ a b → gcd! a b ≡ 0 → b ≡ 0
+zero-gcd-r a b eq with gcd a b
+zero-gcd-r a b refl | gcd-res .0 p = zero-is-gcd-r p
 
 private
   _|>_ = divides-trans
@@ -121,6 +138,14 @@ gcd-assoc a b c with gcd a b | gcd b c
 
 coprime-sym : ∀ a b → Coprime a b → Coprime b a
 coprime-sym a b p = gcd-commute b a ⟨≡⟩ p
+
+mkcoprime : ∀ a b → (∀ k → k Divides a → k Divides b → k Divides 1) → Coprime a b
+mkcoprime a b g = gcd-unique a b 1 (is-gcd one-divides one-divides g)
+
+divide-coprime : ∀ d a b → Coprime a b → d Divides a → d Divides b → d Divides 1
+divide-coprime d a b p d|a d|b with gcd a b
+divide-coprime d a b refl d|a d|b | gcd-res _ (is-gcd _ _ g) =
+  g d d|a d|b
 
 is-gcd-factors-coprime : ∀ {a b d} (p : IsGCD d a b) {{_ : NonZero d}} →
                            Coprime (is-gcd-factor₁ p) (is-gcd-factor₂ p)
