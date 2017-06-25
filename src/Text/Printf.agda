@@ -106,7 +106,7 @@ private
   {-# TERMINATING #-}
   showHex′ : Char → Nat → String
   showHex′ _ 0 = ""
-  showHex′ a n = hexDigit a (n mod 16) & showHex′ a (n div 16)
+  showHex′ a n = showHex′ a (n div 16) & hexDigit a (n mod 16)
 
   add0x : Flags → String → String
   add0x flags s = if Flags.alternate flags then "0x" & s else s

@@ -190,7 +190,7 @@ getConstructors : Name → TC (List Name)
 getConstructors d =
   caseM getDefinition d of λ
   { (data-type _ cs) → pure cs
-  ; (record-type c) → pure (c ∷ [])
+  ; (record-type c _) → pure (c ∷ [])
   ; _ → typeError (strErr "Cannot get constructors of non-data or record type" ∷ nameErr d ∷ [])
   }
 

@@ -63,6 +63,14 @@ asInstance : ∀ {a b} {A : Set a} {B : A → Set b} (x : A) → (∀ {{x}} → 
 asInstance x f = f {{x}}
 {-# INLINE asInstance #-}
 
+record Instance {a} (A : Set a) : Set a where
+  constructor !
+  field {{x}} : A
+
+mkInstance : ∀ {a} {A : Set a} → A → Instance A
+mkInstance x = ! {{x}}
+{-# INLINE mkInstance #-}
+
 -- Can be used to force normalisation at compile time.
 static : ∀ {a} {A : Set a} → A → A
 static x = x
