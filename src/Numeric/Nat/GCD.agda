@@ -56,6 +56,9 @@ gcd a b = eraseGCD (gcd-cert-acc a b (wfNat b))
 gcd! : Nat → Nat → Nat
 gcd! a b = get-gcd (gcd a b)
 
+Coprime : Nat → Nat → Set
+Coprime a b = gcd! a b ≡ 1
+
 --- Properties ---
 
 private

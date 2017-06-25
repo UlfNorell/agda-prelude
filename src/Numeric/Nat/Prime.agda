@@ -9,9 +9,6 @@ open import Numeric.Nat.Sqrt
 open import Numeric.Nat.Properties
 open import Tactic.Nat
 
-Coprime : Nat → Nat → Set
-Coprime a b = gcd! a b ≡ 1
-
 data Prime (n : Nat) : Set where
   prime : n > 1 → (∀ k → k Divides n → Either (k ≡ 1) (k ≡ n)) → Prime n
 
