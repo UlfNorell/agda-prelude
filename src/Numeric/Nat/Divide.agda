@@ -31,6 +31,9 @@ divides-mul-r a (factor! q) = factor (a * q) auto
 divides-mul-l : ∀ {a} b {d} → d Divides a → d Divides (a * b)
 divides-mul-l b (factor! q) = factor (b * q) auto
 
+divides-mul : ∀ {a b c d} → c Divides a → d Divides b → (c * d) Divides (a * b)
+divides-mul (factor! q) (factor! r) = factor (q * r) auto
+
 divides-sub-l : ∀ {a b d} → d Divides (a + b) → d Divides a → d Divides b
 divides-sub-l {b = b} {d} (factor q₁ eq) (factor! q) = factor (q₁ - q) $ by eq
 
@@ -67,6 +70,15 @@ divides-trans (factor! q) (factor! q′) = factor (q′ * q) auto
 
 divides-zero : ∀ {a} → 0 Divides a → a ≡ 0
 divides-zero (factor! q) = auto
+
+one-divides : ∀ {a} → 1 Divides a
+one-divides {a} = factor a auto
+
+divides-one : ∀ {a} → a Divides 1 → a ≡ 1
+divides-one {0} (factor k eq) = refute eq
+divides-one {1} _ = refl
+divides-one {suc (suc a)} (factor zero ())
+divides-one {suc (suc a)} (factor (suc k) eq) = refute eq
 
 divides-less : ∀ {a b} {{_ : NonZero b}} → a Divides b → a ≤ b
 divides-less {{}} (factor! 0)
