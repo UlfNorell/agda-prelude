@@ -135,3 +135,35 @@ private
 -- The extended Euclidian algorithm. Easily handles inputs of several hundred digits.
 extendedGCD : (a b : Nat) → ExtendedGCD a b
 extendedGCD a b = eraseExtendedGCD (extendedGCD-acc a b initialState (wfNat b))
+
+--- Properties ---
+
+coprime-divide-mul-l : ∀ a b c → Coprime a b → a Divides (b * c) → a Divides c
+coprime-divide-mul-l a b c p a|bc with extendedGCD a b
+coprime-divide-mul-l a b c p a|bc | gcd-res d i e with gcd-unique _ _ _ i ʳ⟨≡⟩ p
+coprime-divide-mul-l a b c p (factor q qa=bc) | gcd-res d i (bézoutL x y ax=1+by) | refl =
+  factor (x * c - y * q) $
+    (x * c - y * q) * a
+      ≡⟨ auto ⟩
+    a * x * c - y * (q * a)
+      ≡⟨ (λ A B → A * c - y * B) $≡ ax=1+by *≡ qa=bc ⟩
+    suc (b * y) * c - y * (b * c)
+      ≡⟨ auto ⟩
+    c ∎
+coprime-divide-mul-l a b c p (factor q qa=bc) | gcd-res d i (bézoutR x y by=1+ax) | refl =
+  factor (y * q - x * c) $
+    (y * q - x * c) * a
+      ≡⟨ auto ⟩
+    y * (q * a) - a * x * c
+      ≡⟨ (λ A → y * A - a * x * c) $≡ qa=bc ⟩
+    y * (b * c) - a * x * c
+      ≡⟨ auto ⟩
+    (b * y) * c - a * x * c
+      ≡⟨ (λ A → A * c - a * x * c) $≡ by=1+ax ⟩
+    suc (a * x) * c - a * x * c
+      ≡⟨ auto ⟩
+    c ∎
+
+coprime-divide-mul-r : ∀ a b c → Coprime a c → a Divides (b * c) → a Divides b
+coprime-divide-mul-r a b c p a|bc =
+  coprime-divide-mul-l a c b p (transport (a Divides_) auto a|bc)
