@@ -92,6 +92,9 @@ gcd-mul-l a b = gcd-unique a (a * b) a (is-gcd divides-refl (divides-mul-l b div
 gcd-mul-r : ∀ a b → gcd! b (a * b) ≡ b
 gcd-mul-r a b = gcd! b $≡ auto ⟨≡⟩ gcd-mul-l b a
 
+gcd-idem : ∀ a → gcd! a a ≡ a
+gcd-idem a = gcd! a $≡ auto ⟨≡⟩ gcd-mul-l a 1
+
 gcd-zero : ∀ n → gcd! 0 n ≡ n
 gcd-zero n = gcd-unique 0 n n (is-gcd (factor! 0) divides-refl λ _ _ k|n → k|n)
 
@@ -101,6 +104,9 @@ is-gcd-commute (is-gcd d|a d|b g) = is-gcd d|b d|a (flip ∘ g)
 gcd-commute : ∀ a b → gcd! a b ≡ gcd! b a
 gcd-commute a b with gcd b a
 gcd-commute a b | gcd-res d p = gcd-unique a b d (is-gcd-commute p)
+
+coprime-sym : ∀ a b → Coprime a b → Coprime b a
+coprime-sym a b p = gcd-commute b a ⟨≡⟩ p
 
 is-gcd-factors-coprime : ∀ {a b d} (p : IsGCD d a b) {{_ : NonZero d}} →
                            Coprime (is-gcd-factor₁ p) (is-gcd-factor₂ p)
