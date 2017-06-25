@@ -106,3 +106,21 @@ is-gcd-commute (is-gcd d|a d|b g) = is-gcd d|b d|a (flip ∘ g)
 gcd-commute : ∀ a b → gcd! a b ≡ gcd! b a
 gcd-commute a b with gcd b a
 gcd-commute a b | gcd-res d p = gcd-unique a b d (is-gcd-commute p)
+
+is-gcd-factors-coprime : ∀ {a b d} (p : IsGCD d a b) {{_ : NonZero d}} →
+                           Coprime (is-gcd-factor₁ p) (is-gcd-factor₂ p)
+is-gcd-factors-coprime {a} {b} {0} _ {{}}
+is-gcd-factors-coprime {a} {b} {d@(suc _)} p@(is-gcd (factor qa refl) (factor qb refl) g) with gcd qa qb
+... | gcd-res j (is-gcd j|qa j|qb gj) = lem₃ j lem₂
+  where
+    lem : IsGCD (j * d) a b
+    lem = is-gcd (divides-mul-cong-r d j|qa) (divides-mul-cong-r d j|qb) λ k k|a k|b →
+                 divides-mul-r j (g k k|a k|b)
+
+    lem₂ : d ≡ j * d
+    lem₂ = is-gcd-unique d (j * d) p lem
+
+    lem₃ : ∀ j → d ≡ j * d → j ≡ 1
+    lem₃ 0 ()
+    lem₃ 1 _ = refl
+    lem₃ (suc (suc n)) eq = refute eq
