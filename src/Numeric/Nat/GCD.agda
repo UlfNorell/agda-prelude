@@ -77,20 +77,19 @@ Coprime a b = gcd! a b ≡ 1
 
 --- Properties ---
 
-private
-  gcd-unique′ : ∀ {a b} d₁ d₂ (g₁ : IsGCD d₁ a b) (g₂ : IsGCD d₂ a b) → d₁ ≡ d₂
-  gcd-unique′ zero zero _ _ = refl
-  gcd-unique′ zero (suc d) (is-gcd 0|a 0|b _) (is-gcd _ _ g) =
-    sym (divides-zero (g 0 0|a 0|b))
-  gcd-unique′ (suc d) zero (is-gcd _ _ g) (is-gcd 0|a 0|b _) =
-    divides-zero (g 0 0|a 0|b)
-  gcd-unique′ (suc d) (suc d′) (is-gcd d|a d|b gd) (is-gcd d′|a d′|b gd′) =
-    divides-antisym (gd′ (suc d) d|a d|b)
-                    (gd  (suc d′) d′|a d′|b)
+is-gcd-unique : ∀ {a b} d₁ d₂ (g₁ : IsGCD d₁ a b) (g₂ : IsGCD d₂ a b) → d₁ ≡ d₂
+is-gcd-unique zero zero _ _ = refl
+is-gcd-unique zero (suc d) (is-gcd 0|a 0|b _) (is-gcd _ _ g) =
+  sym (divides-zero (g 0 0|a 0|b))
+is-gcd-unique (suc d) zero (is-gcd _ _ g) (is-gcd 0|a 0|b _) =
+  divides-zero (g 0 0|a 0|b)
+is-gcd-unique (suc d) (suc d′) (is-gcd d|a d|b gd) (is-gcd d′|a d′|b gd′) =
+  divides-antisym (gd′ (suc d) d|a d|b)
+                  (gd  (suc d′) d′|a d′|b)
 
 gcd-unique : ∀ a b d → IsGCD d a b → gcd! a b ≡ d
 gcd-unique a b d pd with gcd a b
-... | gcd-res d′ pd′ = gcd-unique′ d′ d pd′ pd
+... | gcd-res d′ pd′ = is-gcd-unique d′ d pd′ pd
 
 gcd-mul-l : ∀ a b → gcd! a (a * b) ≡ a
 gcd-mul-l a b = gcd-unique a (a * b) a (is-gcd divides-refl (divides-mul-l b divides-refl) λ _ k|a _ → k|a)
