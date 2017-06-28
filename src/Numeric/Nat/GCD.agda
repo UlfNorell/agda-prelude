@@ -77,6 +77,14 @@ Coprime a b = gcd! a b ≡ 1
 
 --- Properties ---
 
+gcd-divides-l : ∀ a b → gcd! a b Divides a
+gcd-divides-l a b with gcd a b
+... | gcd-res _ i = IsGCD.d|a i
+
+gcd-divides-r : ∀ a b → gcd! a b Divides b
+gcd-divides-r a b with gcd a b
+... | gcd-res _ i = IsGCD.d|b i
+
 is-gcd-unique : ∀ {a b} d₁ d₂ (g₁ : IsGCD d₁ a b) (g₂ : IsGCD d₂ a b) → d₁ ≡ d₂
 is-gcd-unique d d′ (is-gcd d|a d|b gd) (is-gcd d′|a d′|b gd′) =
   divides-antisym (gd′ d d|a d|b)
@@ -93,14 +101,16 @@ gcd-commute : ∀ a b → gcd! a b ≡ gcd! b a
 gcd-commute a b with gcd b a
 gcd-commute a b | gcd-res d p = gcd-unique a b d (is-gcd-commute p)
 
-gcd-divides-l : ∀ {a b} → a Divides b → gcd! a b ≡ a
-gcd-divides-l {a} (factor! b) = gcd-unique a (b * a) a (is-gcd divides-refl (divides-mul-r b divides-refl) λ _ k|a _ → k|a)
+gcd-factor-l : ∀ {a b} → a Divides b → gcd! a b ≡ a
+gcd-factor-l {a} (factor! b) =
+  gcd-unique a (b * a) a
+             (is-gcd divides-refl (divides-mul-r b divides-refl) λ _ k|a _ → k|a)
 
-gcd-divides-r : ∀ {a b} → b Divides a → gcd! a b ≡ b
-gcd-divides-r {a} {b} b|a = gcd-commute a b ⟨≡⟩ gcd-divides-l b|a
+gcd-factor-r : ∀ {a b} → b Divides a → gcd! a b ≡ b
+gcd-factor-r {a} {b} b|a = gcd-commute a b ⟨≡⟩ gcd-factor-l b|a
 
 gcd-idem : ∀ a → gcd! a a ≡ a
-gcd-idem a = gcd-divides-l divides-refl
+gcd-idem a = gcd-factor-l divides-refl
 
 gcd-zero-l : ∀ n → gcd! 0 n ≡ n
 gcd-zero-l n = gcd-unique 0 n n (is-gcd (factor! 0) divides-refl λ _ _ k|n → k|n)
@@ -121,6 +131,15 @@ zero-gcd-l a b refl | gcd-res .0 p = zero-is-gcd-l p
 zero-gcd-r : ∀ a b → gcd! a b ≡ 0 → b ≡ 0
 zero-gcd-r a b eq with gcd a b
 zero-gcd-r a b refl | gcd-res .0 p = zero-is-gcd-r p
+
+nonzero-gcd-l : ∀ a b {{_ : NonZero a}} → NonZero (gcd! a b)
+nonzero-gcd-l 0 _ {{}}
+nonzero-gcd-l a@(suc a′) b with gcd a b
+... | gcd-res (suc _) _ = _
+... | gcd-res 0 (is-gcd (factor q eq) _ _) = refute eq
+
+nonzero-gcd-r : ∀ a b {{_ : NonZero b}} → NonZero (gcd! a b)
+nonzero-gcd-r a b = transport NonZero (gcd-commute b a) (nonzero-gcd-l b a)
 
 private
   _|>_ = divides-trans

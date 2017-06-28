@@ -25,12 +25,6 @@ private
   lem-divide-mul (suc a) (suc b) (factor  0      eq) = refute eq
   lem-divide-mul (suc a) (suc b) (factor (suc q) eq) = by eq
 
-  nonzero-gcd : ∀ a b {{_ : NonZero b}} → NonZero (gcd! a b)
-  nonzero-gcd _ 0 {{}}
-  nonzero-gcd a (suc b) with gcd a (suc b)
-  nonzero-gcd a (suc b) | gcd-res 0 p = refute (divides-zero (IsGCD.d|b p))
-  nonzero-gcd a (suc b) | gcd-res (suc d) _ = _
-
   mkratio-lem : ∀ p q d p′ q′ {{_ : NonZero q}} →
                 p′ * d ≡ p →
                 q′ * d ≡ q →
@@ -45,7 +39,7 @@ private
         q = q′ * d
         instance
           nzd : NonZero d
-          nzd = transport NonZero (gcd-unique p q d (is-gcd (factor! p′) (factor! q′) g)) (nonzero-gcd p q)
+          nzd = transport NonZero (gcd-unique p q d (is-gcd (factor! p′) (factor! q′) g)) (nonzero-gcd-r p q)
         dd′|d : (d′ * d) Divides d
         dd′|d = g (d′ * d) (factor p₂ auto) (factor q₂ auto)
     in lem-divide-mul d′ d dd′|d

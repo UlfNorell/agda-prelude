@@ -46,6 +46,10 @@ divides-mul-cong-l {a} {b} c (factor q eq) = factor q (by (c *_ $≡ eq))
 divides-mul-cong-r : ∀ {a b} c → a Divides b → (a * c) Divides (b * c)
 divides-mul-cong-r {a} {b} c (factor q eq) = factor q (by (c *_ $≡ eq))
 
+divides-nonzero : ∀ {a b} {{_ : NonZero b}} → a Divides b → NonZero a
+divides-nonzero {zero} {{nzb}} (factor! b) = transport NonZero (mul-0-r b) nzb
+divides-nonzero {suc _} _ = _
+
 mod-divides : ∀ {a b} {{_ : NonZero a}} → a Divides b → b mod a ≡ 0
 mod-divides {zero} {{}}
 mod-divides {suc a} {b} (factor q eq) =
