@@ -14,6 +14,7 @@ open import Numeric.Nat.Divide
 open import Numeric.Nat.DivMod
 open import Numeric.Nat.GCD
 open import Tactic.Nat
+open import Tactic.Cong
 
 -- Bézout coefficients always have opposite signs, so we can represent
 -- a Bézout identity using only natural numbers, keeping track of which
@@ -101,7 +102,7 @@ private
         a * (x₀ + q * x₁)
           ≡⟨ by eq₀ ⟩
         r₂ + b * y₀ + q * (r₁ + a * x₁)
-          ≡⟨ (r₂ + b * y₀ +_) ∘ (q *_) $≡ by eq₁ ⟩
+          ≡⟨ by-cong eq₁ ⟩
         r₂ + b * y₀ + q * (b * y₁)
           ≡⟨ auto ⟩
         r₂ + b * (y₀ + q * y₁) ∎
@@ -146,7 +147,9 @@ coprime-divide-mul-l a b c p (factor q qa=bc) | gcd-res d i (bézoutL x y ax=1+b
     (x * c - y * q) * a
       ≡⟨ auto ⟩
     a * x * c - y * (q * a)
-      ≡⟨ (λ A B → A * c - y * B) $≡ ax=1+by *≡ qa=bc ⟩
+      ≡⟨ by-cong ax=1+by ⟩
+    suc (b * y) * c - y * (q * a)
+      ≡⟨ by-cong qa=bc ⟩
     suc (b * y) * c - y * (b * c)
       ≡⟨ auto ⟩
     c ∎
@@ -155,11 +158,11 @@ coprime-divide-mul-l a b c p (factor q qa=bc) | gcd-res d i (bézoutR x y by=1+a
     (y * q - x * c) * a
       ≡⟨ auto ⟩
     y * (q * a) - a * x * c
-      ≡⟨ (λ A → y * A - a * x * c) $≡ qa=bc ⟩
+      ≡⟨ by-cong qa=bc ⟩
     y * (b * c) - a * x * c
       ≡⟨ auto ⟩
     (b * y) * c - a * x * c
-      ≡⟨ (λ A → A * c - a * x * c) $≡ by=1+ax ⟩
+      ≡⟨ by-cong by=1+ax ⟩
     suc (a * x) * c - a * x * c
       ≡⟨ auto ⟩
     c ∎

@@ -7,6 +7,7 @@ open import Prelude
 open import Numeric.Nat.DivMod
 open import Control.WellFounded
 open import Tactic.Nat
+open import Tactic.Cong
 
 module _ {a} {A : Set a} {{_ : Semiring A}} where
   private
@@ -62,13 +63,19 @@ module _ {a} {A : Set a} {{_ : Semiring A}} where
           lem-pow-add-distr a q q ʳ⟨≡⟩
           cong (_^_ a) {x = q + q} {y = q * 2 + 0} auto))
       lem a (suc ._) (acc wf) | qr q 1 _ refl =
-        force-eq (a * a) (
+        force-eq (a * a) $
           lem (a * a) (suc q) (wf (suc q) (diff _ auto)) ⟨≡⟩
-          (_* (a * a)) $≡ lem-pow-mul-distr a q ⟨≡⟩
-          (_* (a * a)) $≡ (lem-pow-add-distr a q q ʳ⟨≡⟩ cong (a ^_) {x = q + q} {y = q * 2} auto) ⟨≡⟩
-          cong (λ z → a ^ (q * 2) * (z * a)) (idl a) ʳ⟨≡⟩
-          assoc _ _ _ ⟨≡⟩ʳ
-          (_* a) $≡ lem-pow-add-distr a (q * 2) 1)
+          (a * a) ^ q * (a * a)
+            ≡⟨ by-cong (lem-pow-mul-distr a q ⟨≡⟩ʳ lem-pow-add-distr a q q) ⟩
+          a ^ (q + q) * (a * a)
+            ≡⟨ by-cong auto ⟩
+          a ^ (q * 2) * (a * a)
+            ≡⟨ by-cong (idl a) ⟩
+          a ^ (q * 2) * (a ^ 1 * a)
+            ≡⟨ assoc _ _ _ ⟩
+          a ^ (q * 2) * a ^ 1 * a
+            ≡⟨ by-cong (lem-pow-add-distr a (q * 2) 1) ⟩
+          a ^ (q * 2 + 1) * a ∎
       ... | qr _ (suc (suc _)) lt _ = refute lt
 
     lem-^′-sound : ∀ a n → a ^′ n ≡ a ^ n
