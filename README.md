@@ -1,5 +1,5 @@
-This is an alternative to the Agda standard library (and incompatible with the
-same) that focuses more on programming and type checking time performance.
+This is an alternative to the Agda standard library that focuses more on
+programming and type checking time performance.
 
 Notable features:
 
