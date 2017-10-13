@@ -19,17 +19,12 @@ R = StateT (Nat × List (Term × Nat)) TC
 fail : ∀ {A} → R A
 fail = lift (typeErrorS "reflection error")
 
-_catch_ : ∀ {A} → R A → R A → R A
-m catch h = stateT (λ s → catchTC (runStateT h s) (runStateT m s))
-
 liftMaybe : ∀ {A} → Maybe A → R A
 liftMaybe = maybe fail pure
 
 runR : ∀ {A} → R A → TC (Maybe (A × List Term))
 runR r =
-  catchTC (just ∘ second (reverse ∘ map fst ∘ snd) <$>
-           runStateT r (0 , []))
-          (return nothing)
+  maybeA (second (reverse ∘ map fst ∘ snd) <$> runStateT r (0 , []))
 
 pattern `Nat = def (quote Nat) []
 

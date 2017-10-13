@@ -8,6 +8,7 @@ open import Prelude.List
 open import Prelude.Sum
 open import Prelude.Decidable
 open import Prelude.Functor
+open import Prelude.Applicative
 open import Prelude.Function
 open import Prelude.Monoid
 
@@ -63,3 +64,6 @@ module _ {a b} {F : Set a → Set b} {A : Set a} {{_ : FunctorZero F}} where
 module _ {a b} {F : Set a → Set b} {A : Set a} {{_ : Alternative F}} where
   choice : List (F A) → F A
   choice = foldr _<|>_ empty
+
+  maybeA : {{_ : Applicative F}} → F A → F (Maybe A)
+  maybeA x = just <$> x <|> pure nothing
