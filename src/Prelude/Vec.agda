@@ -15,7 +15,7 @@ open import Prelude.Semiring
 infixr 5 _∷_
 data Vec {a} (A : Set a) : Nat → Set a where
   []  : Vec A zero
-  _∷_ : ∀ ..{n} (x : A) (xs : Vec A n) → Vec A (suc n)
+  _∷_ : ∀ {n} (x : A) (xs : Vec A n) → Vec A (suc n)
 
 private
   -- These are private. Use pure and _<*>_ instead.
@@ -41,7 +41,7 @@ listToVec (x ∷ xs) = x ∷ listToVec xs
 
 --- Lookup ---
 
-indexVec : ∀ {a} {A : Set a} ..{n} → Vec A n → Fin n → A
+indexVec : ∀ {a} {A : Set a} {n} → Vec A n → Fin n → A
 indexVec (x ∷ xs) zero    = x
 indexVec (x ∷ xs) (suc i) = indexVec xs i
 
@@ -51,11 +51,11 @@ tabulate {n = suc n} f = f zero ∷ tabulate (f ∘ suc)
 
 --- Folding ---
 
-vfoldr : ∀ {a b} {A : Set a} {B : Nat → Set b} → (∀ ..{n} → A → B n → B (suc n)) → B 0 → ∀ ..{n} → Vec A n → B n
+vfoldr : ∀ {a b} {A : Set a} {B : Nat → Set b} → (∀ {n} → A → B n → B (suc n)) → B 0 → ∀ ..{n} → Vec A n → B n
 vfoldr f z [] = z
 vfoldr f z (x ∷ xs) = f x (vfoldr (λ {n} → f {n}) z xs)
 
-vfoldl : ∀ {a b} {A : Set a} {B : Nat → Set b} → (∀ ..{n} → B n → A → B (suc n)) → B 0 → ∀ ..{n} → Vec A n → B n
+vfoldl : ∀ {a b} {A : Set a} {B : Nat → Set b} → (∀ {n} → B n → A → B (suc n)) → B 0 → ∀ ..{n} → Vec A n → B n
 vfoldl         f z [] = z
 vfoldl {B = B} f z (x ∷ xs) = vfoldl {B = B ∘ suc} f (f z x) xs
 
@@ -64,7 +64,7 @@ vfoldl {B = B} f z (x ∷ xs) = vfoldl {B = B ∘ suc} f (f z x) xs
 module _ {a} {A : Set a} where
 
   infixr 5 _v++_
-  _v++_ : ∀ ..{m n} → Vec A m → Vec A n → Vec A (m + n)
+  _v++_ : ∀ {m n} → Vec A m → Vec A n → Vec A (m + n)
   []       v++ ys = ys
   (x ∷ xs) v++ ys = x ∷ xs v++ ys
 

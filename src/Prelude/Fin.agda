@@ -10,8 +10,8 @@ open import Prelude.Function
 open import Prelude.Number
 
 data Fin : Nat → Set where
-  zero : ∀ ..{n} → Fin (suc n)
-  suc  : ∀ ..{n} (i : Fin n) → Fin (suc n)
+  zero : ∀ {n} → Fin (suc n)
+  suc  : ∀ {n} (i : Fin n) → Fin (suc n)
 
 finToNat : ∀ ..{n} → Fin n → Nat
 finToNat  zero   = zero
