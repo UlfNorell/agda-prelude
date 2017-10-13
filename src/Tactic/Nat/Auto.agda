@@ -32,18 +32,15 @@ module _ {Atom : Set} {{_ : Eq Atom}} {{_ : Ord Atom}} where
   auto-proof e₁ e₂ nfeq ρ = liftNFEq e₁ e₂ ρ (cong (λ n → ⟦ n ⟧n ρ) nfeq)
 
 auto-tactic : Type → Tactic
-auto-tactic t hole =
-  caseM termToEq t of λ where
-   nothing → unify hole $ failedProof (quote invalidGoal) t
-   (just ((e₁ , e₂) , Γ)) →
-     do prf ← newMeta!
-     -| unify hole (def₄ (quote auto-proof) (` e₁) (` e₂) prf (quotedEnv Γ))
-     ~| unify prf (con₀ (quote refl)) <|>
-          (caseM normalise =<< inferType prf of λ where
-             (def (quote _≡_) (_ ∷ _ ∷ vArg lnf ∷ vArg rnf ∷ [])) →
-                typeError $ strErr "Normal forms are not equal:" ∷ termErr lnf ∷ strErr "≠" ∷ termErr rnf
-                          ∷ []
-             sgoal → typeError $ strErr "Huh? This is a weird equality goal:" ∷ termErr sgoal ∷ [])
+auto-tactic t hole = do
+  just ((e₁ , e₂) , Γ) ← termToEq t
+    where nothing → unify hole $ failedProof (quote invalidGoal) t
+  prf ← newMeta!
+  unify hole (def₄ (quote auto-proof) (` e₁) (` e₂) prf (quotedEnv Γ))
+  unify prf (con₀ (quote refl)) <|> do
+    def (quote _≡_) (_ ∷ _ ∷ vArg lnf ∷ vArg rnf ∷ []) ← normalise =<< inferType prf
+      where sgoal → typeError $ strErr "Huh? This is a weird equality goal:" ∷ termErr sgoal ∷ []
+    typeError $ strErr "Normal forms are not equal:" ∷ termErr lnf ∷ strErr "≠" ∷ termErr rnf ∷ []
 
 macro
   auto : Tactic

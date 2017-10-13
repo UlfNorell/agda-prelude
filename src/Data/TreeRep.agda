@@ -1,7 +1,7 @@
 
 module Data.TreeRep where
 
-open import Prelude
+open import Prelude hiding (_>>=_) renaming (_>>=′_ to _>>=_)
 open import Container.Traversable
 open import Builtin.Reflection
 open import Builtin.Float
@@ -232,10 +232,10 @@ instance
       enc (x , y) = node 0 (treeEncode x ∷ treeEncode y ∷ [])
 
       dec : TreeRep → Maybe (Σ A B)
-      dec (node _ (x ∷ y ∷ _)) =
-        do x ← treeDecode x
-        =| y ← treeDecode y
-        =| return (x , y)
+      dec (node _ (x ∷ y ∷ _)) = do
+        x ← treeDecode x
+        y ← treeDecode y
+        return (x , y)
       dec _ = nothing
 
       emb : ∀ x → dec (enc x) ≡ just x

@@ -43,9 +43,9 @@ private
       <|> unify hole lemma
       <|> unify hole (def₁ (quote sym) lemma)
       <|> go-cong d lhs rhs hole
-      <|> (do lhs ← reduce lhs
-           -| rhs ← reduce rhs
-           -| go-cong d lhs rhs hole) )
+      <|> do lhs ← reduce lhs
+             rhs ← reduce rhs
+             go-cong d lhs rhs hole)
 
     solve : (d : Nat) (hole : Term) → TC ⊤
     solve d hole =
@@ -54,12 +54,12 @@ private
         (just (lhs , rhs)) → go d lhs rhs hole
 
     go-cong′ : ∀ d f us vs hole → TC ⊤
-    go-cong′ d f us vs hole =
-      do us₁ := map unArg (filter isVisible us)
-      -| vs₁ := map unArg (filter isVisible vs)
-      -| holes ← traverse (const newMeta!) us₁
-      -| zipWithM!₃ (go d) us₁ vs₁ holes
-      ~| unify hole (build-cong f holes)
+    go-cong′ d f us vs hole = do
+      let us₁ = map unArg (filter isVisible us)
+          vs₁ = map unArg (filter isVisible vs)
+      holes ← traverse (const newMeta!) us₁
+      zipWithM!₃ (go d) us₁ vs₁ holes
+      unify hole (build-cong f holes)
 
     go-cong (suc d) (def f us) (def f₁ vs) hole = guard (f == f₁) (go-cong′ d (def₀ f) us vs hole)
     go-cong (suc d) (con c us) (con c₁ vs) hole = guard (c == c₁) (go-cong′ d (con₀ c) us vs hole)
@@ -68,11 +68,11 @@ private
 
 macro
   by-cong : ∀ {a} {A : Set a} {x y : A} → x ≡ y → Tactic
-  by-cong {x = x} {y} lemma hole =
-    do `lemma  ← quoteTC lemma
-    -| lemMeta ← lemProxy `lemma
-    -| solve lemMeta 100 hole <|> typeErrorS "Congruence failed"
-    ~| unify lemMeta `lemma
+  by-cong {x = x} {y} lemma hole = do
+      `lemma  ← quoteTC lemma
+      lemMeta ← lemProxy `lemma
+      solve lemMeta 100 hole <|> typeErrorS "Congruence failed"
+      unify lemMeta `lemma
     where
       -- Create a meta for the lemma to avoid retype-checking it in case
       -- it's expensive. Don't do this if the lemma is a variable.

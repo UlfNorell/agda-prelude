@@ -155,21 +155,18 @@ private
     else failure "panic: hiding mismatch"
 
   unifyIndices : (c₁ c₂ : Name) → TC Unify
-  unifyIndices c₁ c₂ =
-    do t₁ ← getType c₁
-    -| t₂ ← getType c₂
-    -| case (telView t₁ ,′ telView t₂) of λ
-       { ((tel₁ , def d₁ xs₁) , (tel₂ , def d₂ xs₂)) →
-         do n₁ ← #pars d₁
-         -| n₂ ← #pars d₂
-         -| ixs₁ := drop n₁ xs₁
-         -| ixs₂ := drop n₂ xs₂
-         -| unifyArgs (weaken                        (length tel₂ - n₂) ixs₁)
+  unifyIndices c₁ c₂ = do
+    let panic = failure "panic: constructor type doesn't end in a def"
+    tel₁ , def d₁ xs₁ ← telView <$> getType c₁ where _ → panic
+    tel₂ , def d₂ xs₂ ← telView <$> getType c₂ where _ → panic
+    n₁ ← #pars d₁
+    n₂ ← #pars d₂
+    let ixs₁ = drop n₁ xs₁
+        ixs₂ = drop n₂ xs₂
+    unifyArgs (weaken                        (length tel₂ - n₂) ixs₁)
             -- weaken all variables of first constructor by number of arguments of second constructor
-                      (weakenFrom (length tel₂ - n₂) (length tel₁ - n₁) ixs₂)
+              (weakenFrom (length tel₂ - n₂) (length tel₁ - n₁) ixs₂)
             -- weaken parameters of second constructor by number of arguments of first constructor
-       ; _ → failure "panic: constructor type doesn't end in a def"
-       }
 
   -- Analysing constructor types --
 
@@ -200,11 +197,11 @@ private
   rightArgs = map (fmap (snd ∘ snd)) ∘ vecToList
 
   classifyArgs : (c : Name) → TC (Σ Nat RemainingArgs)
-  classifyArgs c =
-    do #argsc  ← #args c
-    -| forcedc ← forcedArgs c
-    -| let #freec   = #argsc - length forcedc in
-       _,_ _ ∘ classify #freec forcedc (#argsc - 1) (#freec - 1) <$> argsTel c
+  classifyArgs c = do
+      #argsc  ← #args c
+      forcedc ← forcedArgs c
+      let #freec = #argsc - length forcedc
+      _,_ _ ∘ classify #freec forcedc (#argsc - 1) (#freec - 1) <$> argsTel c
   -- The final argument should be (weakenTel (#argsc + #freec) (argsTel c)),
   -- but we don't really care about the types of the arguments anyway.
     where
@@ -290,15 +287,14 @@ private
   checkEqArgs _ _ _ = con₁ (quote yes) (con₀ (quote refl))
 
   matchingClause : (c : Name) → TC Clause
-  matchingClause c =
-    caseM classifyArgs c of λ { (_ , args) →
-    do paramPats ← map (fmap λ _ → var "A") ∘ hideTel <$> params c
-    -| params    ← makeParams args
-    -| pure
-         (clause (paramPats ++
+  matchingClause c = do
+      _ , args ← classifyArgs c
+      paramPats ← map (fmap λ _ → var "A") ∘ hideTel <$> params c
+      params    ← makeParams args
+      pure (clause (paramPats ++
                   vArg (con c (makeLeftPattern args)) ∷
                   vArg (con c (makeRightPattern args)) ∷ [])
-                 (checkEqArgs c params args)) }
+                 (checkEqArgs c params args))
     where
       args = classifyArgs c
 
@@ -306,9 +302,9 @@ private
       makeParamsPats = map (fmap λ _ → var "A") ∘ hideTel <$> params c
 
       makeParams : ∀ {n} → RemainingArgs n → TC (List (Arg Term))
-      makeParams args =
-        for ps ← params c do
-        weaken (length (vecToList args) + countFree args) (newArgs ps)
+      makeParams args = do
+        ps ← params c
+        pure (weaken (length (vecToList args) + countFree args) (newArgs ps))
 
       makeLeftPattern : ∀ {n} → RemainingArgs n → List (Arg Pattern)
       makeLeftPattern [] = []
@@ -322,12 +318,12 @@ private
   -- Mismatching constructor case --
 
   mismatchingClause : (c₁ c₂ : Name) (fs : List Nat) → TC Clause
-  mismatchingClause c₁ c₂ fs =
-    do args₁ ← argsTel c₁
-    -| args₂ ← argsTel c₂
-    -| #args₁ := length args₁
-    -| #args₂ := length args₂
-    -| pure (clause (vArg (con c₁ (makePattern (#args₁ + #args₂ - 1) args₁)) ∷
+  mismatchingClause c₁ c₂ fs = do
+      args₁ ← argsTel c₁
+      args₂ ← argsTel c₂
+      let #args₁ = length args₁
+          #args₂ = length args₂
+      pure (clause (vArg (con c₁ (makePattern (#args₁ + #args₂ - 1) args₁)) ∷
                      vArg (con c₂ (makePattern (#args₂ - 1) args₂)) ∷ [])
                     (con (quote no) ([ vArg (pat-lam ([ absurd-clause ([ vArg absurd ]) ]) []) ])))
     where
@@ -394,13 +390,13 @@ declareEqInstance iname d =
   declareDef (iArg iname) =<< instanceType d (quote Eq)
 
 defineEqInstance : Name → Name → TC ⊤
-defineEqInstance iname d =
-  do fname ← freshName ("_==[" & show d & "]_")
-  -| declareDef (vArg fname) =<< eqType d
-  ~| dictCon ← recordConstructor (quote Eq)
-  -| defineFun iname (clause [] (con₁ dictCon (def₀ fname)) ∷ [])
-  ~| defineFun fname =<< eqDefinition d
-  ~| return _
+defineEqInstance iname d = do
+  fname ← freshName ("_==[" & show d & "]_")
+  declareDef (vArg fname) =<< eqType d
+  dictCon ← recordConstructor (quote Eq)
+  defineFun iname (clause [] (con₁ dictCon (def₀ fname)) ∷ [])
+  defineFun fname =<< eqDefinition d
+  return _
 
 deriveEq : Name → Name → TC ⊤
 deriveEq iname d =

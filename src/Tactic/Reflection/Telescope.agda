@@ -41,11 +41,11 @@ conParams c =
   ; _             → pure 0 }
 
 conPat : Name → TC Pattern
-conPat c =
-  do np ← conParams c
-  -| con c ∘ telePat ∘ drop np <$> argTel c
+conPat c = do
+  np ← conParams c
+  con c ∘ telePat ∘ drop np <$> argTel c
 
 conTerm : Name → TC Term
-conTerm c =
-  do np ← conParams c
-  -| con c ∘ teleArgs ∘ drop np <$> argTel c
+conTerm c = do
+  np ← conParams c
+  con c ∘ teleArgs ∘ drop np <$> argTel c

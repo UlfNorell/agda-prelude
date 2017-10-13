@@ -39,11 +39,11 @@ maybeSafe unknown = just (safe unknown _)
 
 instance
   DeBruijnSafeTerm : DeBruijn SafeTerm
-  strengthenFrom {{DeBruijnSafeTerm}} k n (safe v _) =
+  strengthenFrom {{DeBruijnSafeTerm}} k n (safe v _) = do
     -- Strengthening or weakening safe terms always results in safe terms,
     -- but proving that is a bit of a bother, thus maybeSafe.
-    do v₁ ← strengthenFrom k n v
-    -| maybeSafe v₁
+    v₁ ← strengthenFrom k n v
+    maybeSafe v₁
   weakenFrom {{DeBruijnSafeTerm}} k n (safe v p) =
     maybe (safe unknown _) id (maybeSafe (weakenFrom k n v))
 

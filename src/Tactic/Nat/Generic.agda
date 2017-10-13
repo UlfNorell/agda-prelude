@@ -20,59 +20,53 @@ private
   0→a _ = def₀ (quote id) -- TODO perhaps return unknown?
 
   applyTactic : (Type → TC Term) → Term → TC ⊤
-  applyTactic tac hole =
-    do goal ← inferType hole
-    -| unify hole ∘ (0→a goal `$_) =<< tac =<< inferNormalisedType (a→0 goal `$ hole)
+  applyTactic tac hole = do
+    goal ← inferType hole
+    unify hole ∘ (0→a goal `$_) =<< tac =<< inferNormalisedType (a→0 goal `$ hole)
 
 macro
   auto : Tactic
   auto hole = applyTactic autosub-tactic hole
 
   by : Term → Tactic
-  by prf hole =
-    do Prf ← inferNormalisedType prf
-    -| applyTactic (by-tactic (a→0 Prf `$ prf)) hole
+  by prf hole = do
+    Prf ← inferNormalisedType prf
+    applyTactic (by-tactic (a→0 Prf `$ prf)) hole
 
   refute : Term → Tactic
-  refute prf hole =
-    do Prf ← inferNormalisedType prf
-    -| unify hole =<< refutesub-tactic (a→0 Prf `$ prf)
+  refute prf hole = do
+    Prf ← inferNormalisedType prf
+    unify hole =<< refutesub-tactic (a→0 Prf `$ prf)
 
   simplify-goal : Tactic
-  simplify-goal hole =
-    do goal    ← inferFunRange hole
-    -| s-goal₀ ← simplifygoal-tactic =<< inferFunRange (a→0 goal `∘ hole)
-    -| hole =′ 0→a goal `∘ s-goal₀ `∘ a→0 goal
+  simplify-goal hole = do
+    goal    ← inferFunRange hole
+    s-goal₀ ← simplifygoal-tactic =<< inferFunRange (a→0 goal `∘ hole)
+    hole =′ 0→a goal `∘ s-goal₀ `∘ a→0 goal
 
   simplify : Term → Tactic
-  simplify prf hole =
-    do goal    ← inferFunRange hole
-    -| Prf     ← inferNormalisedType prf
-    -| s-goal₀ ← simplifysub-tactic (a→0 Prf `$ prf) =<< inferFunRange (a→0 goal `∘ hole)
-    -| hole =′ (`λ $ 0→a goal `$ weaken 1 s-goal₀ `$ `λ $ a→0 goal `$ var₁ 1 (0→a Prf `$ var₀ 0))
+  simplify prf hole = do
+    goal    ← inferFunRange hole
+    Prf     ← inferNormalisedType prf
+    s-goal₀ ← simplifysub-tactic (a→0 Prf `$ prf) =<< inferFunRange (a→0 goal `∘ hole)
+    hole =′ (`λ $ 0→a goal `$ weaken 1 s-goal₀ `$ `λ $ a→0 goal `$ var₁ 1 (0→a Prf `$ var₀ 0))
 
   induction : Tactic
-  induction hole =
-    do goal ← caseM inferNormalisedType hole of (λ
-               { (pi _ (abs _ t)) → pure t
-               ; (meta x _)       → blockOnMeta x
-               ; _                → typeErrorS "Induction tactic must be applied to a function goal"
-               })
-    -| hole₀ ← (a→0 goal `∘ hole) :′ unknown
-    -| caseM inferNormalisedType hole₀ of λ
-       { (pi a b)   →
-           let P = lam visible b
-               inStepCxt : {A : Set} → TC A → TC A
-               inStepCxt {_} = λ′ (vArg (quoteTerm Nat)) ∘
-                               λ′ (vArg unknown) in
-           do base ← unknown :′ unknown
-           -| step ← inStepCxt $ unknown :′ unknown
-           -| hole =′ 0→a goal `∘ def₃ (quote nat-induction)
-                                       P
-                                       base
-                                       (`λ $ `λ step)
-           ~| unify base =<< autosub-tactic =<< inferNormalisedType base
-           ~| inStepCxt (unify step =<< by-tactic (var₀ 0) =<< inferNormalisedType step)
-       ; (meta x _) → blockOnMeta x
-       ; _          → typeErrorS "Induction tactic must be applied to a function goal"
-       }
+  induction hole = do
+    pi _ (abs _ goal) ← inferNormalisedType hole
+      where meta x _ → blockOnMeta x
+            _        → typeErrorS "Induction tactic must be applied to a function goal"
+    hole₀ ← (a→0 goal `∘ hole) :′ unknown
+    pi a b ← inferNormalisedType hole₀
+      where meta x _ → blockOnMeta x
+            _        → typeErrorS "Induction tactic must be applied to a function goal"
+    let P = lam visible b
+        inStepCxt : {A : Set} → TC A → TC A
+        inStepCxt {_} = λ′ (vArg (quoteTerm Nat)) ∘
+                        λ′ (vArg unknown)
+    base ← unknown :′ unknown
+    step ← inStepCxt $ unknown :′ unknown
+    hole =′ 0→a goal `∘ def₃ (quote nat-induction)
+                             P base (`λ $ `λ step)
+    unify base =<< autosub-tactic =<< inferNormalisedType base
+    inStepCxt (unify step =<< by-tactic (var₀ 0) =<< inferNormalisedType step)

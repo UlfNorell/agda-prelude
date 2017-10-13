@@ -41,10 +41,10 @@ private
   ... | _  , _ | _     = nothing
 
   by-proof-less-nf : ∀ u u₁ v v₁ ρ → Maybe (NFGoal _<_ _<_ u u₁ v v₁ ρ)
-  by-proof-less-nf u u₁ v v₁ ρ =
-    do v≤u   ← decide-leq v  u  ρ
-    -| u₁≤v₁ ← decide-leq u₁ v₁ ρ
-    -| pure λ u<u₁ →
+  by-proof-less-nf u u₁ v v₁ ρ = do
+    v≤u   ← decide-leq v  u  ρ
+    u₁≤v₁ ← decide-leq u₁ v₁ ρ
+    pure λ u<u₁ →
          diff (⟦ v₁ ⟧ns (atomEnvS ρ) - suc (⟦ v ⟧ns (atomEnvS ρ)))
               (follows-diff-prf v≤u u<u₁ u₁≤v₁)
 
@@ -53,8 +53,9 @@ private
                                | cancel (normSub b) (normSub b₁)
                                | complicateSubLess a a₁ ρ
                                | simplifySubLess b b₁ ρ
-  ... | u , u₁ | v , v₁ | compl | simpl =
-    for prf ← by-proof-less-nf u u₁ v v₁ ρ do simpl ∘ prf ∘ compl
+  ... | u , u₁ | v , v₁ | compl | simpl = do
+    prf ← by-proof-less-nf u u₁ v v₁ ρ
+    pure (simpl ∘ prf ∘ compl)
 
   lem-plus-zero-r : (a b : Nat) → a + b ≡ 0 → b ≡ 0
   lem-plus-zero-r  zero   b eq = eq
@@ -72,38 +73,41 @@ private
   by-proof-eq-nf : Nat → ∀ u u₁ v v₁ ρ → Maybe (NFGoal _≡_ _≡_ u u₁ v v₁ ρ)
 
   by-proof-eq-sub : Nat → ∀ u u₁ v v₁ v₂ ρ → Maybe (NFGoal _≡_ _≡_ u u₁ [ 1 , [ v ⟨-⟩ v₁ ] ] v₂ ρ)
-  by-proof-eq-sub n u u₁ v v₁ v₂ ρ =
+  by-proof-eq-sub n u u₁ v v₁ v₂ ρ = do
     let eval  x = ⟦ x ⟧ns (atomEnvS ρ)
-        evals x = ⟦ x ⟧sns ρ in
-    for prf ← by-proof-eq-nf n u u₁ v (v₁ +nf v₂) ρ do λ u=u₁ →
-    sym $ lem-sub-zero (evals v) (evals v₁) (eval v₂) $ sym $
-      lem-eval-sns-ns v ρ ⟨≡⟩
-      prf u=u₁ ⟨≡⟩
-      ⟨+⟩-sound-ns v₁ v₂ (atomEnvS ρ) ⟨≡⟩ʳ
-      (_+ eval v₂) $≡ (lem-eval-sns-ns v₁ ρ)
+        evals x = ⟦ x ⟧sns ρ
+    prf ← by-proof-eq-nf n u u₁ v (v₁ +nf v₂) ρ
+    pure (λ u=u₁ →
+      sym $ lem-sub-zero (evals v) (evals v₁) (eval v₂) $ sym $
+        lem-eval-sns-ns v ρ ⟨≡⟩
+        prf u=u₁ ⟨≡⟩
+        ⟨+⟩-sound-ns v₁ v₂ (atomEnvS ρ) ⟨≡⟩ʳ
+        (_+ eval v₂) $≡ (lem-eval-sns-ns v₁ ρ))
 
   by-proof-eq-sub₂ : Nat → ∀ u u₁ v v₁ v₂ v₃ ρ → Maybe (NFGoal _≡_ _≡_ u u₁ [ 1 , [ v ⟨-⟩ v₁ ] ] [ 1 , [ v₂ ⟨-⟩ v₃ ] ] ρ)
-  by-proof-eq-sub₂ n u u₁ v v₁ v₂ v₃ ρ =
+  by-proof-eq-sub₂ n u u₁ v v₁ v₂ v₃ ρ = do
     let eval  x = ⟦ x ⟧ns (atomEnvS ρ)
-        evals x = ⟦ x ⟧sns ρ in
-    for prf ← by-proof-eq-nf n u u₁ (v₃ +nf v) (v₂ +nf v₁) ρ do λ u=u₁ →
-    lem-sub (evals v₂) (evals v₃) (evals v) (evals v₁) $
-      _+_ $≡ lem-eval-sns-ns v₃ ρ *≡ lem-eval-sns-ns v ρ ⟨≡⟩
-      ⟨+⟩-sound-ns v₃ v (atomEnvS ρ) ʳ⟨≡⟩
-      prf u=u₁ ⟨≡⟩ ⟨+⟩-sound-ns v₂ v₁ (atomEnvS ρ) ⟨≡⟩ʳ
-      _+_ $≡ lem-eval-sns-ns v₂ ρ *≡ lem-eval-sns-ns v₁ ρ
+        evals x = ⟦ x ⟧sns ρ
+    prf ← by-proof-eq-nf n u u₁ (v₃ +nf v) (v₂ +nf v₁) ρ
+    pure λ u=u₁ →
+      lem-sub (evals v₂) (evals v₃) (evals v) (evals v₁) $
+        _+_ $≡ lem-eval-sns-ns v₃ ρ *≡ lem-eval-sns-ns v ρ ⟨≡⟩
+        ⟨+⟩-sound-ns v₃ v (atomEnvS ρ) ʳ⟨≡⟩
+        prf u=u₁ ⟨≡⟩ ⟨+⟩-sound-ns v₂ v₁ (atomEnvS ρ) ⟨≡⟩ʳ
+        _+_ $≡ lem-eval-sns-ns v₂ ρ *≡ lem-eval-sns-ns v₁ ρ
 
   -- More advanced tactics for equalities
   --   a + b ≡ 0 → a ≡ 0
   by-proof-eq-adv : Nat → ∀ u u₁ v v₁ ρ → Maybe (NFGoal _≡_ _≡_ u u₁ v v₁ ρ)
-  by-proof-eq-adv _ u  [] v  [] ρ = for leq ← decide-leq v  u  ρ do lem-leq-zero leq
-  by-proof-eq-adv _ [] u₁ v  [] ρ = for leq ← decide-leq v  u₁ ρ do lem-leq-zero leq ∘ sym
-  by-proof-eq-adv _ u  [] [] v₁ ρ = for leq ← decide-leq v₁ u  ρ do sym ∘ lem-leq-zero leq
-  by-proof-eq-adv _ [] u₁ [] v₁ ρ = for leq ← decide-leq v₁ u₁ ρ do sym ∘ lem-leq-zero leq ∘ sym
+  by-proof-eq-adv _ u  [] v  [] ρ = do leq ← decide-leq v  u  ρ; pure (lem-leq-zero leq)
+  by-proof-eq-adv _ [] u₁ v  [] ρ = do leq ← decide-leq v  u₁ ρ; pure (lem-leq-zero leq ∘ sym)
+  by-proof-eq-adv _ u  [] [] v₁ ρ = do leq ← decide-leq v₁ u  ρ; pure (sym ∘ lem-leq-zero leq)
+  by-proof-eq-adv _ [] u₁ [] v₁ ρ = do leq ← decide-leq v₁ u₁ ρ; pure (sym ∘ lem-leq-zero leq ∘ sym)
   by-proof-eq-adv (suc n) u  u₁ [ 1 , [ v ⟨-⟩ v₁ ] ] [ 1 , [ v₂ ⟨-⟩ v₃ ] ] ρ = by-proof-eq-sub₂ n u u₁ v v₁ v₂ v₃ ρ
   by-proof-eq-adv n u  u₁ [ 1 , [ v ⟨-⟩ v₁ ] ] v₂ ρ = by-proof-eq-sub n u u₁ v v₁ v₂ ρ
-  by-proof-eq-adv (suc n) u u₁ v₂ [ 1 , [ v ⟨-⟩ v₁ ] ] ρ =
-    for prf ← by-proof-eq-sub n u u₁ v v₁ v₂ ρ do sym ∘ prf
+  by-proof-eq-adv (suc n) u u₁ v₂ [ 1 , [ v ⟨-⟩ v₁ ] ] ρ = do
+    prf ← by-proof-eq-sub n u u₁ v v₁ v₂ ρ
+    pure (sym ∘ prf)
   by-proof-eq-adv _ u  u₁ v  v₁ ρ = nothing
 
   by-proof-eq-nf n u u₁  v  v₁ ρ with u == v | u₁ == v₁
@@ -118,8 +122,9 @@ private
                              | cancel (normSub b) (normSub b₁)
                              | complicateSubEq a a₁ ρ
                              | simplifySubEq b b₁ ρ
-  ... | u , u₁ |  v ,  v₁ | compl | simpl =
-    for prf ← by-proof-eq-nf 10 u u₁ v v₁ ρ do simpl ∘ prf ∘ compl
+  ... | u , u₁ |  v ,  v₁ | compl | simpl = do
+    prf ← by-proof-eq-nf 10 u u₁ v v₁ ρ
+    pure (simpl ∘ prf ∘ compl)
 
   not-less-zero′ : {n : Nat} → n < 0 → ⊥
   not-less-zero′ (diff _ ())
@@ -133,8 +138,9 @@ private
 
   by-proof-less-eq-nf : ∀ u u₁ v v₁ ρ → Maybe (NFGoal _<_ _≡_ u u₁ v v₁ ρ)
   by-proof-less-eq-nf u [] v v₁ ρ = just not-less-zero  -- could've used refute, but we'll take it
-  by-proof-less-eq-nf u [ 1 , [] ] v v₁ ρ =
-    for prf ← by-proof-eq-nf 10 u [] v v₁ ρ do prf ∘ less-one-is-zero
+  by-proof-less-eq-nf u [ 1 , [] ] v v₁ ρ = do
+    prf ← by-proof-eq-nf 10 u [] v v₁ ρ
+    pure (prf ∘ less-one-is-zero)
   by-proof-less-eq-nf u u₁ v v₁ ρ = nothing
 
   by-proof-less-eq : ∀ a a₁ b b₁ ρ → Maybe (SubExpLess a a₁ ρ → SubExpEq b b₁ ρ)
@@ -142,16 +148,17 @@ private
                                   | cancel (normSub b) (normSub b₁)
                                   | complicateSubLess a a₁ ρ
                                   | simplifySubEq b b₁ ρ
-  ... | u , u₁ | v , v₁ | compl | simpl =
-    for prf ← by-proof-less-eq-nf u u₁ v v₁ ρ do simpl ∘ prf ∘ compl
+  ... | u , u₁ | v , v₁ | compl | simpl = do
+    prf ← by-proof-less-eq-nf u u₁ v v₁ ρ
+    pure (simpl ∘ prf ∘ compl)
 
   by-proof : ∀ hyp goal ρ → Maybe (⟦ hyp ⟧eqn ρ → ⟦ goal ⟧eqn ρ)
   by-proof (a :≡ a₁) (b :≡ b₁) ρ = by-proof-eq a a₁ b b₁ ρ
   by-proof (a :< a₁) (b :≡ b₁) ρ = by-proof-less-eq a a₁ b b₁ ρ
   by-proof (a :< a₁) (b :< b₁) ρ = by-proof-less a a₁ b b₁ ρ
-  by-proof (a :≡ a₁) (b :< b₁) ρ =
-    for prf ← by-proof-less a (lit 1 ⟨+⟩ a₁) b b₁ ρ do
-      λ eq → prf (diff 0 (cong suc (sym eq)))
+  by-proof (a :≡ a₁) (b :< b₁) ρ = do
+    prf ← by-proof-less a (lit 1 ⟨+⟩ a₁) b b₁ ρ
+    pure λ eq → prf (diff 0 (cong suc (sym eq)))
 
 by-tactic : Term → Type → TC Term
 by-tactic prf g =

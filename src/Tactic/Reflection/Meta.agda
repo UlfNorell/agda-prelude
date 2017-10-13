@@ -43,4 +43,4 @@ ensureNoMetas unknown = pure _
 
 normaliseNoMetas : Term → TC Term
 normaliseNoMetas a = do a ← normalise a
-                     -| stripBoundNames a <$ ensureNoMetas a
+                        stripBoundNames a <$ ensureNoMetas a

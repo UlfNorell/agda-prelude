@@ -55,30 +55,30 @@ private
                                quoteArgs′ (length tel) tel
 
   constructorClause : Nat → Name → TC Clause
-  constructorClause pars c =
-    do tel ← drop pars ∘ fst ∘ telView <$> getType c
-    -| pure (clause (vArg (con c (patArgs tel)) ∷ [])
+  constructorClause pars c = do
+    tel ← drop pars ∘ fst ∘ telView <$> getType c
+    pure (clause (vArg (con c (patArgs tel)) ∷ [])
                     (con₂ (quote Term.con) (lit (name c)) (quoteArgs pars tel)))
 
   quoteClauses : Name → TC (List Clause)
-  quoteClauses d =
-    do n ← getParameters d
-    -| caseM getConstructors d of λ
-       { [] → pure [ absurd-clause (vArg absurd ∷ []) ]
-       ; cs → mapM (constructorClause n) cs }
+  quoteClauses d = do
+    n ← getParameters d
+    caseM getConstructors d of λ where
+      [] → pure [ absurd-clause (vArg absurd ∷ []) ]
+      cs → mapM (constructorClause n) cs
 
 declareQuotableInstance : Name → Name → TC ⊤
 declareQuotableInstance iname d =
   declareDef (iArg iname) =<< instanceType d (quote Quotable)
 
 defineQuotableInstance : Name → Name → TC ⊤
-defineQuotableInstance iname d =
-  do fname ← freshName ("quote[" & show d & "]")
-  -| declareDef (vArg fname) =<< quoteType d
-  ~| dictCon ← dictConstructor
-  -| defineFun iname (clause [] (con₁ dictCon (def₀ fname)) ∷ [])
-  ~| defineFun fname =<< quoteClauses d
-  ~| return _
+defineQuotableInstance iname d = do
+  fname ← freshName ("quote[" & show d & "]")
+  declareDef (vArg fname) =<< quoteType d
+  dictCon ← dictConstructor
+  defineFun iname (clause [] (con₁ dictCon (def₀ fname)) ∷ [])
+  defineFun fname =<< quoteClauses d
+  return _
 
 deriveQuotable : Name → Name → TC ⊤
 deriveQuotable iname d =

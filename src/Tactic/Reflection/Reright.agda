@@ -207,9 +207,9 @@ module Tactic.Reflection.Reright where
         helper-patterns = (λ pa w p-a pr → pa ++ w ∷ (p-a ++ pr)) <$> (telePat ∘ reverse <$> Γʷ/ᴬ) <*> just (hArg dot) <*> (telePat ∘ reverse <$> Γʷ/⁻ᴬ) <*> pure (vArg (con₀ (quote refl)) ∷ [ vArg (var "_") ])
 
         helper-term : Maybe Term
-        helper-term =
-          γʷs ← join $ subsetList <$> Γʷ <*> pure [iʷ∣γᶜᵢ∈Γʳ] -|
-          iʷs ← make-vars-from-args [iʷ∣γᶜᵢ∈Γʳ] γʷs -|
+        helper-term = do
+          γʷs ← join $ subsetList <$> Γʷ <*> pure [iʷ∣γᶜᵢ∈Γʳ]
+          iʷs ← make-vars-from-args [iʷ∣γᶜᵢ∈Γʳ] γʷs
           pure (var 0 (reverse (weaken 1 iʷs)))
 
       callHelper : Name → Tactic
@@ -235,19 +235,19 @@ module Tactic.Reflection.Reright where
 
     getRequest : Term → Term → TC Request
     getRequest l≡r hole = do
-      L≡R ← inferType l≡r -|
+      L≡R ← inferType l≡r
       L≡R-matched ← maybe (typeError (strErr "not an equality" ∷ termErr l≡r ∷ termErr L≡R ∷ [])) pure $
-        match 3 (def (quote _≡_) (hArg unknown ∷ (hArg (var₀ 0)) ∷ (vArg (var₀ 1)) ∷ (vArg (var₀ 2)) ∷ [])) L≡R -|
-      𝐺 ← inferGoal hole -|
-      Γᶜ ← getContext -|
+        match 3 (def (quote _≡_) (hArg unknown ∷ (hArg (var₀ 0)) ∷ (vArg (var₀ 1)) ∷ (vArg (var₀ 2)) ∷ [])) L≡R
+      𝐺 ← inferGoal hole
+      Γᶜ ← getContext
       case L≡R-matched of λ { (A ∷ L ∷ R ∷ []) →
         pure $ record { l≡r = l≡r ; A = A ; L = L ; R = R ; Γᶜ = Γᶜ ; 𝐺 = 𝐺 } }
 
   macro
     reright : Term → Tactic
-    reright l≡r hole =
-      q ← getRequest l≡r hole -|
-      n ← freshName "reright" -|
-      let open Request q in
-      defineHelper n ~|
+    reright l≡r hole = do
+      q ← getRequest l≡r hole
+      n ← freshName "reright"
+      let open Request q
+      defineHelper n
       callHelper n hole

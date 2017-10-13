@@ -1,7 +1,7 @@
 
 module Tactic.Reflection where
 
-open import Prelude hiding (abs)
+open import Prelude hiding (abs; _>>=_) renaming (_>>=′_ to _>>=_)
 open import Builtin.Reflection           public
 open import Tactic.Reflection.DeBruijn   public
 open import Tactic.Reflection.Telescope  public
@@ -65,17 +65,18 @@ on-goal : (Type → Tactic) → Tactic
 on-goal tac hole = inferNormalisedType hole >>= λ goal → tac goal hole
 
 forceFun : Type → TC Type
-forceFun a =
-  do dom ← newMeta set!
-  -| rng ← newMeta set!
-  -| unify a (dom `→ weaken 1 rng)
-  ~| normalise a
+forceFun a = do
+  dom ← newMeta set!
+  rng ← newMeta set!
+  unify a (dom `→ weaken 1 rng)
+  normalise a
 
 inferFunRange : Term → TC Type
 inferFunRange hole = unPi =<< forceFun =<< inferType hole where
   unPi : Type → TC Type
   unPi (pi _ (abs _ (meta x _))) = blockOnMeta! x
-  unPi (pi _ (abs _ b)) = maybe (typeError (strErr "Must be applied in a non-dependent function position" ∷ termErr b ∷ [])) pure $ strengthen 1 b
+  unPi (pi _ (abs _ b)) = maybe (typeError ( strErr "Must be applied in a non-dependent function position"
+                                           ∷ termErr b ∷ [])) pure $ strengthen 1 b
   unPi x = typeError (strErr "Invalid goal" ∷ termErr x ∷ [])
 
 macro
@@ -83,12 +84,12 @@ macro
   runT t = t
 
 evalTC : ∀ {a} {A : Set a} → TC A → Tactic
-evalTC {A = A} c hole =
-  do v ← c
-  =| `v ← quoteTC v
-  -| `A ← quoteTC A
-  -| checkedHole ← checkType hole `A
-  -| unify checkedHole `v
+evalTC {A = A} c hole = do
+  v  ← c
+  `v ← quoteTC v
+  `A ← quoteTC A
+  checkedHole ← checkType hole `A
+  unify checkedHole `v
 
 macro
   evalT : ∀ {a} {A : Set a} → TC A → Tactic

@@ -73,6 +73,6 @@ private
 --        Γ    ⊢ σ : Δ
 --        p σ ≡ v
 match : (n : Nat) → Term → Term → Maybe (Vec Term n)
-match n pat v =
-  do env ← snd <$> runStateT (matchTerm 0 pat v) (pure nothing ofType Vec (Maybe Term) n)
-  -| traverse id env
+match n pat v = do
+  env ← snd <$> runStateT (matchTerm 0 pat v) (pure nothing ofType Vec (Maybe Term) n)
+  traverse id env

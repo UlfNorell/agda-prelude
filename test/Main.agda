@@ -42,15 +42,17 @@ World = printf "%-7s(%.6f)" "World" π
 M = StateT Nat IO
 
 putStrI : String → StateT Nat IO Unit
-putStrI s = get >>= λ n →
-            put (suc n) >>
-            lift (putStr (printf "[%d] %s\n" n s))
+putStrI s = do
+  n ← get
+  put (suc n)
+  lift (putStr (printf "[%d] %s\n" n s))
 
 main : IO ⊤
-main = _ <$ (runStateT (mapM putStrI (Hello ∷ World ∷ " " ∷ [])) 0 >>
-             putStr (show (432429 divmod 41)) >>
-             putStr ("\n" & show (gcd! (19 * 17 * 31) (31 * 5))) >>
-             putStrLn "")
+main = do
+  runStateT (mapM putStrI (Hello ∷ World ∷ " " ∷ [])) 0
+  putStr (show (432429 divmod 41))
+  putStr ("\n" & show (gcd! (19 * 17 * 31) (31 * 5)))
+  putStrLn ""
 
 downFrom : Nat → List Nat
 downFrom zero    = []
