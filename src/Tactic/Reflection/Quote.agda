@@ -18,6 +18,7 @@ private
 
 instance
   QuotableNat    = QuoteLit nat
+  QuotableWord64 = QuoteLit word64
   QuotableFloat  = QuoteLit float
   QuotableString = QuoteLit string
   QuotableChar   = QuoteLit char

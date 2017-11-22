@@ -75,6 +75,7 @@ instance
 instance
   ShowLiteral : Show Literal
   showsPrec {{ShowLiteral}} _ (nat n)    = shows n
+  showsPrec {{ShowLiteral}} _ (word64 n) = shows n
   showsPrec {{ShowLiteral}} _ (float x)  = shows x
   showsPrec {{ShowLiteral}} _ (char c)   = shows c
   showsPrec {{ShowLiteral}} _ (string s) = shows s
@@ -318,6 +319,9 @@ absurd-clause-inj refl = refl
 
 nat-inj : ∀ {x y} → nat x ≡ nat y → x ≡ y
 nat-inj refl = refl
+
+word64-inj : ∀ {x y} → word64 x ≡ word64 y → x ≡ y
+word64-inj refl = refl
 
 float-inj : ∀ {x y} → float x ≡ float y → x ≡ y
 float-inj refl = refl

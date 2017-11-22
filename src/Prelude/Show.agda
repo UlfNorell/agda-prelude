@@ -5,6 +5,7 @@ open import Prelude.String
 open import Prelude.Char
 open import Prelude.Nat
 open import Prelude.Int
+open import Prelude.Word
 open import Prelude.Function
 open import Prelude.List
 open import Prelude.Fin
@@ -64,6 +65,12 @@ instance
 instance
   ShowNat : Show Nat
   ShowNat = simpleShowInstance (primShowInteger ∘ pos)
+
+-- Word64 --
+
+instance
+  ShowWord64 : Show Word64
+  ShowWord64 = simpleShowInstance (show ∘ word64ToNat)
 
 -- Char --
 
