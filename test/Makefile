@@ -3,7 +3,7 @@ agda = agda
 
 default : compile-main
 
-prof-flags=-prof -auto-all -osuf=p_o -hisuf=p_hi
+prof-flags=-prof -fprof-auto -osuf=p_o -hisuf=p_hi
 
 everything :
 	@echo "module Everything where" > Everything.agda
