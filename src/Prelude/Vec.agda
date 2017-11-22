@@ -23,11 +23,11 @@ private
   vec {n = zero } x = []
   vec {n = suc n} x = x ∷ vec x
 
-  vapp : ∀ {a b} {A : Set a} {B : Set b} ..{n} → Vec (A → B) n → Vec A n → Vec B n
+  vapp : ∀ {a b} {A : Set a} {B : Set b} {n} → Vec (A → B) n → Vec A n → Vec B n
   vapp  []       _       = []
   vapp (f ∷ fs) (x ∷ xs) = f x ∷ vapp fs xs
 
-  vmap : ∀ {a b} {A : Set a} {B : Set b} ..{n} → (A → B) → Vec A n → Vec B n
+  vmap : ∀ {a b} {A : Set a} {B : Set b} {n} → (A → B) → Vec A n → Vec B n
   vmap f []       = []
   vmap f (x ∷ xs) = f x ∷ vmap f xs
 
@@ -51,7 +51,7 @@ tabulate {n = suc n} f = f zero ∷ tabulate (f ∘ suc)
 
 --- Folding ---
 
-vfoldr : ∀ {a b} {A : Set a} {B : Nat → Set b} → (∀ {n} → A → B n → B (suc n)) → B 0 → ∀ ..{n} → Vec A n → B n
+vfoldr : ∀ {a b} {A : Set a} {B : Nat → Set b} → (∀ ..{n} → A → B n → B (suc n)) → B 0 → ∀ ..{n} → Vec A n → B n
 vfoldr f z [] = z
 vfoldr f z (x ∷ xs) = f x (vfoldr (λ {n} → f {n}) z xs)
 

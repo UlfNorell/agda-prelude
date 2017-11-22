@@ -35,7 +35,7 @@ instance
 
 --- Equality ---
 
-fsuc-inj : ∀ {n} {i j : Fin n} → Fin.suc i ≡ suc j → i ≡ j
+fsuc-inj : ∀ ..{n} {i j : Fin n} → Fin.suc i ≡ suc j → i ≡ j
 fsuc-inj refl = refl
 
 private
