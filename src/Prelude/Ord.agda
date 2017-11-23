@@ -116,6 +116,10 @@ OrdBy : ∀ {a} {A B : Set a} {{OrdA : Ord A}} {f : B → A} →
           (∀ {x y} → f x ≡ f y → x ≡ y) → Ord B
 OrdBy {f = f} inj = defaultOrd λ x y → injectComparison inj id (compare (f x) (f y))
 
+{-# INLINE OrdBy #-}
+{-# INLINE defaultOrd #-}
+{-# INLINE injectComparison #-}
+
 -- Bool --
 
 data LessBool : Bool → Bool → Set where
