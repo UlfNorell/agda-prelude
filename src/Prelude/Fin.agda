@@ -57,3 +57,6 @@ instance
 instance
   OrdFin : ∀ {n} → Ord (Fin n)
   OrdFin = OrdBy finToNat-inj
+
+  OrdLawsFin : ∀ {n} → Ord/Laws (Fin n)
+  OrdLawsFin = OrdLawsBy finToNat-inj

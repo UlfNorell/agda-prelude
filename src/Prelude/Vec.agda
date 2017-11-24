@@ -107,9 +107,24 @@ private
   compareVec (x ∷ xs) (.x ∷  ys) | equal   refl | greater ys<xs = greater (tail< ys<xs)
   compareVec (x ∷ xs) (.x ∷ .xs) | equal   refl | equal   refl  = equal refl
 
+private
+  len : ∀ {a} {A : Set a} {n} → Vec A n → Nat
+  len {n = n} _ = n
+
 instance
   OrdVec : ∀ {a} {A : Set a} {{OrdA : Ord A}} {n} → Ord (Vec A n)
   OrdVec = defaultOrd compareVec
+
+  OrdLawsVec : ∀ {a} {A : Set a} {{OrdA : Ord/Laws A}} {n} → Ord/Laws (Vec A n)
+  Ord/Laws.super OrdLawsVec = it
+  less-antirefl {{OrdLawsVec}} {[]} ()
+  less-antirefl {{OrdLawsVec {A = A}}} {x ∷ xs} (head< lt) = less-antirefl {A = A} lt
+  less-antirefl {{OrdLawsVec {A = A}}} {x ∷ xs} (tail< lt) = less-antirefl {A = Vec A (len xs)} {xs} lt
+  less-trans {{OrdLawsVec {A = A}}} {[]} {[]} () _
+  less-trans {{OrdLawsVec {A = A}}} {x ∷ xs} {y ∷ ys} {z ∷ zs} (head< lt) (head< lt₁) = head< (less-trans {A = A} lt lt₁)
+  less-trans {{OrdLawsVec {A = A}}} {x ∷ xs} {y ∷ ys} {y ∷ zs} (head< lt) (tail< lt₁) = head< lt
+  less-trans {{OrdLawsVec {A = A}}} {x ∷ xs} {x ∷ ys} {z ∷ zs} (tail< lt) (head< lt₁) = head< lt₁
+  less-trans {{OrdLawsVec {A = A}}} {x ∷ xs} {x ∷ ys} {x ∷ zs} (tail< lt) (tail< lt₁) = tail< (less-trans {A = Vec A (len xs)} lt lt₁)
 
 --- Functor instances ---
 
