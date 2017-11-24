@@ -120,8 +120,6 @@ suc a divides? suc b | qr q (suc r) lt eq₁ = no (no-divides-suc-mod q lt eq₁
 
 --- Instances ---
 
-open import Structure.Smashed
-
 instance
   SmashDivides : ∀ {a b} {{_ : NonZero a}} → Smashed (a Divides b)
   SmashDivides {0} {{}}

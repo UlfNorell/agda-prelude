@@ -1,7 +1,12 @@
 
-module Structure.Smashed where
+module Prelude.Smashed where
 
-open import Prelude
+open import Prelude.Equality
+open import Prelude.Unit
+open import Prelude.Empty
+open import Prelude.Nat.Core
+open import Prelude.Function
+open import Prelude.Ord
 
 record Smashed {a} (A : Set a) : Set a where
   field

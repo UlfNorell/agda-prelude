@@ -30,7 +30,6 @@ open import Numeric.Nat.Prime
 open import Numeric.Rational
 open import Numeric.Nat.Modulo
 open import Numeric.Nat.Pow
-open import Structure.Smashed
 
 open import MonoidTactic
 

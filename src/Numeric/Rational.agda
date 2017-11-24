@@ -6,7 +6,6 @@ open import Numeric.Nat.GCD
 open import Numeric.Nat.Prime
 open import Numeric.Nat.Divide
 open import Numeric.Nat.Properties
-open import Structure.Smashed
 open import Tactic.Nat
 
 data Rational : Set where
