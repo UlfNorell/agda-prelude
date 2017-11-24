@@ -83,3 +83,12 @@ log base x = ln x / ln base
 
 _**_ : Float → Float → Float
 a ** x = exp (x * ln a)
+
+NaN : Float
+NaN = 0.0 / 0.0
+
+Inf : Float
+Inf = 1.0 / 0.0
+
+-Inf : Float
+-Inf = -1.0 / 0.0
