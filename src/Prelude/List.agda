@@ -224,6 +224,22 @@ instance
   OrdList : ∀ {a} {A : Set a} {{OrdA : Ord A}} → Ord (List A)
   OrdList = defaultOrd (compareList compare)
 
+  OrdListLaws : ∀ {a} {A : Set a} {{OrdA : Ord/Laws A}} → Ord/Laws (List A)
+  Ord/Laws.super OrdListLaws = it
+  less-antirefl {{OrdListLaws {A = A}}} (head< hd) = less-antirefl {A = A} hd
+  less-antirefl {{OrdListLaws {A = A}}} (tail< tl) = less-antirefl {A = List A} tl
+  less-antisym {{OrdListLaws {A = A}}} nil<cons ()
+  less-antisym {{OrdListLaws {A = A}}} (head< hd) (head< hd₁) = less-antisym  {A = A} hd hd₁
+  less-antisym {{OrdListLaws {A = A}}} (head< hd) (tail< _)   = less-antirefl {A = A} hd
+  less-antisym {{OrdListLaws {A = A}}} (tail< _)  (head< hd)  = less-antirefl {A = A} hd
+  less-antisym {{OrdListLaws {A = A}}} (tail< tl) (tail< tl₁) = less-antisym  {A = List A} tl tl₁
+  less-trans {{OrdListLaws}} nil<cons   (head< hd)  = nil<cons
+  less-trans {{OrdListLaws}} nil<cons   (tail< tl)  = nil<cons
+  less-trans {{OrdListLaws {A = A}}} (head< hd) (head< hd₁) = head< (less-trans {A = A} hd hd₁)
+  less-trans {{OrdListLaws {A = A}}} (head< hd) (tail< tl)  = head< hd
+  less-trans {{OrdListLaws {A = A}}} (tail< tl) (head< hd)  = head< hd
+  less-trans {{OrdListLaws {A = A}}} (tail< tl) (tail< tl₁) = tail< (less-trans {A = List A} tl tl₁)
+
 --- Functor ---
 
 instance
