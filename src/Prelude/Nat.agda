@@ -7,46 +7,11 @@ open import Prelude.Bool
 open import Prelude.Decidable
 open import Prelude.Equality
 open import Prelude.Equality.Unsafe using (eraseEquality)
-open import Prelude.Function
 open import Prelude.Ord
-open import Prelude.Number
-open import Prelude.Semiring
 
-open import Agda.Builtin.Nat public
-  renaming ( _+_        to _+N_
-           ; _*_        to _*N_
-           ; _-_        to _-N_
-           ; _==_       to eqNat
-           ; _<_        to lessNat
-           ; div-helper to divAux
-           ; mod-helper to modAux )
-
-{-# DISPLAY _+N_ = _+_ #-}
-{-# DISPLAY _-N_ = _-_ #-}
-{-# DISPLAY _*N_ = _*_ #-}
-
---- Semiring ---
-
-instance
-  NumberNat : Number Nat
-  Number.Constraint NumberNat _ = ⊤
-  Number.fromNat    NumberNat n = n
-
-  SemiringNat : Semiring Nat
-  zro {{SemiringNat}} = 0
-  one {{SemiringNat}} = 1
-  _+_ {{SemiringNat}} = _+N_
-  _*_ {{SemiringNat}} = _*N_
-
-  SubtractiveNat : Subtractive Nat
-  _-_    {{SubtractiveNat}}   = _-N_
-  negate {{SubtractiveNat}} _ = 0
+open import Prelude.Nat.Core public
 
 --- Equality ---
-
-NonZero : Nat → Set
-NonZero zero    = ⊥
-NonZero (suc _) = ⊤
 
 suc-inj : ∀ {n m} → suc n ≡ suc m → n ≡ m
 suc-inj refl = refl
@@ -74,32 +39,14 @@ instance
   EqNat : Eq Nat
   _==_ {{EqNat}} = decEqNat
 
---- Division and modulo ---
-
-infixl 7 natDiv natMod
-syntax natDiv m n = n div m
-natDiv : (m : Nat) {{nz : NonZero m}} → Nat → Nat
-natDiv zero {{}} n
-natDiv (suc m) n = divAux 0 m n m
-
-syntax natMod m n = n mod m
-natMod : (m : Nat) {{nz : NonZero m}} → Nat → Nat
-natMod zero {{}} n
-natMod (suc m) n = modAux 0 m n m
-
-{-# INLINE natMod #-}
-{-# INLINE natDiv #-}
-
 --- Comparison ---
 
 data LessNat n m : Set where
   diff : ∀ k (eq : m ≡ suc k +N n) → LessNat n m
 
 {-# DISPLAY LessNat a b = a < b #-}
-{-# DISPLAY LessNat a (Nat.suc b) = a ≤ b #-}
 
 pattern diff! k = diff k refl
-{-# DISPLAY diff k refl = diff! k #-}
 
 private
   add-zero : ∀ n → n ≡ n +N 0
@@ -112,7 +59,7 @@ private
 
   lemLessNatMinus : ∀ n m → IsTrue (lessNat n m) → m ≡ suc (m -N suc n) +N n
   lemLessNatMinus  _       zero  ()
-  lemLessNatMinus  zero   (suc m) _   = cong suc $ add-zero m
+  lemLessNatMinus  zero   (suc m) _   = suc $≡ add-zero m
   lemLessNatMinus (suc n) (suc m) n<m rewrite add-suc (m -N suc n) n = cong suc (lemLessNatMinus n m n<m)
 
   lemNoLessEqual : ∀ n m → ¬ IsTrue (lessNat n m) → ¬ IsTrue (lessNat m n) → n ≡ m
