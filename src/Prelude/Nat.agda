@@ -11,6 +11,7 @@ open import Prelude.Ord
 open import Prelude.Number
 open import Prelude.Semiring
 open import Prelude.Function
+open import Prelude.Smashed
 
 open import Prelude.Nat.Properties
 open import Prelude.Nat.Core public
@@ -107,3 +108,27 @@ instance
   less-antirefl {{OrdNatLaws}} = nat-lt-antirefl
   less-antisym  {{OrdNatLaws}} = nat-lt-antisym
   less-trans    {{OrdNatLaws}} = nat-lt-trans
+
+instance
+  SmashedNatLess : {a b : Nat} → Smashed (a < b)
+  smashed {{SmashedNatLess}} {diff! k} {diff k₁ eq} with add-inj₁ (suc k) (suc k₁) _ eq | eq
+  ... | refl | refl = refl
+
+  SmashedNatComp : {a b : Nat} → Smashed (Comparison _<_ a b)
+  smashed {{SmashedNatComp}} {less _    } {less _    } = less $≡ smashed
+  smashed {{SmashedNatComp}} {less lt   } {equal refl} = ⊥-elim (less-antirefl {A = Nat} lt)
+  smashed {{SmashedNatComp}} {less lt   } {greater gt} = ⊥-elim (less-antisym  {A = Nat} lt gt)
+  smashed {{SmashedNatComp}} {equal refl} {less lt   } = ⊥-elim (less-antirefl {A = Nat} lt)
+  smashed {{SmashedNatComp}} {equal _   } {equal _   } = equal $≡ smashed
+  smashed {{SmashedNatComp}} {equal refl} {greater gt} = ⊥-elim (less-antirefl {A = Nat} gt)
+  smashed {{SmashedNatComp}} {greater gt} {less lt   } = ⊥-elim (less-antisym  {A = Nat} lt gt)
+  smashed {{SmashedNatComp}} {greater gt} {equal refl} = ⊥-elim (less-antirefl {A = Nat} gt)
+  smashed {{SmashedNatComp}} {greater _ } {greater _ } = greater $≡ smashed
+
+suc-monotone : {a b : Nat} → a < b → Nat.suc a < suc b
+suc-monotone (diff! k) = diff k (sym (add-suc-r (suc k) _))
+
+suc-comparison : {a b : Nat} → Comparison _<_ a b → Comparison _<_ (Nat.suc a) (suc b)
+suc-comparison (less lt)    = less    (suc-monotone lt)
+suc-comparison (equal eq)   = equal   (suc $≡ eq)
+suc-comparison (greater gt) = greater (suc-monotone gt)
