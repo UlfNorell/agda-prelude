@@ -146,7 +146,7 @@ record Ord/Laws {a} (A : Set a) : Set (lsuc a) where
     less-antisym  : {x y : A} → x < y → y < x → ⊥
     less-trans    : {x y z : A} → x < y → y < z → x < z
 
-open Ord/Laws {{...}} public
+open Ord/Laws {{...}} public hiding (super)
 
 module _ {a} {A : Set a} {{OrdA : Ord/Laws A}} where
 
@@ -161,3 +161,17 @@ module _ {a} {A : Set a} {{OrdA : Ord/Laws A}} where
   ... | equal refl | _          = y≤z
   ... | _          | equal refl = x≤y
   ... | less x<y   | less y<z   = lt-to-leq {A = A} (less-trans {A = A} x<y y<z)
+
+OrdLawsBy : ∀ {a} {A B : Set a} {{OrdA : Ord/Laws A}} {f : B → A} →
+              (∀ {x y} → f x ≡ f y → x ≡ y) → Ord/Laws B
+Ord/Laws.super (OrdLawsBy inj)        = OrdBy inj
+less-antirefl {{OrdLawsBy {A = A} _}} = less-antirefl {A = A}
+less-antisym  {{OrdLawsBy {A = A} _}} = less-antisym  {A = A}
+less-trans    {{OrdLawsBy {A = A} _}} = less-trans    {A = A}
+
+instance
+  OrdLawsBool : Ord/Laws Bool
+  Ord/Laws.super OrdLawsBool = it
+  less-antirefl {{OrdLawsBool}} ()
+  less-antisym  {{OrdLawsBool}} false<true ()
+  less-trans    {{OrdLawsBool}} false<true ()
