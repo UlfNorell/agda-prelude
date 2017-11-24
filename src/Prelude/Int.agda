@@ -82,4 +82,27 @@ instance
   Ord.lt-to-leq   OrdInt = from-lt _ _
   Ord.leq-to-lteq OrdInt = from-leq _ _
 
-open import Prelude.Function
+-- Ord/Laws --
+
+private
+  lessInt-antirefl : (a : Int) → a < a → ⊥
+  lessInt-antirefl a (diff k eq) = case addInt-inj₁ 0 (pos (suc k)) a (addInt-zero-l a ⟨≡⟩ eq) of λ ()
+
+  lessInt-antisym : (a b : Int) → a < b → b < a → ⊥
+  lessInt-antisym a b (diff k refl) (diff j eq) =
+    case addInt-inj₁ 0 (pos (suc j) + pos (suc k)) a
+           (addInt-zero-l a ⟨≡⟩ eq ⟨≡⟩ addInt-assoc (pos (suc j)) (pos (suc k)) a)
+    of λ ()
+
+  lessInt-trans : {a b c : Int} → a < b → b < c → a < c
+  lessInt-trans {a} (diff k eq) (diff j eq₁) = diff (j + suc k) (eraseEquality $
+    case eq of λ where
+      refl → case eq₁ of λ where
+        refl → addInt-assoc (pos (suc j)) (pos (suc k)) a)
+
+instance
+  OrdIntLaws : Ord/Laws Int
+  Ord/Laws.super OrdIntLaws = it
+  less-antirefl {{OrdIntLaws}} = lessInt-antirefl _
+  less-antisym  {{OrdIntLaws}} = lessInt-antisym _ _
+  less-trans    {{OrdIntLaws}} = lessInt-trans
