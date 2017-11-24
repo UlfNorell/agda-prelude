@@ -123,16 +123,6 @@ instance
   less-antirefl {{OrdLawsLeaf}} (string lt) = less-antirefl {A = List Char} lt
   less-antirefl {{OrdLawsLeaf}} (float  lt) = less-antirefl {A = Float    } lt
   less-antirefl {{OrdLawsLeaf}} (name   lt) = less-antirefl {A = Name     } lt
-  less-antisym {{OrdLawsLeaf}} (char   lt) (char   lt₁) = less-antisym {A = Nat      } lt lt₁
-  less-antisym {{OrdLawsLeaf}} (string lt) (string lt₁) = less-antisym {A = List Char} lt lt₁
-  less-antisym {{OrdLawsLeaf}} (float  lt) (float  lt₁) = less-antisym {A = Float    } lt lt₁
-  less-antisym {{OrdLawsLeaf}} (name   lt) (name   lt₁) = less-antisym {A = Name     } lt lt₁
-  less-antisym {{OrdLawsLeaf}} char<string  ()
-  less-antisym {{OrdLawsLeaf}} char<float   ()
-  less-antisym {{OrdLawsLeaf}} char<name    ()
-  less-antisym {{OrdLawsLeaf}} string<float ()
-  less-antisym {{OrdLawsLeaf}} string<name  ()
-  less-antisym {{OrdLawsLeaf}} float<name   ()
   less-trans {{OrdLawsLeaf}} (char   lt) (char   lt₁) = char   (less-trans {A = Nat      } lt lt₁)
   less-trans {{OrdLawsLeaf}} (string lt) (string lt₁) = string (less-trans {A = List Char} lt lt₁)
   less-trans {{OrdLawsLeaf}} (float  lt) (float  lt₁) = float  (less-trans {A = Float    } lt lt₁)
@@ -193,20 +183,6 @@ private
   antirefls (head< lt)     = antirefl lt
   antirefls (tail< lt)     = antirefls lt
 
-  antisym  : {s t : TreeRep} → s < t → t < s → ⊥
-  antisyms : {ss ts : List TreeRep} → ss < ts → ts < ss → ⊥
-  antisym (leaf lt)      (leaf lt₁)      = less-antisym {A = Leaf} lt lt₁
-  antisym (tag< lt)      (tag< lt₁)      = less-antisym {A = Nat} lt lt₁
-  antisym (children< lt) (children< lt₁) = antisyms lt lt₁
-  antisym leaf<node      ()
-  antisym (tag< lt)      (children< _)   = less-antirefl {A = Nat} lt
-  antisym (children< _)  (tag< lt)       = less-antirefl {A = Nat} lt
-  antisyms nil<cons ()
-  antisyms (head< lt) (head< lt₁) = antisym lt lt₁
-  antisyms (head< lt) (tail< lt₁) = antirefl lt
-  antisyms (tail< lt) (head< lt₁) = antirefl lt₁
-  antisyms (tail< lt) (tail< lt₁) = antisyms lt lt₁
-
   ltrans  : {s t u : TreeRep} → s < t → t < u → s < u
   ltranss : {ss ts us : List TreeRep} → ss < ts → ts < us → ss < us
   ltrans (leaf lt)      (leaf lt₁)      = leaf (less-trans {A = Leaf} lt lt₁)
@@ -228,7 +204,6 @@ instance
   OrdLawsTree : Ord/Laws TreeRep
   Ord/Laws.super OrdLawsTree = it
   less-antirefl {{OrdLawsTree}} = antirefl
-  less-antisym  {{OrdLawsTree}} = antisym
   less-trans    {{OrdLawsTree}} = ltrans
 
 --- Encoding types as trees ---
@@ -266,7 +241,6 @@ module _ {a} {A : Set a} {{_ : TreeEncoding A}} where
   OrdLawsByTreeEncoding : Ord/Laws A
   Ord/Laws.super OrdLawsByTreeEncoding = OrdByTreeEncoding
   less-antirefl {{OrdLawsByTreeEncoding}} (less-enc lt) = less-antirefl {A = TreeRep} lt
-  less-antisym  {{OrdLawsByTreeEncoding}} (less-enc lt) (less-enc lt₁) = less-antisym {A = TreeRep} lt lt₁
   less-trans    {{OrdLawsByTreeEncoding}} (less-enc lt) (less-enc lt₁) = less-enc (less-trans {A = TreeRep} lt lt₁)
 
 --- Encodings for standard types ---

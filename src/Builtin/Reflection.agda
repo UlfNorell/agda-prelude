@@ -46,7 +46,6 @@ instance
   OrdLawsName : Ord/Laws Name
   Ord/Laws.super OrdLawsName    = it
   less-antirefl {{OrdLawsName}} (less-name eq) = unsafeNotEqual eq
-  less-antisym  {{OrdLawsName}} (less-name eq) (less-name eq₁) = unsafeNotEqual (eq ⟨≡⟩ʳ eq₁)
   less-trans    {{OrdLawsName}} (less-name _)  (less-name _)   = less-name unsafeEqual
 
 --- Meta variables ---
@@ -79,7 +78,6 @@ instance
   OrdLawsMeta : Ord/Laws Meta
   Ord/Laws.super OrdLawsMeta = it
   less-antirefl {{OrdLawsMeta}} (less-meta eq) = unsafeNotEqual eq
-  less-antisym  {{OrdLawsMeta}} (less-meta eq) (less-meta eq₁) = unsafeNotEqual (eq ⟨≡⟩ʳ eq₁)
   less-trans    {{OrdLawsMeta}} (less-meta _)  (less-meta _)   = less-meta unsafeEqual
 
 --- Literals ---

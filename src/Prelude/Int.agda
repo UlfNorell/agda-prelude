@@ -104,5 +104,4 @@ instance
   OrdIntLaws : Ord/Laws Int
   Ord/Laws.super OrdIntLaws = it
   less-antirefl {{OrdIntLaws}} = lessInt-antirefl _
-  less-antisym  {{OrdIntLaws}} = lessInt-antisym _ _
   less-trans    {{OrdIntLaws}} = lessInt-trans

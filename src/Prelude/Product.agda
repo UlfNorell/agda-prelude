@@ -127,10 +127,6 @@ module _ {a b} {A : Set a} {B : A → Set b} {{OrdA : Ord/Laws A}} {{OrdB : ∀ 
     Ord/Laws.super OrdLawsSigma = OrdSigma {{OrdB = OrdB .Ord/Laws.super}}
     less-antirefl {{OrdLawsSigma}} (fst< lt)                    = less-antirefl {A = A} lt
     less-antirefl {{OrdLawsSigma}} (snd< {x = x} lt)            = less-antirefl {A = B x} lt
-    less-antisym  {{OrdLawsSigma}} (fst<         lt) (fst< lt₁) = less-antisym {A = A} lt lt₁
-    less-antisym  {{OrdLawsSigma}} (fst<         lt) (snd< lt₁) = less-antirefl {A = A} lt
-    less-antisym  {{OrdLawsSigma}} (snd<         lt) (fst< lt₁) = less-antirefl {A = A} lt₁
-    less-antisym  {{OrdLawsSigma}} (snd< {x = x} lt) (snd< lt₁) = less-antisym {A = B x} lt lt₁
     less-trans    {{OrdLawsSigma}} (fst<         lt) (fst< lt₁) = fst< (less-trans {A = A} lt lt₁)
     less-trans    {{OrdLawsSigma}} (fst<         lt) (snd< lt₁) = fst< lt
     less-trans    {{OrdLawsSigma}} (snd<         lt) (fst< lt₁) = fst< lt₁

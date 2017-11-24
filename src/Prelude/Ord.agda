@@ -143,17 +143,19 @@ record Ord/Laws {a} (A : Set a) : Set (lsuc a) where
   field
     overlap {{super}} : Ord A
     less-antirefl : {x : A} → x < x → ⊥
-    less-antisym  : {x y : A} → x < y → y < x → ⊥
     less-trans    : {x y z : A} → x < y → y < z → x < z
 
 open Ord/Laws {{...}} public hiding (super)
 
 module _ {a} {A : Set a} {{OrdA : Ord/Laws A}} where
 
+  less-antisym  : {x y : A} → x < y → y < x → ⊥
+  less-antisym lt lt₁ = less-antirefl {A = A} (less-trans {A = A} lt lt₁)
+
   leq-antisym : {x y : A} → x ≤ y → y ≤ x → x ≡ y
   leq-antisym x≤y y≤x with leq-to-lteq {A = A} x≤y | leq-to-lteq {A = A} y≤x
   ... | _          | equal refl = refl
-  ... | less x<y   | less y<x   = ⊥-elim (less-antisym {A = A} x<y y<x)
+  ... | less x<y   | less y<x   = ⊥-elim (less-antisym x<y y<x)
   ... | equal refl | less _     = refl
 
   leq-trans : {x y z : A} → x ≤ y → y ≤ z → x ≤ z
@@ -166,12 +168,10 @@ OrdLawsBy : ∀ {a} {A B : Set a} {{OrdA : Ord/Laws A}} {f : B → A} →
               (∀ {x y} → f x ≡ f y → x ≡ y) → Ord/Laws B
 Ord/Laws.super (OrdLawsBy inj)        = OrdBy inj
 less-antirefl {{OrdLawsBy {A = A} _}} = less-antirefl {A = A}
-less-antisym  {{OrdLawsBy {A = A} _}} = less-antisym  {A = A}
 less-trans    {{OrdLawsBy {A = A} _}} = less-trans    {A = A}
 
 instance
   OrdLawsBool : Ord/Laws Bool
   Ord/Laws.super OrdLawsBool = it
   less-antirefl {{OrdLawsBool}} ()
-  less-antisym  {{OrdLawsBool}} false<true ()
   less-trans    {{OrdLawsBool}} false<true ()

@@ -106,7 +106,6 @@ instance
   OrdNatLaws : Ord/Laws Nat
   Ord/Laws.super OrdNatLaws = it
   less-antirefl {{OrdNatLaws}} = nat-lt-antirefl
-  less-antisym  {{OrdNatLaws}} = nat-lt-antisym
   less-trans    {{OrdNatLaws}} = nat-lt-trans
 
 instance

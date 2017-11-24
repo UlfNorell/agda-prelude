@@ -37,7 +37,6 @@ instance
   OrdLawsFloat : Ord/Laws Float
   Ord/Laws.super OrdLawsFloat    = it
   less-antirefl {{OrdLawsFloat}} (less-float eq) = unsafeNotEqual eq
-  less-antisym  {{OrdLawsFloat}} (less-float eq) (less-float eq₁) = unsafeNotEqual (eq ⟨≡⟩ʳ eq₁)
   less-trans    {{OrdLawsFloat}} (less-float _)  (less-float _)   = less-float unsafeEqual
 
 instance
