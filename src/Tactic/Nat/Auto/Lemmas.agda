@@ -5,7 +5,7 @@ open import Prelude
 open import Tactic.Nat.NF
 open import Tactic.Nat.Exp
 open import Container.Bag
-open import Numeric.Nat.Properties.Core
+open import Prelude.Nat.Properties
 
 map++ : ∀ {a b} {A : Set a} {B : Set b} (f : A → B) (xs ys : List A) →
           map f (xs ++ ys) ≡ map f xs ++ map f ys
@@ -13,7 +13,7 @@ map++ f [] ys = refl
 map++ f (x ∷ xs) ys rewrite map++ f xs ys = refl
 
 prod++ : (xs ys : List Nat) → productR (xs ++ ys) ≡ productR xs * productR ys
-prod++ [] ys = sym (add-0-r (productR ys))
+prod++ [] ys = sym (add-zero-r (productR ys))
 prod++ (x ∷ xs) ys rewrite prod++ xs ys = mul-assoc x _ _
 
 private
@@ -48,7 +48,7 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
   ⟨+⟩-sound : ∀ v₁ v₂ (ρ : Env Atom) → ⟦ v₁ +nf v₂ ⟧n ρ ≡ ⟦ v₁ ⟧n ρ + ⟦ v₂ ⟧n ρ
   ⟨+⟩-sound [] []               ρ = refl
   ⟨+⟩-sound [] (_ ∷ _)          ρ = refl
-  ⟨+⟩-sound (t ∷ v₁)  []        ρ = sym (add-0-r _)
+  ⟨+⟩-sound (t ∷ v₁)  []        ρ = sym (add-zero-r _)
   ⟨+⟩-sound ((i , t₁) ∷ v₁) ((j , t₂) ∷ v₂) ρ with compare t₁ t₂
   ... | less _ rewrite ⟨+⟩-sound v₁ ((j , t₂) ∷ v₂) ρ
                      = add-assoc (i * productR (map ρ t₁)) _ _
@@ -60,8 +60,8 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
 
   map-merge : ∀ x y (ρ : Env Atom) → productR (map ρ (merge x y)) ≡ productR (map ρ x) * productR (map ρ y)
   map-merge [] [] ρ = refl
-  map-merge [] (x ∷ xs) ρ = sym (add-0-r (productR (ρ x ∷ map ρ xs)))
-  map-merge (x ∷ xs) [] ρ = sym (mul-1-r _)
+  map-merge [] (x ∷ xs) ρ = sym (add-zero-r (productR (ρ x ∷ map ρ xs)))
+  map-merge (x ∷ xs) [] ρ = sym (mul-one-r _)
   map-merge (x ∷ xs) (y ∷ ys) ρ with x <? y
   ... | true  rewrite map-merge xs (y ∷ ys) ρ = mul-assoc (ρ x) _ _
   ... | false rewrite map-merge (x ∷ xs) ys ρ = shuffle₄ (ρ y) (ρ x) _ _
@@ -72,7 +72,7 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
                                         = shuffle₃ a b _ _
 
   mulTmDistr : ∀ t v (ρ : Env Atom) → ⟦ map (mulTm t) v ⟧n ρ ≡ ⟦ t ⟧t ρ * ⟦ v ⟧n ρ
-  mulTmDistr t [] ρ = sym (mul-0-r (⟦ t ⟧t ρ))
+  mulTmDistr t [] ρ = sym (mul-zero-r (⟦ t ⟧t ρ))
   mulTmDistr t (t′ ∷ v) ρ =
     ⟦ mulTm t t′ ⟧t ρ + ⟦ map (mulTm t) v ⟧n ρ
       ≡⟨ cong₂ _+_ (mulTm-sound t t′ ρ) (mulTmDistr t v ρ) ⟩
@@ -84,7 +84,7 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
   sort-sound [] ρ = refl
   sort-sound (x ∷ xs) ρ rewrite ⟨+⟩-sound [ x ] (nf-sort xs) ρ
                               | sort-sound xs ρ
-                              | add-0-r (⟦ x ⟧t ρ) = refl
+                              | add-zero-r (⟦ x ⟧t ρ) = refl
 
   ⟨*⟩-sound : ∀ v₁ v₂ (ρ : Env Atom) → ⟦ v₁ *nf v₂ ⟧n ρ ≡ ⟦ v₁ ⟧n ρ * ⟦ v₂ ⟧n ρ
   ⟨*⟩-sound [] v₂ ρ = refl
@@ -102,11 +102,11 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
     ⟦ t ∷ v₁ ⟧n ρ * ⟦ v₂ ⟧n ρ ∎
 
   sound : ∀ e (ρ : Env Atom) → ⟦ e ⟧e ρ ≡ ⟦ norm e ⟧n ρ
-  sound (var x) ρ = mul-1-r (ρ x) ʳ⟨≡⟩ add-0-r _ ʳ⟨≡⟩ʳ add-0-r _
+  sound (var x) ρ = mul-one-r (ρ x) ʳ⟨≡⟩ add-zero-r _ ʳ⟨≡⟩ʳ add-zero-r _
   sound (lit 0) ρ = refl
-  sound (lit (suc n)) ρ rewrite mul-1-r n
+  sound (lit (suc n)) ρ rewrite mul-one-r n
                               | add-commute n 1
-                              = sym (add-0-r _)
+                              = sym (add-zero-r _)
   sound (e ⟨+⟩ e₁) ρ =
     ⟦ e ⟧e ρ + ⟦ e₁ ⟧e ρ
       ≡⟨ cong₂ _+_ (sound e ρ) (sound e₁ ρ) ⟩

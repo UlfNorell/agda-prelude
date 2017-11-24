@@ -13,6 +13,7 @@ open import Prelude.Equality.Unsafe using (eraseEquality)
 open import Prelude.Ord
 open import Prelude.Decidable
 open import Prelude.Function
+open import Prelude.Nat.Properties using (suc-inj)
 
 open import Agda.Builtin.Int public
 

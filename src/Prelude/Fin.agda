@@ -8,6 +8,7 @@ open import Prelude.Ord
 open import Prelude.Bool
 open import Prelude.Function
 open import Prelude.Number
+open import Prelude.Nat.Properties using (suc-inj)
 
 data Fin : Nat → Set where
   zero : ∀ {n} → Fin (suc n)

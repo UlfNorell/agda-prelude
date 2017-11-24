@@ -8,13 +8,14 @@ open import Prelude.Decidable
 open import Prelude.Equality
 open import Prelude.Equality.Unsafe using (eraseEquality)
 open import Prelude.Ord
+open import Prelude.Number
+open import Prelude.Semiring
+open import Prelude.Function
 
+open import Prelude.Nat.Properties
 open import Prelude.Nat.Core public
 
 --- Equality ---
-
-suc-inj : ∀ {n m} → suc n ≡ suc m → n ≡ m
-suc-inj refl = refl
 
 private
   eqNatSound : ∀ n m → IsTrue (eqNat n m) → n ≡ m
@@ -49,18 +50,10 @@ data LessNat n m : Set where
 pattern diff! k = diff k refl
 
 private
-  add-zero : ∀ n → n ≡ n +N 0
-  add-zero zero = refl
-  add-zero (suc n) = cong suc (add-zero n)
-
-  add-suc : ∀ n m → n +N suc m ≡ suc n +N m
-  add-suc zero m = refl
-  add-suc (suc n) m = cong suc (add-suc n m)
-
-  lemLessNatMinus : ∀ n m → IsTrue (lessNat n m) → m ≡ suc (m -N suc n) +N n
+  lemLessNatMinus : ∀ n m → IsTrue (lessNat n m) → m ≡ suc (m - suc n) + n
   lemLessNatMinus  _       zero  ()
-  lemLessNatMinus  zero   (suc m) _   = suc $≡ add-zero m
-  lemLessNatMinus (suc n) (suc m) n<m rewrite add-suc (m -N suc n) n = cong suc (lemLessNatMinus n m n<m)
+  lemLessNatMinus  zero   (suc m) _   = sym (suc $≡ add-zero-r m)
+  lemLessNatMinus (suc n) (suc m) n<m = suc $≡ (lemLessNatMinus n m n<m ⟨≡⟩ʳ add-suc-r (m - suc n) n)
 
   lemNoLessEqual : ∀ n m → ¬ IsTrue (lessNat n m) → ¬ IsTrue (lessNat m n) → n ≡ m
   lemNoLessEqual zero zero _ _ = refl
@@ -72,9 +65,9 @@ private
   -- proofs.
   compareNat : ∀ n m → Comparison LessNat n m
   compareNat n m with decBool (lessNat n m)
-  ... | yes p = less (diff (m -N suc n) (eraseEquality (lemLessNatMinus n m p)))
+  ... | yes p = less (diff (m - suc n) (eraseEquality (lemLessNatMinus n m p)))
   ... | no np₁ with decBool (lessNat m n)
-  ...             | yes p  = greater (diff (n -N suc m) (eraseEquality (lemLessNatMinus m n p)))
+  ...             | yes p  = greater (diff (n - suc m) (eraseEquality (lemLessNatMinus m n p)))
   ...             | no np₂ = equal (eraseEquality (lemNoLessEqual n m np₁ np₂))
   {-# INLINE compareNat #-}
 
@@ -89,6 +82,17 @@ private
   nat-from-leq (diff zero eq)    = equal (sym (suc-inj eq))
   nat-from-leq (diff (suc k) eq) = less (diff k (suc-inj eq))
 
+  nat-lt-antirefl : ∀ {a} → LessNat a a → ⊥
+  nat-lt-antirefl {a} (diff k eq) = case add-inj₁ 0 (suc k) a eq of λ ()
+
+  nat-lt-antisym : ∀ {a b} → LessNat a b → LessNat b a → ⊥
+  nat-lt-antisym {a} (diff! k) (diff j eq) =
+    case add-inj₁ 0 (suc j + suc k) a (eq ⟨≡⟩ suc $≡ add-assoc j (suc k) a) of λ ()
+
+  nat-lt-trans : ∀ {a b c} → LessNat a b → LessNat b c → LessNat a c
+  nat-lt-trans (diff k eq) (diff j eq₁) = diff (j + suc k) (eraseEquality
+    (case eq of λ where refl → case eq₁ of λ where refl → add-assoc (suc j) (suc k) _))
+
 instance
   OrdNat : Ord Nat
   Ord._<_         OrdNat = LessNat
@@ -97,3 +101,9 @@ instance
   Ord.eq-to-leq   OrdNat = nat-eq-to-leq
   Ord.lt-to-leq   OrdNat = nat-lt-to-leq
   Ord.leq-to-lteq OrdNat = nat-from-leq
+
+  OrdNatLaws : Ord/Laws Nat
+  Ord/Laws.super OrdNatLaws = it
+  less-antirefl {{OrdNatLaws}} = nat-lt-antirefl
+  less-antisym  {{OrdNatLaws}} = nat-lt-antisym
+  less-trans    {{OrdNatLaws}} = nat-lt-trans

@@ -6,7 +6,7 @@ open import Tactic.Nat.NF
 open import Tactic.Nat.Exp
 open import Container.Bag
 open import Tactic.Nat.Simpl
-open import Numeric.Nat.Properties.Core
+open import Prelude.Nat.Properties
 open import Container.List.Properties
 open import Tactic.Nat.Auto.Lemmas
 open import Tactic.Nat.Simpl.Lemmas
@@ -218,4 +218,3 @@ complicateSubEq e₁ e₂ ρ H =
   lem-eval-sn-nS (normSub e₁) ρ ʳ⟨≡⟩
   unliftNFSubEq e₁ e₂ ρ H ⟨≡⟩
   lem-eval-sn-nS (normSub e₂) ρ
-

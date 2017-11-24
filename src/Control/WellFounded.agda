@@ -2,6 +2,7 @@
 module Control.WellFounded where
 
 open import Prelude
+open import Prelude.Nat.Properties using (suc-inj)
 
 data Acc {a} {A : Set a} (_<_ : A → A → Set a) (x : A) : Set a where
   acc : (∀ y → y < x → Acc _<_ y) → Acc _<_ x

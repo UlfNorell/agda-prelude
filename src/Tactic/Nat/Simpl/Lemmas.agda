@@ -6,16 +6,16 @@ open import Tactic.Nat.NF
 open import Tactic.Nat.Exp
 open import Container.Bag
 open import Tactic.Nat.Auto
-open import Numeric.Nat.Properties.Core
+open import Prelude.Nat.Properties
 open import Container.List.Properties
 open import Tactic.Nat.Auto.Lemmas
 
 product1-sound : ∀ xs → product1 xs ≡ productR xs
 product1-sound [] = refl
 product1-sound (x ∷ xs)
-  rewrite sym (cong (λ x → foldl _*_ x xs) (mul-1-r x))
+  rewrite sym (cong (λ x → foldl _*_ x xs) (mul-one-r x))
         | foldl-assoc _*_ mul-assoc x 1 xs
-        | foldl-foldr _*_ 1 mul-assoc add-0-r mul-1-r xs
+        | foldl-foldr _*_ 1 mul-assoc add-zero-r mul-one-r xs
         = refl
 
 map-eq : ∀ {c b} {A : Set c} {B : Set b} (f g : A → B) →
@@ -49,8 +49,8 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
   NFEq (nf₁ , nf₂) ρ = ⟦ nf₁ ⟧n ρ ≡ ⟦ nf₂ ⟧n ρ
 
   ts-sound : ∀ x (ρ : Env Atom) → ⟦ x ⟧ts ρ ≡ ⟦ x ⟧t ρ
-  ts-sound (0 , x) ρ = mul-0-r (product1 (map ρ x))
-  ts-sound (1 , x) ρ = product1-sound (map ρ x) ⟨≡⟩ʳ add-0-r _
+  ts-sound (0 , x) ρ = mul-zero-r (product1 (map ρ x))
+  ts-sound (1 , x) ρ = product1-sound (map ρ x) ⟨≡⟩ʳ add-zero-r _
   ts-sound (suc (suc i) , x) ρ
     rewrite sym (product1-sound (map ρ x))
           = auto
@@ -71,9 +71,9 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
     rewrite sym (foldl-map-fusion _+_ (ets ρ) (ets ρ x) nf)
           | ts-sound x ρ
           | map-eq (ets ρ) (et ρ) (flip ts-sound ρ) nf
-          | sym (foldl-foldr _+_ 0 add-assoc (λ _ → refl) add-0-r (map (et ρ) nf))
+          | sym (foldl-foldr _+_ 0 add-assoc (λ _ → refl) add-zero-r (map (et ρ) nf))
           | sym (foldl-assoc _+_ add-assoc (et ρ x) 0 (map (et ρ) nf))
-          | add-0-r (et ρ x)
+          | add-zero-r (et ρ x)
           = refl
 
   private
