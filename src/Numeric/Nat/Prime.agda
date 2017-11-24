@@ -1,7 +1,7 @@
 
 module Numeric.Nat.Prime where
 
-open import Prelude
+open import Prelude hiding (less-antisym; less-antirefl; leq-antisym)
 open import Numeric.Nat.GCD
 open import Numeric.Nat.Divide
 open import Numeric.Nat.DivMod

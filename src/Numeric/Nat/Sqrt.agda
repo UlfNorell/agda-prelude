@@ -1,7 +1,7 @@
 
 module Numeric.Nat.Sqrt where
 
-open import Prelude hiding (_<?_)
+open import Prelude hiding (_<?_; less-antisym)
 open import Numeric.Nat.Properties
 open import Tactic.Nat
 open import Numeric.Nat.BinarySearch

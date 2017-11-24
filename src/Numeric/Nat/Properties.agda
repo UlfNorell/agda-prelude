@@ -1,7 +1,7 @@
 
 module Numeric.Nat.Properties where
 
-open import Prelude
+open import Prelude hiding (less-antisym; less-antirefl; leq-antisym)
 open import Numeric.Nat.Properties.Core public
 open import Tactic.Nat
 

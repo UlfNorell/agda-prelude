@@ -6,6 +6,7 @@ open import Prelude.Equality
 open import Prelude.Decidable
 open import Prelude.Bool
 open import Prelude.Function
+open import Prelude.Empty
 
 data Comparison {a} {A : Set a} (_<_ : A → A → Set a) (x y : A) : Set a where
   less    : (lt : x < y) → Comparison _<_ x y
@@ -135,3 +136,28 @@ private
 instance
   OrdBool : Ord Bool
   OrdBool = defaultOrd compareBool
+
+--- Ord with proofs ---
+
+record Ord/Laws {a} (A : Set a) : Set (lsuc a) where
+  field
+    overlap {{super}} : Ord A
+    less-antirefl : {x : A} → x < x → ⊥
+    less-antisym  : {x y : A} → x < y → y < x → ⊥
+    less-trans    : {x y z : A} → x < y → y < z → x < z
+
+open Ord/Laws {{...}} public
+
+module _ {a} {A : Set a} {{OrdA : Ord/Laws A}} where
+
+  leq-antisym : {x y : A} → x ≤ y → y ≤ x → x ≡ y
+  leq-antisym x≤y y≤x with leq-to-lteq {A = A} x≤y | leq-to-lteq {A = A} y≤x
+  ... | _          | equal refl = refl
+  ... | less x<y   | less y<x   = ⊥-elim (less-antisym {A = A} x<y y<x)
+  ... | equal refl | less _     = refl
+
+  leq-trans : {x y z : A} → x ≤ y → y ≤ z → x ≤ z
+  leq-trans x≤y y≤z with leq-to-lteq {A = A} x≤y | leq-to-lteq {A = A} y≤z
+  ... | equal refl | _          = y≤z
+  ... | _          | equal refl = x≤y
+  ... | less x<y   | less y<z   = lt-to-leq {A = A} (less-trans {A = A} x<y y<z)
