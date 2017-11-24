@@ -54,3 +54,6 @@ isUpper c = isNo (toLower c == c)
 instance
   OrdChar : Ord Char
   OrdChar = OrdBy charToNat-inj
+
+  OrdLawsChar : Ord/Laws Char
+  OrdLawsChar = OrdLawsBy charToNat-inj

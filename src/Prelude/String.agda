@@ -59,6 +59,9 @@ instance
   OrdString : Ord String
   OrdString = OrdBy unpackString-inj
 
+  OrdLawsString : Ord/Laws String
+  OrdLawsString = OrdLawsBy unpackString-inj
+
 -- Overloaded literals --
 
 instance

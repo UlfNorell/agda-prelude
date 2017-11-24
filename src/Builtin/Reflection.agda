@@ -43,6 +43,12 @@ instance
   OrdName : Ord Name
   OrdName = defaultOrd cmpName
 
+  OrdLawsName : Ord/Laws Name
+  Ord/Laws.super OrdLawsName    = it
+  less-antirefl {{OrdLawsName}} (less-name eq) = unsafeNotEqual eq
+  less-antisym  {{OrdLawsName}} (less-name eq) (less-name eq₁) = unsafeNotEqual (eq ⟨≡⟩ʳ eq₁)
+  less-trans    {{OrdLawsName}} (less-name _)  (less-name _)   = less-name unsafeEqual
+
 --- Meta variables ---
 
 instance
@@ -56,19 +62,25 @@ instance
   ... | false = no  unsafeNotEqual
 
 data LessMeta (x y : Meta) : Set where
-  less-name : primMetaLess x y ≡ true → LessMeta x y
+  less-meta : primMetaLess x y ≡ true → LessMeta x y
 
 private
   cmpMeta : ∀ x y → Comparison LessMeta x y
   cmpMeta x y with inspect (primMetaLess x y)
-  ... | true  with≡ eq = less (less-name eq)
+  ... | true  with≡ eq = less (less-meta eq)
   ... | false with≡ _  with inspect (primMetaLess y x)
-  ...   | true with≡ eq = greater (less-name eq)
+  ...   | true with≡ eq = greater (less-meta eq)
   ...   | false with≡ _ = equal unsafeEqual
 
 instance
   OrdMeta : Ord Meta
   OrdMeta = defaultOrd cmpMeta
+
+  OrdLawsMeta : Ord/Laws Meta
+  Ord/Laws.super OrdLawsMeta = it
+  less-antirefl {{OrdLawsMeta}} (less-meta eq) = unsafeNotEqual eq
+  less-antisym  {{OrdLawsMeta}} (less-meta eq) (less-meta eq₁) = unsafeNotEqual (eq ⟨≡⟩ʳ eq₁)
+  less-trans    {{OrdLawsMeta}} (less-meta _)  (less-meta _)   = less-meta unsafeEqual
 
 --- Literals ---
 
