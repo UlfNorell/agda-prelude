@@ -50,6 +50,9 @@ instance
   OrdWord64 : Ord Word64
   OrdWord64 = OrdBy inj-word64ToNat
 
+  OrdLawsWord64 : Ord/Laws Word64
+  OrdLawsWord64 = OrdLawsBy inj-word64ToNat
+
 -- Arithmetic --
 
 private
