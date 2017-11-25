@@ -21,23 +21,23 @@ instance
   ... | false = no  unsafeNotEqual
 
 data LessFloat (x y : Float) : Set where
-  less-float : primFloatNumericalLess x y ≡ true → LessFloat x y
+  less-float : primFloatLess x y ≡ true → LessFloat x y
 
 instance
   OrdFloat : Ord Float
   OrdFloat = defaultOrd cmpFloat
     where
       cmpFloat : ∀ x y → Comparison LessFloat x y
-      cmpFloat x y with inspect (primFloatNumericalLess x y)
+      cmpFloat x y with inspect (primFloatLess x y)
       ... | true  with≡ eq = less (less-float eq)
-      ... | false with≡ _ with inspect (primFloatNumericalLess y x)
+      ... | false with≡ _ with inspect (primFloatLess y x)
       ...   | true  with≡ eq = greater (less-float eq)
       ...   | false with≡ _  = equal unsafeEqual
 
   OrdLawsFloat : Ord/Laws Float
   Ord/Laws.super OrdLawsFloat    = it
   less-antirefl {{OrdLawsFloat}} (less-float eq) = unsafeNotEqual eq
-  less-trans    {{OrdLawsFloat}} (less-float _)  (less-float _)   = less-float unsafeEqual
+  less-trans    {{OrdLawsFloat}} (less-float _) (less-float _) = less-float unsafeEqual
 
 instance
   ShowFloat : Show Float
