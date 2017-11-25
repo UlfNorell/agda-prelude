@@ -40,12 +40,16 @@ f $′ x = f x
 case_of_ : ∀ {a b} {A : Set a} {B : Set b} → A → (A → B) → B
 case x of f = f x
 
+case₂_,_of_ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} → A → B → (A → B → C) → C
+case₂ x , y of f = f x y
+
 case_return_of_ : ∀ {a b} {A : Set a} (x : A) (B : A → Set b) → (∀ x → B x) → B x
 case x return B of f = f x
 
 {-# INLINE _$_ #-}
 {-# INLINE _$′_ #-}
 {-# INLINE case_of_ #-}
+{-# INLINE case₂_,_of_ #-}
 {-# INLINE case_return_of_ #-}
 
 infixl 8 _on_
