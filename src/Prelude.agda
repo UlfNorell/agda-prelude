@@ -34,6 +34,7 @@ open import Prelude.Alternative public
 open import Prelude.Monad       public
 open import Prelude.Show        public
 open import Prelude.Ord         public
+open import Prelude.Ord.Reasoning public
 open import Prelude.Smashed     public
 
 open import Prelude.IO          public
