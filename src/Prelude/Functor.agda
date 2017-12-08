@@ -41,6 +41,11 @@ infixr 0 caseF_of_
 caseF_of_ : ∀ {a b} {F : Set a → Set b} {{_ : Functor F}} {A B} → F A → (A → B) → F B
 caseF_of_ x f = fmap f x
 
+for = caseF_of_
+
+{-# INLINE for #-}
+{-# INLINE caseF_of_ #-}
+
 -- Congruence for _<$>_ --
 
 infixl 4 _=$=_ _=$=′_
