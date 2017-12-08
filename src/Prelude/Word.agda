@@ -28,13 +28,13 @@ emb-word64FromNat : ∀ n → word64ToNat (word64FromNat n) ≡ n mod 2⁶⁴
 emb-word64FromNat n = unsafeEqual
 
 inj-word64ToNat : ∀ {a b} → word64ToNat a ≡ word64ToNat b → a ≡ b
-inj-word64ToNat {a} {b} eq =
+inj-word64ToNat {a} {b} eq = eraseEquality (
   a ≡⟨ inv-word64ToNat ⟩ʳ
   word64FromNat (word64ToNat a)
     ≡⟨ word64FromNat $≡ eq ⟩
   word64FromNat (word64ToNat b)
     ≡⟨ inv-word64ToNat ⟩
-  b ∎
+  b ∎)
 
 instance
   NumWord64 : Number Word64
