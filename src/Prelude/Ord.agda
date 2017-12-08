@@ -77,6 +77,13 @@ module _ {a} {A : Set a} {{_ : Ord A}} where
   max : A → A → A
   max x y = if x >? y then x else y
 
+  {-# INLINE _>?_ #-}
+  {-# INLINE _<?_ #-}
+  {-# INLINE _≤?_ #-}
+  {-# INLINE _≥?_ #-}
+  {-# INLINE min #-}
+  {-# INLINE max #-}
+
 --- Instances ---
 
 -- Default implementation of _≤_ --
