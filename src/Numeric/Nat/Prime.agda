@@ -219,7 +219,7 @@ private
   is-1-or-n {n} no-div  k (factor q kq=n) | above  k>n =
     right (leq-antisym (divides-less (factor q kq=n)) (by k>n))
 
-  lem₂ : ∀ {n d} q → q * d ≡ suc n → d < suc n → q > 1
+  lem₂ : ∀ {n d : Nat} q → q * d ≡ suc n → d < suc n → q > 1
   lem₂ 0 eq d≤n = refute eq
   lem₂ 1 eq d≤n = ⊥-elim (less-antirefl d≤n (by eq))
   lem₂ (suc (suc q)) eq d≤n = auto
@@ -234,7 +234,7 @@ private
   lem-sqrt : (n r : Nat) → r ^ 2 < 4 + n → ¬ (suc n < r)
   lem-sqrt n ._ lt (diff! c) = refute lt
 
-  sqrt-less : ∀ n → n > 2 → suc (sqrt! n) < n
+  sqrt-less : (n : Nat) → n > 2 → suc (sqrt! n) < n
   sqrt-less 0 (diff k ())
   sqrt-less 1 (diff k eq) = refute eq
   sqrt-less 2 (diff k eq) = refute eq

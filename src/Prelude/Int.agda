@@ -39,7 +39,7 @@ instance
   EqInt : Eq Int
   Eq._==_ EqInt = eqInt
     where
-      eqInt : ∀ a b → Dec (a ≡ b)
+      eqInt : (a b : Int) → Dec (a ≡ b)
       eqInt a b with inspect (a - b)
       eqInt a b | pos zero    with≡ eq = yes (lem-equal a b eq)
       eqInt a b | pos (suc n) with≡ eq = no λ a=b → case subInt-equal _ _ a=b ʳ⟨≡⟩ eq of λ ()

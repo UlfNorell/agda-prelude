@@ -33,7 +33,7 @@ instance
   EqLiteral : Eq Literal
   _==_ {{EqLiteral}} = eqLit
     where
-      eqLit : ∀ x y → Dec (x ≡ y)
+      eqLit : (x y : Literal) → Dec (x ≡ y)
       eqLit (nat    x) (nat    y) = decEq₁ nat-inj    (x == y)
       eqLit (word64 x) (word64 y) = decEq₁ word64-inj (x == y)
       eqLit (float  x) (float  y) = decEq₁ float-inj  (x == y)
