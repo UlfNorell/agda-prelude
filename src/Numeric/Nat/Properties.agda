@@ -34,9 +34,6 @@ diff! a ⟨<⟩ diff! b = diff (suc (b + a)) auto
 less-antirefl : ∀ {a b : Nat} → a < b → ¬ (a ≡ b)
 less-antirefl (diff! k) eq = refute eq
 
-less-antisym : ∀ {a b : Nat} → a < b → b < a → ⊥
-less-antisym (diff! k) (diff k₁ eq) = refute eq
-
 less-not-geq : ∀ {a b : Nat} → a < b → b ≤ a → ⊥
 less-not-geq (diff d eq) (diff! d₁) = refute eq
 
@@ -48,9 +45,6 @@ less-raa a≱b | greater a>b = ⊥-elim (a≱b (by a>b))
 
 _⟨≤⟩_ : {a b c : Nat} → a ≤ b → b ≤ c → a ≤ c
 diff! k ⟨≤⟩ diff! k₁ = auto
-
-leq-antisym : {a b : Nat} → a ≤ b → b ≤ a → a ≡ b
-leq-antisym (diff! k) (diff k₁ eq) = by eq
 
 private
   less-mul-r′ : ∀ a b → NonZero b → a ≤ a * b

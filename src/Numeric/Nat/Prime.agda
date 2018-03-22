@@ -1,7 +1,7 @@
 
 module Numeric.Nat.Prime where
 
-open import Prelude hiding (less-antisym; less-antirefl; leq-antisym)
+open import Prelude hiding (less-antirefl)
 open import Numeric.Nat.GCD
 open import Numeric.Nat.Divide
 open import Numeric.Nat.DivMod
@@ -217,7 +217,7 @@ private
   is-1-or-n {n} no-div  k (factor q kq=n) | below (diff (suc k₁) eq) =
     refute (divides-zero (transport (_Divides suc n) (by eq) (factor q kq=n)))
   is-1-or-n {n} no-div  k (factor q kq=n) | above  k>n =
-    right (leq-antisym (divides-less (factor q kq=n)) (by k>n))
+    right (leq-antisym {A = Nat} (divides-less (factor q kq=n)) (by k>n))
 
   lem₂ : ∀ {n d : Nat} q → q * d ≡ suc n → d < suc n → q > 1
   lem₂ 0 eq d≤n = refute eq

@@ -1,7 +1,7 @@
 
 module Numeric.Nat.Sqrt where
 
-open import Prelude hiding (_<?_; less-antisym)
+open import Prelude hiding (_<?_)
 open import Numeric.Nat.Properties
 open import Tactic.Nat
 open import Numeric.Nat.BinarySearch
@@ -18,7 +18,7 @@ private
   a <?  b with compare a b
   a <?  b | less    a<b = yes a<b
   a <? .a | equal  refl = no (λ a<a → refute a<a)
-  a <?  b | greater a>b = no (λ a<b → less-antisym a>b a<b)
+  a <?  b | greater a>b = no (λ a<b → less-antisym {A = Nat} a>b a<b)
 
 sqrt : (n : Nat) → Sqrt n
 sqrt 0 = root 0 (diff! 0) (diff! 0)  -- just to avoid unfolding neutral application
