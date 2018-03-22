@@ -17,7 +17,6 @@ forceLemma = primForceLemma
 {-# DISPLAY primForce      = force #-}
 {-# DISPLAY primForceLemma = forceLemma #-}
 
--- Warning: this doesn't work at compile-time due to call-by-name evaluation.
 seq : ∀ {a b} {A : Set a} {B : Set b} → A → B → B
 seq x y = force x (λ _ → y)
 
