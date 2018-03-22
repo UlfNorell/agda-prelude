@@ -34,6 +34,16 @@ divides-mul-l b (factor! q) = factor (b * q) auto
 divides-mul : ∀ {a b c d} → c Divides a → d Divides b → (c * d) Divides (a * b)
 divides-mul (factor! q) (factor! r) = factor (q * r) auto
 
+mul-divides-l : (a b c : Nat) → (a * b) Divides c → a Divides c
+mul-divides-l a b c (factor! q) = factor (q * b) auto
+
+mul-divides-r : (a b c : Nat) → (a * b) Divides c → b Divides c
+mul-divides-r a b c (factor! q) = factor (q * a) auto
+
+divides-flip-mul : ∀ {a b c d} → c Divides b → d Divides a → (c * d) Divides (a * b)
+divides-flip-mul {a} {b} {c} {d} c|b d|a =
+  transport ((c * d) Divides_) (mul-commute b a) (divides-mul c|b d|a)
+
 divides-sub-l : ∀ {a b d} → d Divides (a + b) → d Divides a → d Divides b
 divides-sub-l {b = b} {d} (factor q₁ eq) (factor! q) = factor (q₁ - q) $ by eq
 
