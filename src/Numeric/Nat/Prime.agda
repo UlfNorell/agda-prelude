@@ -264,6 +264,13 @@ isPrime! n with isPrime n
 ... | no   _ = false
 ... | tiny _ = false
 
+decPrime : ∀ p → Dec (Prime p)
+decPrime p =
+  case isPrime p of λ where
+    (yes isp)  → yes isp
+    (no comp)  → no (composite-not-prime comp)
+    (tiny p<2) → no λ where (prime p>1 dp) → less-not-geq p>1 p<2
+
 -- Benchmarking
 
 -- Todo: test only odd numbers
