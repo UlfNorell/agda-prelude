@@ -158,8 +158,8 @@ gcd-assoc a b c with gcd a b | gcd b c
 coprime-sym : ∀ a b → Coprime a b → Coprime b a
 coprime-sym a b p = gcd-commute b a ⟨≡⟩ p
 
-mkcoprime : ∀ a b → (∀ k → k Divides a → k Divides b → k Divides 1) → Coprime a b
-mkcoprime a b g = gcd-unique a b 1 (is-gcd one-divides one-divides g)
+coprimeByDivide : ∀ a b → (∀ k → k Divides a → k Divides b → k Divides 1) → Coprime a b
+coprimeByDivide a b g = gcd-unique a b 1 (is-gcd one-divides one-divides g)
 
 divide-coprime : ∀ d a b → Coprime a b → d Divides a → d Divides b → d Divides 1
 divide-coprime d a b p d|a d|b with gcd a b
