@@ -171,6 +171,12 @@ module _ {a} {A : Set a} {{OrdA : Ord/Laws A}} where
   ... | _          | equal refl = x≤y
   ... | less x<y   | less y<z   = lt-to-leq {A = A} (less-trans {A = A} x<y y<z)
 
+  leq-less-antisym : {x y : A} → x ≤ y → y < x → ⊥
+  leq-less-antisym {x = x} {y} x≤y y<x =
+    case leq-antisym x≤y (lt-to-leq {A = A} y<x) of λ where
+      refl → less-antirefl {A = A} y<x
+
+
 OrdLawsBy : ∀ {a} {A B : Set a} {{OrdA : Ord/Laws A}} {f : B → A} →
               (∀ {x y} → f x ≡ f y → x ≡ y) → Ord/Laws B
 Ord/Laws.super (OrdLawsBy inj)        = OrdBy inj
