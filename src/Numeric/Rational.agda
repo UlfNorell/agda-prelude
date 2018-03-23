@@ -3,7 +3,9 @@ module Numeric.Rational where
 
 open import Prelude
 open import Numeric.Nat.GCD
+open import Numeric.Nat.GCD.Extended
 open import Numeric.Nat.Prime
+open import Numeric.Nat.Prime.Properties
 open import Numeric.Nat.Divide
 open import Numeric.Nat.Properties
 open import Tactic.Nat
@@ -69,8 +71,56 @@ NonZeroQ x = NonZero (numerator x)
 infixl 6 _+Q_ _-Q_
 infixl 7 _*Q_ _/Q_
 
+-- Fast addition of rationals due to Knuth (The Art of Computer Programming, volume 2).
+-- Proof sketch by Sergei Meshveliani.
+-- n₁ / d₁ + n₂ / d₂ = s′ / (d₁′ * d₂′ * g′)
+--   where
+--     g = gcd d₁ d₂ ⌉
+--     d₁′ = d₁ / g   > computed by gcdReduce
+--     d₂′ = d₂ / g  ⌋
+--     s   = n₁ * d₂′ + n₂ * d₁′
+--     g₁  = gcd s g ⌉
+--     s′  = s / g₁   > second gcdReduce
+--     g′  = g / g₁  ⌋
+fastAddQ : Rational → Rational → Rational
+fastAddQ (ratio n₁ d₁ n₁/d₁) (ratio n₂ d₂ n₂/d₂) =
+  gcdReduce d₁ d₂                   λ d₁′ d₂′ g nzd₁ eq₁ eq₂ d₁′/d₂′ →
+  gcdReduce (n₁ * d₂′ + n₂ * d₁′) g λ s′ g′ g₁ _ eqs eqg s′/g′ →
+  let instance _ = nzd₁ in
+  ratio s′ (d₁′ * d₂′ * g′)
+    ⦃ mul-nonzero (d₁′ * d₂′) g′ ⦃ mul-nonzero d₁′ _ ⦄ ⦄
+    (coprime-mul s′ (d₁′ * d₂′) g′
+      (coprime-mul s′ d₁′ d₂′
+        (lemma s′ n₁ d₁ n₂ d₂ d₁′ d₂′ g g₁ eqs eq₁ n₁/d₁ d₁′/d₂′)
+        (lemma s′ n₂ d₂ n₁ d₁ d₂′ d₁′ g g₁ (eqs ⟨≡⟩ add-commute (n₁ * d₂′) _)
+               eq₂ n₂/d₂ (coprime-sym d₁′ d₂′ d₁′/d₂′)))
+      s′/g′)
+  where
+    lemma : ∀ s′ n₁ d₁ n₂ d₂ d₁′ d₂′ g g₁ →
+              s′ * g₁ ≡ n₁ * d₂′ + n₂ * d₁′ →
+              d₁′ * g ≡ d₁ →
+              Coprime n₁ d₁ → Coprime d₁′ d₂′ → Coprime s′ d₁′
+    lemma s′ n₁ d₁ n₂ d₂ d₁′ d₂′ g g₁ eqs eq₁ n₁/d₁ d₁′/d₂′ =
+      coprimeByPrimes s′ d₁′ λ p isP p|s′ p|d₁′ →
+          let p|n₁d₂′ : p Divides (n₁ * d₂′)
+              p|n₁d₂′ = divides-sub-r {n₁ * d₂′} {n₂ * d₁′}
+                          (transport (p Divides_) eqs (divides-mul-l g₁ p|s′))
+                          (divides-mul-r n₂ p|d₁′)
+              p|d₁ : p Divides d₁
+              p|d₁ = transport (p Divides_) eq₁ (divides-mul-l g p|d₁′)
+              p/n₁ : Coprime p n₁
+              p/n₁ = case prime-coprime/divide p n₁ isP of λ where
+                       (left p/n₁)  → p/n₁
+                       (right p|n₁) → ⊥-elim (prime-divide-coprime p n₁ d₁ isP n₁/d₁ p|n₁ p|d₁)
+              p|d₂′ : p Divides d₂′
+              p|d₂′ = coprime-divide-mul-l p n₁ d₂′ p/n₁ p|n₁d₂′
+          in divide-coprime p d₁′ d₂′ d₁′/d₂′ p|d₁′ p|d₂′
+
+slowAddQ : Rational → Rational → Rational
+slowAddQ (ratio p q _) (ratio p₁ q₁ _) = mkratio (p * q₁ + p₁ * q) (q * q₁) {{lem-nonzero-mul q q₁}}
+
 _+Q_ : Rational → Rational → Rational
-ratio p q _ +Q ratio p₁ q₁ _ = mkratio (p * q₁ + p₁ * q) (q * q₁) {{lem-nonzero-mul q q₁}}
+_+Q_ = fastAddQ
 
 _-Q_ : Rational → Rational → Rational
 ratio p q _ -Q ratio p₁ q₁ _ = mkratio (p * q₁ - p₁ * q) (q * q₁) {{lem-nonzero-mul q q₁}}
