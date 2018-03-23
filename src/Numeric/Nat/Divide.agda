@@ -98,6 +98,10 @@ divides-less : ∀ {a b} {{_ : NonZero b}} → a Divides b → a ≤ b
 divides-less {{}} (factor! 0)
 divides-less {a} (factor! (suc q)) = auto
 
+nonzero-factor : ∀ {a b} ⦃ nzb : NonZero b ⦄ (a|b : a Divides b) → NonZero (get-factor a|b)
+nonzero-factor ⦃ () ⦄ (factor! zero)
+nonzero-factor (factor! (suc _)) = _
+
 private
   safediv : Nat → Nat → Nat
   safediv a 0 = 0
