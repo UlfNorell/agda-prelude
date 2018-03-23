@@ -84,12 +84,12 @@ module Tactic.Reflection.Reright where
         gᶜᵢ : Type
         gᶜᵢ = unArg γᶜᵢ
 
-      {-# TERMINATING #-}
       Γᶜ' : List γᶜ'
-      Γᶜ' = go 0 Γᶜ where
-        go : Nat → List (Arg Type) → List γᶜ'
-        go iᶜ [] = []
-        go iᶜ (γᶜᵢ ∷ Γᶜ) = γᶜᵢ' ∷ go (suc iᶜ) (weaken 1 Γᶜ) where
+      Γᶜ' = go 0 (length Γᶜ) Γᶜ where
+        go : Nat → Nat → List (Arg Type) → List γᶜ'
+        go iᶜ 0 _ = []
+        go iᶜ _ [] = []
+        go iᶜ (suc n) (γᶜᵢ ∷ Γᶜ) = γᶜᵢ' ∷ go (suc iᶜ) n (weaken 1 Γᶜ) where
           γᶜᵢ' = record
             { iᶜ = iᶜ
             ; γᶜᵢ = γᶜᵢ
