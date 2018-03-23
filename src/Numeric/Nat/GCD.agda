@@ -188,3 +188,17 @@ is-gcd-factors-coprime {a} {b} {d@(suc _)} p@(is-gcd (factor qa refl) (factor qb
     lem₃ 0 ()
     lem₃ 1 _ = refl
     lem₃ (suc (suc n)) eq = refute eq
+
+-- Divide two numbers by their gcd and return the result, the gcd, and some useful properties.
+-- Continuation-passing for efficiency reasons.
+gcdReduce : ∀ {a} {A : Set a} (a b : Nat) ⦃ _ : NonZero b ⦄ →
+           ((a′ b′ d : Nat) → (⦃ _ : NonZero a ⦄ → NonZero a′) →
+                              ⦃ nzb : NonZero b′ ⦄ → ⦃ nzd : NonZero d ⦄ →
+                               a′ * d ≡ a → b′ * d ≡ b →
+                               Coprime a′ b′ → A) → A
+gcdReduce a b ret with gcd a b
+gcdReduce a b ret | gcd-res d isgcd@(is-gcd d|a@(factor a′ eqa) d|b@(factor b′ eqb) g)=
+  let instance _ = nonzero-is-gcd-r isgcd in
+  ret a′ b′ d (nonzero-factor d|a) ⦃ nonzero-factor d|b ⦄
+              eqa eqb
+              (is-gcd-factors-coprime isgcd)
