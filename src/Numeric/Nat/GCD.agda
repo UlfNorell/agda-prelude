@@ -132,14 +132,19 @@ zero-gcd-r : ∀ a b → gcd! a b ≡ 0 → b ≡ 0
 zero-gcd-r a b eq with gcd a b
 zero-gcd-r a b refl | gcd-res .0 p = zero-is-gcd-r p
 
+nonzero-is-gcd-l : ∀ {a b d} {{_ : NonZero a}} → IsGCD d a b → NonZero d
+nonzero-is-gcd-l {0} {{}} _
+nonzero-is-gcd-l {a@(suc _)} {d = suc _} _ = _
+nonzero-is-gcd-l {a@(suc _)} {d = 0} (is-gcd (factor q eq) _ _) = refute eq
+
+nonzero-is-gcd-r : ∀ {a b d} {{_ : NonZero b}} → IsGCD d a b → NonZero d
+nonzero-is-gcd-r isgcd = nonzero-is-gcd-l (is-gcd-commute isgcd)
+
 nonzero-gcd-l : ∀ a b {{_ : NonZero a}} → NonZero (gcd! a b)
-nonzero-gcd-l 0 _ {{}}
-nonzero-gcd-l a@(suc a′) b with gcd a b
-... | gcd-res (suc _) _ = _
-... | gcd-res 0 (is-gcd (factor q eq) _ _) = refute eq
+nonzero-gcd-l a b = nonzero-is-gcd-l (GCD.isGCD (gcd a b))
 
 nonzero-gcd-r : ∀ a b {{_ : NonZero b}} → NonZero (gcd! a b)
-nonzero-gcd-r a b = transport NonZero (gcd-commute b a) (nonzero-gcd-l b a)
+nonzero-gcd-r a b = nonzero-is-gcd-r (GCD.isGCD (gcd a b))
 
 private
   _|>_ = divides-trans
