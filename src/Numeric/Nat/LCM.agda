@@ -6,6 +6,7 @@ open import Numeric.Nat.Divide
 open import Numeric.Nat.Divide.Properties
 open import Numeric.Nat.GCD
 open import Numeric.Nat.GCD.Extended
+open import Numeric.Nat.GCD.Properties
 open import Numeric.Nat.Properties
 open import Tactic.Nat
 

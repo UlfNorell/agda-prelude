@@ -4,10 +4,11 @@ module Numeric.Nat.Prime.Properties where
 open import Prelude
 open import Control.WellFounded
 open import Numeric.Nat.Properties
-open import Numeric.Nat.GCD
 open import Numeric.Nat.Divide
 open import Numeric.Nat.Divide.Properties
+open import Numeric.Nat.GCD
 open import Numeric.Nat.GCD.Extended
+open import Numeric.Nat.GCD.Properties
 open import Numeric.Nat.Prime
 open import Tactic.Nat
 

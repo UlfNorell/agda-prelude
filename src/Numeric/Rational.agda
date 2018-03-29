@@ -4,6 +4,7 @@ module Numeric.Rational where
 open import Prelude
 open import Numeric.Nat.GCD
 open import Numeric.Nat.GCD.Extended
+open import Numeric.Nat.GCD.Properties
 open import Numeric.Nat.Prime
 open import Numeric.Nat.Prime.Properties
 open import Numeric.Nat.Divide
