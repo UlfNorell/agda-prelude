@@ -170,3 +170,31 @@ coprime-divide-mul-l a b c p (factor q qa=bc) | gcd-res d i (bézoutR x y by=1+a
 coprime-divide-mul-r : ∀ a b c → Coprime a c → a Divides (b * c) → a Divides b
 coprime-divide-mul-r a b c p a|bc =
   coprime-divide-mul-l a c b p (transport (a Divides_) auto a|bc)
+
+is-gcd-by-coprime-factors : ∀ d a b (d|a : d Divides a) (d|b : d Divides b) ⦃ nzd : NonZero d ⦄ →
+                            Coprime (get-factor d|a) (get-factor d|b) →
+                            IsGCD d a b
+is-gcd-by-coprime-factors d a b d|a@(factor! q) d|b@(factor! r) q⊥r =
+  is-gcd d|a d|b λ k k|a k|b →
+    let lem : ∀ j → j Divides q → j Divides r → j ≡ 1
+        lem j j|q j|r = divides-one (divide-coprime j q r q⊥r j|q j|r)
+    in
+    case gcd k d of λ where
+      (gcd-res g isgcd@(is-gcd (factor k′ k′g=k@refl) (factor d′ d′g=d@refl) sup)) →
+        let instance g>0 = nonzero-is-gcd-r isgcd
+            k′⊥d′ : Coprime k′ d′
+            k′⊥d′ = is-gcd-factors-coprime isgcd
+            k′|qd′ : k′ Divides (q * d′)
+            k′|qd′ = cancel-mul-divides-r k′ (q * d′) g
+                       (transport ((k′ * g) Divides_) {x = q * (d′ * g)} {q * d′ * g} auto k|a)
+            k′|rd′ : k′ Divides (r * d′)
+            k′|rd′ = cancel-mul-divides-r k′ (r * d′) g
+                       (transport ((k′ * g) Divides_) {x = r * (d′ * g)} {r * d′ * g} auto k|b)
+            k′|q : k′ Divides q
+            k′|q = coprime-divide-mul-r k′ q d′ k′⊥d′ k′|qd′
+            k′|r : k′ Divides r
+            k′|r = coprime-divide-mul-r k′ r d′ k′⊥d′ k′|rd′
+            k′=1 = lem k′ k′|q k′|r
+            k=g : k ≡ g
+            k=g = case k′=1 of λ where refl → auto
+        in factor d′ (d′ *_ $≡ k=g ⟨≡⟩ d′g=d)
