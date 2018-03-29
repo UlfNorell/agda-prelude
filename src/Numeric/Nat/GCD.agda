@@ -6,6 +6,7 @@ open import Control.WellFounded
 open import Numeric.Nat.Properties
 open import Numeric.Nat.DivMod
 open import Numeric.Nat.Divide
+open import Numeric.Nat.Divide.Properties
 open import Tactic.Nat
 
 --- GCD ---

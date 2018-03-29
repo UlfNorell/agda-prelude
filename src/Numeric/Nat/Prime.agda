@@ -4,6 +4,7 @@ module Numeric.Nat.Prime where
 open import Prelude hiding (less-antirefl)
 open import Numeric.Nat.GCD
 open import Numeric.Nat.Divide
+open import Numeric.Nat.Divide.Properties
 open import Numeric.Nat.DivMod
 open import Numeric.Nat.Sqrt
 open import Numeric.Nat.Properties

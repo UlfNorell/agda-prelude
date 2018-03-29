@@ -7,6 +7,7 @@ open import Numeric.Nat.GCD.Extended
 open import Numeric.Nat.Prime
 open import Numeric.Nat.Prime.Properties
 open import Numeric.Nat.Divide
+open import Numeric.Nat.Divide.Properties
 open import Numeric.Nat.Properties
 open import Tactic.Nat
 
