@@ -77,3 +77,10 @@ divides-less {a} (factor! (suc q)) = auto
 nonzero-factor : ∀ {a b} ⦃ nzb : NonZero b ⦄ (a|b : a Divides b) → NonZero (get-factor a|b)
 nonzero-factor ⦃ () ⦄ (factor! zero)
 nonzero-factor (factor! (suc _)) = _
+
+cancel-mul-divides-r : ∀ a b c ⦃ _ : NonZero c ⦄ → (a * c) Divides (b * c) → a Divides b
+cancel-mul-divides-r a b c (factor q qac=bc) =
+  factor q (mul-inj₁ (q * a) b c (by qac=bc))
+
+cancel-mul-divides-l : ∀ a b c ⦃ _ : NonZero a ⦄ → (a * b) Divides (a * c) → b Divides c
+cancel-mul-divides-l a b c rewrite mul-commute a b | mul-commute a c = cancel-mul-divides-r b c a
