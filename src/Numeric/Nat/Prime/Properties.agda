@@ -33,12 +33,6 @@ private
   lem-r : (a b : Nat) → a > 1 → b > 1 → b < a * b
   lem-r a b (diff! k) (diff! j) = auto
 
-divides1-equals1 : ∀ {a} → a Divides 1 → a ≡ 1
-divides1-equals1         (factor zero ())
-divides1-equals1         (factor (suc zero) eq) = by eq
-divides1-equals1 {zero}  (factor (suc (suc q)) eq) = refute eq
-divides1-equals1 {suc a} (factor (suc (suc q)) eq) = refute eq
-
 -- It's enough to check prime divisors when checking coprimality.
 module _ (a b : Nat) (f : ∀ p → Prime p → p Divides a → p Divides b → p Divides 1) where
 
@@ -54,7 +48,7 @@ module _ (a b : Nat) (f : ∀ p → Prime p → p Divides a → p Divides b → 
               j|1 : j Divides 1
               j|1 = coprimeByPrimes′ j (wf j (lem-r i j i>1 j>1))
                                        (mul-divides-r i j a k|a) (mul-divides-r i j b k|b)
-          in case₂ divides1-equals1 i|1 , divides1-equals1 j|1 of λ where
+          in case₂ divides-one i|1 , divides-one j|1 of λ where
                refl refl → factor! 1
         (tiny (diff! 0)) → factor! 1
         (tiny (diff! 1)) →
@@ -77,5 +71,5 @@ coprime-mul a b c a/b a/c =
 
 prime-divide-coprime : ∀ p a b → Prime p → Coprime a b → p Divides a → p Divides b → ⊥
 prime-divide-coprime p a b isP a/b p|a p|b =
-  case divides1-equals1 {p} (divide-coprime p a b a/b p|a p|b) of λ where
+  case divides-one {p} (divide-coprime p a b a/b p|a p|b) of λ where
     refl → fromDec (decPrime 1) isP
