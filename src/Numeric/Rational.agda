@@ -118,6 +118,7 @@ fastAddQ (ratio n₁ d₁ n₁/d₁) (ratio n₂ d₂ n₂/d₂) =
               p|d₂′ = coprime-divide-mul-l p n₁ d₂′ p/n₁ p|n₁d₂′
           in divide-coprime p d₁′ d₂′ d₁′/d₂′ p|d₁′ p|d₂′
 
+-- Specification for addition
 slowAddQ : Rational → Rational → Rational
 slowAddQ (ratio p q _) (ratio p₁ q₁ _) = mkratio (p * q₁ + p₁ * q) (q * q₁) {{lem-nonzero-mul q q₁}}
 
