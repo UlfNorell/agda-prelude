@@ -105,6 +105,14 @@ divide-coprime d a b p d|a d|b with gcd a b
 divide-coprime d a b refl d|a d|b | gcd-res _ (is-gcd _ _ g) =
   g d d|a d|b
 
+mul-coprime-l : ∀ a b c → Coprime a (b * c) → Coprime a b
+mul-coprime-l a b c a⊥bc =
+  coprimeByDivide a b λ k k|a k|b →
+    divide-coprime k a (b * c) a⊥bc k|a (divides-mul-l c k|b)
+
+mul-coprime-r : ∀ a b c → Coprime a (b * c) → Coprime a c
+mul-coprime-r a b c a⊥bc = mul-coprime-l a c b (transport (Coprime a) auto a⊥bc)
+
 is-gcd-factors-coprime : ∀ {a b d} (p : IsGCD d a b) {{_ : NonZero d}} →
                            Coprime (is-gcd-factor₁ p) (is-gcd-factor₂ p)
 is-gcd-factors-coprime {a} {b} {0} _ {{}}

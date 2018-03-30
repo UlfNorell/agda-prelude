@@ -62,12 +62,16 @@ module _ (a b : Nat) (f : ∀ p → Prime p → p Divides a → p Divides b → 
   coprimeByPrimes : Coprime a b
   coprimeByPrimes = coprimeByDivide a b λ k → coprimeByPrimes′ k (wfNat k)
 
-coprime-mul : ∀ a b c → Coprime a b → Coprime a c → Coprime a (b * c)
-coprime-mul a b c a/b a/c =
+coprime-mul-r : ∀ a b c → Coprime a b → Coprime a c → Coprime a (b * c)
+coprime-mul-r a b c a/b a/c =
   coprimeByPrimes a (b * c) λ p isP p|a p|bc →
   case prime-split b c isP p|bc of λ where
     (left  p|b) → divide-coprime p a b a/b p|a p|b
     (right p|c) → divide-coprime p a c a/c p|a p|c
+
+coprime-mul-l : ∀ a b c → Coprime a c → Coprime b c → Coprime (a * b) c
+coprime-mul-l a b c a/c b/c =
+  coprime-sym c _ (coprime-mul-r c a b (coprime-sym a _ a/c) (coprime-sym b _ b/c))
 
 prime-divide-coprime : ∀ p a b → Prime p → Coprime a b → p Divides a → p Divides b → ⊥
 prime-divide-coprime p a b isP a/b p|a p|b =

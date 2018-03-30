@@ -88,15 +88,16 @@ fastAddQ : Rational → Rational → Rational
 fastAddQ (ratio n₁ d₁ n₁/d₁) (ratio n₂ d₂ n₂/d₂) =
   gcdReduce d₁ d₂                   λ d₁′ d₂′ g nzd₁ eq₁ eq₂ d₁′/d₂′ →
   gcdReduce (n₁ * d₂′ + n₂ * d₁′) g λ s′ g′ g₁ _ eqs eqg s′/g′ →
-  let instance _ = nzd₁ in
-  ratio s′ (d₁′ * d₂′ * g′)
-    ⦃ mul-nonzero (d₁′ * d₂′) g′ ⦃ mul-nonzero d₁′ _ ⦄ ⦄
-    (coprime-mul s′ (d₁′ * d₂′) g′
-      (coprime-mul s′ d₁′ d₂′
-        (lemma s′ n₁ d₁ n₂ d₂ d₁′ d₂′ g g₁ eqs eq₁ n₁/d₁ d₁′/d₂′)
-        (lemma s′ n₂ d₂ n₁ d₁ d₂′ d₁′ g g₁ (eqs ⟨≡⟩ add-commute (n₁ * d₂′) _)
-               eq₂ n₂/d₂ (coprime-sym d₁′ d₂′ d₁′/d₂′)))
-      s′/g′)
+  let instance _ = nzd₁
+               _ = mul-nonzero d₁′ d₂′
+               _ = mul-nonzero (d₁′ * d₂′) g′
+  in ratio s′ (d₁′ * d₂′ * g′)
+           (coprime-mul-r s′ (d₁′ * d₂′) g′
+             (coprime-mul-r s′ d₁′ d₂′
+               (lemma s′ n₁ d₁ n₂ d₂ d₁′ d₂′ g g₁ eqs eq₁ n₁/d₁ d₁′/d₂′)
+               (lemma s′ n₂ d₂ n₁ d₁ d₂′ d₁′ g g₁ (eqs ⟨≡⟩ add-commute (n₁ * d₂′) _)
+                 eq₂ n₂/d₂ (coprime-sym d₁′ d₂′ d₁′/d₂′)))
+             s′/g′)
   where
     lemma : ∀ s′ n₁ d₁ n₂ d₂ d₁′ d₂′ g g₁ →
               s′ * g₁ ≡ n₁ * d₂′ + n₂ * d₁′ →
