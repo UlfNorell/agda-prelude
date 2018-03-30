@@ -145,3 +145,32 @@ instance
   ... | no p≠p₁  | _        = no (p≠p₁ ∘ ratio-inj₁)
   ... | yes _    | no q≠q₁  = no (q≠q₁ ∘ ratio-inj₂)
   ... | yes p=p₁ | yes q=q₁ = yes (cong-ratio p=p₁ q=q₁)
+
+data LessQ (x y : Rational) : Set where
+  lessQ : numerator x * denominator y < numerator y * denominator x → LessQ x y
+
+private
+  lem-unique : ∀ n₁ d₁ n₂ d₂ ⦃ _ : NonZero d₁ ⦄ ⦃ _ : NonZero d₂ ⦄ →
+                 Coprime n₁ d₁ → Coprime n₂ d₂ →
+                 n₁ * d₂ ≡ n₂ * d₁ → n₁ ≡ n₂ × d₁ ≡ d₂
+  lem-unique n₁ d₁ n₂ d₂ n₁⊥d₁ n₂⊥d₂ eq =
+    let n₁|n₂ : n₁ Divides n₂
+        n₁|n₂ = coprime-divide-mul-r n₁ n₂ d₁ n₁⊥d₁ (factor d₂ (by eq))
+        n₂|n₁ : n₂ Divides n₁
+        n₂|n₁ = coprime-divide-mul-r n₂ n₁ d₂ n₂⊥d₂ (factor d₁ (by eq))
+        d₁|d₂ : d₁ Divides d₂
+        d₁|d₂ = coprime-divide-mul-r d₁ d₂ n₁ auto-coprime (factor n₂ (by eq))
+        d₂|d₁ : d₂ Divides d₁
+        d₂|d₁ = coprime-divide-mul-r d₂ d₁ n₂ auto-coprime (factor n₁ (by eq))
+    in divides-antisym n₁|n₂ n₂|n₁ , divides-antisym d₁|d₂ d₂|d₁
+
+compareQ : ∀ x y → Comparison LessQ x y
+compareQ (ratio n₁ d₁ n₁⊥d₁) (ratio n₂ d₂ n₂⊥d₂) =
+  case compare (n₁ * d₂) (n₂ * d₁) of λ where
+    (less lt)    → less (lessQ lt)
+    (equal eq)   → equal (uncurry cong-ratio (lem-unique n₁ d₁ n₂ d₂ n₁⊥d₁ n₂⊥d₂ eq))
+    (greater gt) → greater (lessQ gt)
+
+instance
+  OrdQ : Ord Rational
+  OrdQ = defaultOrd compareQ
