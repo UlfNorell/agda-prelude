@@ -43,6 +43,13 @@ case x of f = f x
 case₂_,_of_ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} → A → B → (A → B → C) → C
 case₂ x , y of f = f x y
 
+case₃_,_,_of_ : ∀ {a b c d} {A : Set a} {B : Set b} {C : Set c} {D : Set d} → A → B → C → (A → B → C → D) → D
+case₃ x , y , z of f = f x y z
+
+case₄_,_,_,_of_ : ∀ {a b c d e} {A : Set a} {B : Set b} {C : Set c} {D : Set d} {E : Set e} →
+                A → B → C → D → (A → B → C → D → E) → E
+case₄ x , y , z , w of f = f x y z w
+
 case_return_of_ : ∀ {a b} {A : Set a} (x : A) (B : A → Set b) → (∀ x → B x) → B x
 case x return B of f = f x
 
