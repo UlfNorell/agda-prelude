@@ -13,7 +13,7 @@ open import Numeric.Nat.GCD.Properties
 open import Tactic.Nat
 open import Tactic.Nat.Coprime
 
--- Correctness proof of the Knuth algorithm for addition ----------
+-- Correctness proofs for the efficient arithmetic operations -------
 
 private
   lem-coprime : ∀ n₁ n₂ s′ d₁′ d₂′ g g₁ →
@@ -106,3 +106,27 @@ addQ-sound (ratio n₁ d₁ n₁⊥d₁) (ratio n₂ d₂ n₂⊥d₂)
       ddg=q = mul-inj₁ _ q g₀ (ddgg₀=d₀ ⟨≡⟩ʳ qg₀=d₀)
 
     in cong-ratio s′=p ddg=q
+
+mulQ-sound : ∀ x y → x * y ≡ slowMulQ x y
+mulQ-sound (ratio n₁ d₁ n₁⊥d₁) (ratio n₂ d₂ n₂⊥d₂)
+  with gcd n₁ d₂ | gcd n₂ d₁ | gcd (n₁ * n₂) (d₁ * d₂)
+... | gcd-res g₁ gcd₁₂@(is-gcd (factor! n₁′) (factor! d₂′) _)
+    | gcd-res g₂ gcd₂₁@(is-gcd (factor! n₂′) (factor! d₁′) _)
+    | gcd-res g  gcdnd@(is-gcd (factor n′ n′g=n) (factor d′ d′g=d) _) =
+  let instance _ = nonzero-is-gcd-r gcd₁₂
+               _ = nonzero-is-gcd-r gcd₂₁
+               _ = mul-nonzero g₁ g₂
+      g=gg : g ≡ g₁ * g₂
+      g=gg = is-gcd-unique _ _ gcdnd $
+               is-gcd-by-coprime-factors _ _ _ (factor (n₁′ * n₂′) auto)
+                                               (factor (d₁′ * d₂′) auto) $
+                 let[ _ := is-gcd-factors-coprime gcd₁₂ ]
+                 let[ _ := is-gcd-factors-coprime gcd₂₁ ]
+                 auto-coprime
+      neq : n₁′ * n₂′ ≡ n′
+      neq = case g=gg of λ where
+              refl → mul-inj₁ (n₁′ * n₂′) n′ (g₁ * g₂) (by n′g=n)
+      deq : d₁′ * d₂′ ≡ d′
+      deq = case g=gg of λ where
+              refl → mul-inj₁ (d₁′ * d₂′) d′ (g₁ * g₂) (by d′g=d)
+  in cong-ratio neq deq
