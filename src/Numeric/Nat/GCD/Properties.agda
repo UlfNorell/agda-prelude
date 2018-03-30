@@ -133,17 +133,31 @@ is-gcd-factors-coprime {a} {b} {d@(suc _)} p@(is-gcd (factor qa refl) (factor qb
 
 -- Divide two numbers by their gcd and return the result, the gcd, and some useful properties.
 -- Continuation-passing for efficiency reasons.
-gcdReduce : ∀ {a} {A : Set a} (a b : Nat) ⦃ _ : NonZero b ⦄ →
+gcdReduce' : ∀ {a} {A : Set a} (a b : Nat) ⦃ _ : NonZero b ⦄ →
            ((a′ b′ d : Nat) → (⦃ _ : NonZero a ⦄ → NonZero a′) →
                               ⦃ nzb : NonZero b′ ⦄ → ⦃ nzd : NonZero d ⦄ →
                                a′ * d ≡ a → b′ * d ≡ b →
                                Coprime a′ b′ → A) → A
-gcdReduce a b ret with gcd a b
-gcdReduce a b ret | gcd-res d isgcd@(is-gcd d|a@(factor a′ eqa) d|b@(factor b′ eqb) g)=
+gcdReduce' a b ret with gcd a b
+gcdReduce' a b ret | gcd-res d isgcd@(is-gcd d|a@(factor a′ eqa) d|b@(factor b′ eqb) g)=
   let instance _ = nonzero-is-gcd-r isgcd in
   ret a′ b′ d (nonzero-factor d|a) ⦃ nonzero-factor d|b ⦄
               eqa eqb
               (is-gcd-factors-coprime isgcd)
+
+-- Both arguments are non-zero.
+gcdReduce : ∀ {a} {A : Set a} (a b : Nat) ⦃ _ : NonZero a ⦄ ⦃ _ : NonZero b ⦄ →
+           ((a′ b′ d : Nat) ⦃ a′>0 : NonZero a′ ⦄ ⦃ b′>0 : NonZero b′ ⦄ ⦃ nzd : NonZero d ⦄ →
+            a′ * d ≡ a → b′ * d ≡ b → Coprime a′ b′ → A) → A
+gcdReduce a b k = gcdReduce' a b λ a′ b′ d a′>0 eq₁ eq₂ a′⊥b′ →
+  let instance _ = a′>0 in k a′ b′ d eq₁ eq₂ a′⊥b′
+
+-- Only the right argument is guaranteed to be non-zero.
+gcdReduce-r : ∀ {a} {A : Set a} (a b : Nat) ⦃ _ : NonZero b ⦄ →
+           ((a′ b′ d : Nat) ⦃ nzb : NonZero b′ ⦄ ⦃ nzd : NonZero d ⦄ →
+            a′ * d ≡ a → b′ * d ≡ b → Coprime a′ b′ → A) → A
+gcdReduce-r a b k = gcdReduce' a b λ a′ b′ d _ eq₁ eq₂ a′⊥b′ →
+  k a′ b′ d eq₁ eq₂ a′⊥b′
 
 --- Properties ---
 

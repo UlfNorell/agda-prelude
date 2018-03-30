@@ -11,6 +11,7 @@ open import Numeric.Nat.Prime.Properties
 open import Numeric.Nat.GCD
 open import Numeric.Nat.GCD.Properties
 open import Tactic.Nat
+open import Tactic.Nat.Coprime
 
 -- Correctness proof of the Knuth algorithm for addition ----------
 
@@ -45,7 +46,7 @@ private
 
       in divide-coprime p d₁′ d₂′ d₁′⊥d₂′ p|d₁′ p|d₂′
 
-addQ-sound : ∀ x y → fastAddQ x y ≡ slowAddQ x y
+addQ-sound : ∀ x y → x + y ≡ slowAddQ x y
 addQ-sound (ratio n₁ d₁ n₁⊥d₁) (ratio n₂ d₂ n₂⊥d₂)
   with gcd (n₁ * d₂ + n₂ * d₁) (d₁ * d₂) | gcd d₁ d₂
 ...  | gcd-res g₀ g₀-gcd@(is-gcd (factor p pg₀=n₀) (factor q qg₀=d₀) _)
@@ -76,20 +77,13 @@ addQ-sound (ratio n₁ d₁ n₁⊥d₁) (ratio n₂ d₂ n₂⊥d₂)
       ddg′gg₁=d₀ : d₁′ * d₂′ * g′ * (g * g₁) ≡ d₀
       ddg′gg₁=d₀ = auto
 
-      d₁′⊥d₂′ : Coprime d₁′ d₂′
-      d₁′⊥d₂′ = is-gcd-factors-coprime isgcd-dd
-
-      s′⊥d₁′ : Coprime s′ d₁′
-      s′⊥d₁′ = lem-coprime n₁ n₂ s′ d₁′ d₂′ g g₁ s′g₁=s n₁⊥d₁ d₁′⊥d₂′
-
-      s′⊥d₂′ : Coprime s′ d₂′
-      s′⊥d₂′ = lem-coprime n₂ n₁ s′ d₂′ d₁′ g g₁ (s′g₁=s ⟨≡⟩ auto)
-                            n₂⊥d₂ (coprime-sym d₁′ d₂′ d₁′⊥d₂′)
-
       s′⊥ddg : Coprime s′ (d₁′ * d₂′ * g′)
-      s′⊥ddg = coprime-mul s′ (d₁′ * d₂′) g′
-                           (coprime-mul s′ d₁′ d₂′ s′⊥d₁′ s′⊥d₂′)
-                           (is-gcd-factors-coprime isgcd-sg)
+      s′⊥ddg =
+        let[ _ := is-gcd-factors-coprime isgcd-dd ]
+        let[ _ := lem-coprime n₁ n₂ s′ d₁′ d₂′ g g₁ s′g₁=s n₁⊥d₁ auto-coprime ]
+        let[ _ := lem-coprime n₂ n₁ s′ d₂′ d₁′ g g₁ (s′g₁=s ⟨≡⟩ auto) n₂⊥d₂ auto-coprime ]
+        let[ _ := is-gcd-factors-coprime isgcd-sg ]
+        auto-coprime
 
       gg₁-gcd : IsGCD (g * g₁) n₀ d₀
       gg₁-gcd = is-gcd-by-coprime-factors (g * g₁) n₀ d₀

@@ -11,6 +11,7 @@ open import Numeric.Nat.Divide
 open import Numeric.Nat.Divide.Properties
 open import Numeric.Nat.Properties
 open import Tactic.Nat
+open import Tactic.Nat.Coprime
 
 data Rational : Set where
   ratio : (p q : Nat) {{nz : NonZero q}} (prf : Coprime p q) → Rational
@@ -21,51 +22,14 @@ numerator (ratio p _ _) = p
 denominator : Rational → Nat
 denominator (ratio _ q _) = q
 
-private
-  lem-divide-mul : ∀ a b {{_ : NonZero b}} → (a * b) Divides b → a ≡ 1
-  lem-divide-mul _        0 {{}}
-  lem-divide-mul  0      (suc b) (factor  q      eq) = refute eq
-  lem-divide-mul (suc a) (suc b) (factor  0      eq) = refute eq
-  lem-divide-mul (suc a) (suc b) (factor (suc q) eq) = by eq
-
-  mkratio-lem : ∀ p q d p′ q′ {{_ : NonZero q}} →
-                p′ * d ≡ p →
-                q′ * d ≡ q →
-                (∀ k → k Divides p → k Divides q → k Divides d) →
-                gcd! p′ q′ ≡ 1
-  mkratio-lem p q d p′ q′ eqp eqq g with gcd p′ q′
-  mkratio-lem ._ ._ d ._ ._ refl refl g
-    | gcd-res d′ (is-gcd (factor! p₂) (factor! q₂) g′) =
-    let p′ = p₂ * d′
-        q′ = q₂ * d′
-        p = p′ * d
-        q = q′ * d
-        instance
-          nzd : NonZero d
-          nzd = transport NonZero (gcd-unique p q d (is-gcd (factor! p′) (factor! q′) g)) (nonzero-gcd-r p q)
-        dd′|d : (d′ * d) Divides d
-        dd′|d = g (d′ * d) (factor p₂ auto) (factor q₂ auto)
-    in lem-divide-mul d′ d dd′|d
-
-  lem-nonzero-mul-l : ∀ a b c {{_ : NonZero c}} → a * b ≡ c → NonZero a
-  lem-nonzero-mul-l  0      b .0 {{}} refl
-  lem-nonzero-mul-l (suc a) b  c eq = _
-
-  lem-nonzero-mul : ∀ a b {{_ : NonZero a}} {{_ : NonZero b}} → NonZero (a * b)
-  lem-nonzero-mul zero b {{}}
-  lem-nonzero-mul a zero {{_}} {{}}
-  lem-nonzero-mul (suc a) (suc b) = _
-
 infixl 7 mkratio
 syntax mkratio p q = p :/ q
 mkratio : (p q : Nat) {{_ : NonZero q}} → Rational
-mkratio p q with gcd p q
-... | gcd-res d (is-gcd (factor p′ eq) (factor q′ eq₁) g) =
-  ratio p′ q′ {{lem-nonzero-mul-l q′ d q eq₁}} (mkratio-lem p q d p′ q′ eq eq₁ g)
+mkratio p q = gcdReduce-r p q λ p′ q′ _ _ _ prf → ratio p′ q′ prf
 
 mkratio-sound : (p q : Nat) {{_ : NonZero q}} → p * denominator (mkratio p q) ≡ q * numerator (mkratio p q)
 mkratio-sound p q with gcd p q
-mkratio-sound ._ ._ | gcd-res d (is-gcd (factor! p′) (factor! q′) _) = auto
+... | gcd-res d (is-gcd (factor! p′) (factor! q′) _) = auto
 
 NonZeroQ : Rational → Set
 NonZeroQ x = NonZero (numerator x)
@@ -73,31 +37,16 @@ NonZeroQ x = NonZero (numerator x)
 infixl 6 _+Q_ _-Q_
 infixl 7 _*Q_ _/Q_
 
--- Fast addition of rationals due to Knuth (The Art of Computer Programming, volume 2).
--- Proof sketch by Sergei Meshveliani.
--- n₁ / d₁ + n₂ / d₂ = s′ / (d₁′ * d₂′ * g′)
---   where
---     g = gcd d₁ d₂ ⌉
---     d₁′ = d₁ / g   > computed by gcdReduce
---     d₂′ = d₂ / g  ⌋
---     s   = n₁ * d₂′ + n₂ * d₁′
---     g₁  = gcd s g ⌉
---     s′  = s / g₁   > second gcdReduce
---     g′  = g / g₁  ⌋
-fastAddQ : Rational → Rational → Rational
-fastAddQ (ratio n₁ d₁ n₁/d₁) (ratio n₂ d₂ n₂/d₂) =
-  gcdReduce d₁ d₂                   λ d₁′ d₂′ g nzd₁ eq₁ eq₂ d₁′/d₂′ →
-  gcdReduce (n₁ * d₂′ + n₂ * d₁′) g λ s′ g′ g₁ _ eqs eqg s′/g′ →
-  let instance _ = nzd₁
-               _ = mul-nonzero d₁′ d₂′
+_+Q_ : Rational → Rational → Rational
+ratio n₁ d₁ n₁/d₁ +Q ratio n₂ d₂ n₂/d₂ =
+  gcdReduce   d₁ d₂                   λ d₁′ d₂′ g eq₁ eq₂ d₁′/d₂′ →
+  gcdReduce-r (n₁ * d₂′ + n₂ * d₁′) g λ s′ g′ g₁ eqs eqg s′/g′ →
+  let instance _ = mul-nonzero d₁′ d₂′
                _ = mul-nonzero (d₁′ * d₂′) g′
-  in ratio s′ (d₁′ * d₂′ * g′)
-           (coprime-mul-r s′ (d₁′ * d₂′) g′
-             (coprime-mul-r s′ d₁′ d₂′
-               (lemma s′ n₁ d₁ n₂ d₂ d₁′ d₂′ g g₁ eqs eq₁ n₁/d₁ d₁′/d₂′)
-               (lemma s′ n₂ d₂ n₁ d₁ d₂′ d₁′ g g₁ (eqs ⟨≡⟩ add-commute (n₁ * d₂′) _)
-                 eq₂ n₂/d₂ (coprime-sym d₁′ d₂′ d₁′/d₂′)))
-             s′/g′)
+  in ratio s′ (d₁′ * d₂′ * g′) $
+     let[ _ := lemma s′ n₁ d₁ n₂ d₂ d₁′ d₂′ g g₁ eqs  eq₁ n₁/d₁ d₁′/d₂′ ]
+     let[ _ := lemma s′ n₂ d₂ n₁ d₁ d₂′ d₁′ g g₁ (by eqs) eq₂ n₂/d₂ auto-coprime ]
+     auto-coprime
   where
     lemma : ∀ s′ n₁ d₁ n₂ d₂ d₁′ d₂′ g g₁ →
               s′ * g₁ ≡ n₁ * d₂′ + n₂ * d₁′ →
@@ -121,20 +70,19 @@ fastAddQ (ratio n₁ d₁ n₁/d₁) (ratio n₂ d₂ n₂/d₂) =
 
 -- Specification for addition
 slowAddQ : Rational → Rational → Rational
-slowAddQ (ratio p q _) (ratio p₁ q₁ _) = mkratio (p * q₁ + p₁ * q) (q * q₁) {{lem-nonzero-mul q q₁}}
-
-_+Q_ : Rational → Rational → Rational
-_+Q_ = fastAddQ
+slowAddQ (ratio p q _) (ratio p₁ q₁ _) =
+  mkratio (p * q₁ + p₁ * q) (q * q₁) ⦃ mul-nonzero q q₁ ⦄
 
 _-Q_ : Rational → Rational → Rational
-ratio p q _ -Q ratio p₁ q₁ _ = mkratio (p * q₁ - p₁ * q) (q * q₁) {{lem-nonzero-mul q q₁}}
+ratio p q _ -Q ratio p₁ q₁ _ =
+  mkratio (p * q₁ - p₁ * q) (q * q₁) ⦃ mul-nonzero q q₁ ⦄
 
 _*Q_ : Rational → Rational → Rational
 ratio p q _ *Q ratio p₁ q₁ _ = mkratio (p * p₁) (q * q₁) {{lem-nonzero-mul q q₁}}
 
 recip : (x : Rational) {{_ : NonZeroQ x}} → Rational
 recip (ratio 0 q eq) {{}}
-recip (ratio (suc p) q eq) = ratio q (suc p) (gcd-commute q (suc p) ⟨≡⟩ eq)
+recip (ratio (suc p) q eq) = ratio q (suc p) auto-coprime
 
 _/Q_ : (x y : Rational) {{_ : NonZeroQ y}} → Rational
 x /Q y = x *Q recip y
