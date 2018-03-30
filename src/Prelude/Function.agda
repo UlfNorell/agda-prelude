@@ -53,6 +53,11 @@ case₄ x , y , z , w of f = f x y z w
 case_return_of_ : ∀ {a b} {A : Set a} (x : A) (B : A → Set b) → (∀ x → B x) → B x
 case x return B of f = f x
 
+infixr 0 letSyntax
+syntax letSyntax e (λ x → b) = let[ x := e ] b
+letSyntax : ∀ {a b} {A : Set a} {B : Set b} → A → (A → B) → B
+letSyntax x f = f x
+
 {-# INLINE _$_ #-}
 {-# INLINE _$′_ #-}
 {-# INLINE case_of_ #-}
