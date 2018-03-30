@@ -13,14 +13,15 @@ open import Numeric.Nat.Properties
 open import Tactic.Nat
 open import Tactic.Nat.Coprime
 
-data Rational : Set where
-  ratio : (p q : Nat) {{nz : NonZero q}} (prf : Coprime p q) → Rational
+record Rational : Set where
+  no-eta-equality
+  constructor ratio
+  field numerator   : Nat
+        denominator : Nat
+        ⦃ d>0 ⦄    : NonZero denominator
+        n⊥d        : Coprime numerator denominator
 
-numerator : Rational → Nat
-numerator (ratio p _ _) = p
-
-denominator : Rational → Nat
-denominator (ratio _ q _) = q
+open Rational public using (numerator; denominator)
 
 infixl 7 mkratio
 syntax mkratio p q = p :/ q
