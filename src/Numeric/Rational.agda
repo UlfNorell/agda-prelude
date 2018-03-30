@@ -77,8 +77,20 @@ _-Q_ : Rational → Rational → Rational
 ratio p q _ -Q ratio p₁ q₁ _ =
   mkratio (p * q₁ - p₁ * q) (q * q₁) ⦃ mul-nonzero q q₁ ⦄
 
+-- Fast multiplication based on the same technique as the fast addition, except it's much
+-- simpler for multiplication.
 _*Q_ : Rational → Rational → Rational
-ratio p q _ *Q ratio p₁ q₁ _ = mkratio (p * p₁) (q * q₁) {{lem-nonzero-mul q q₁}}
+ratio n₁ d₁ _ *Q ratio n₂ d₂ _ =
+  gcdReduce-r n₁ d₂ λ n₁′ d₂′ g₁ n₁′g₁=n₁ d₂′g₁=d₂ _ →
+  gcdReduce-r n₂ d₁ λ n₂′ d₁′ g₂ n₂′g₂=n₂ d₁′g₂=d₁ _ →
+  let instance _ = mul-nonzero d₁′ d₂′ in
+  ratio (n₁′ * n₂′) (d₁′ * d₂′) $
+    case₄ n₁′g₁=n₁ , d₂′g₁=d₂ , n₂′g₂=n₂ , d₁′g₂=d₁ of λ where
+      refl refl refl refl → auto-coprime
+
+-- Specification for multiplication
+slowMulQ : Rational → Rational → Rational
+slowMulQ (ratio p q _) (ratio p₁ q₁ _) = mkratio (p * p₁) (q * q₁) {{mul-nonzero q q₁}}
 
 recip : (x : Rational) {{_ : NonZeroQ x}} → Rational
 recip (ratio 0 q eq) {{}}
