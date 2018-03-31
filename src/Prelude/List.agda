@@ -119,6 +119,11 @@ zipWith f (x ∷ xs) (y ∷ ys) = f x y ∷ zipWith f xs ys
 zip : ∀ {a b} {A : Set a} {B : Set b} → List A → List B → List (A × B)
 zip = zipWith _,_
 
+punctuate : ∀ {a} {A : Set a} → A → List A → List A
+punctuate z []       = []
+punctuate z [ x ]    = [ x ]
+punctuate z (x ∷ xs) = x ∷ z ∷ punctuate z xs
+
 module _ {a b} {F : Set a → Set b} {{_ : Applicative F}} {A : Set a} where
 
   replicateA : Nat → F A → F (List A)
