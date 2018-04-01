@@ -53,14 +53,14 @@ ratio n₁ d₁ n₁/d₁ +Q ratio n₂ d₂ n₂/d₂ =
               s′ * g₁ ≡ n₁ * d₂′ + n₂ * d₁′ →
               d₁′ * g ≡ d₁ →
               Coprime n₁ d₁ → Coprime d₁′ d₂′ → Coprime s′ d₁′
-    lemma s′ n₁ d₁ n₂ d₂ d₁′ d₂′ g g₁ eqs eq₁ n₁/d₁ d₁′/d₂′ =
+    lemma s′ n₁ d₁ n₂ d₂ d₁′ d₂′ g g₁ eqs refl n₁/d₁ d₁′/d₂′ =
       coprimeByPrimes s′ d₁′ λ p isP p|s′ p|d₁′ →
           let p|n₁d₂′ : p Divides (n₁ * d₂′)
               p|n₁d₂′ = divides-sub-r {n₁ * d₂′} {n₂ * d₁′}
                           (transport (p Divides_) eqs (divides-mul-l g₁ p|s′))
                           (divides-mul-r n₂ p|d₁′)
               p|d₁ : p Divides d₁
-              p|d₁ = transport (p Divides_) eq₁ (divides-mul-l g p|d₁′)
+              p|d₁ = divides-mul-l g p|d₁′
               p/n₁ : Coprime p n₁
               p/n₁ = case prime-coprime/divide p n₁ isP of λ where
                        (left p/n₁)  → p/n₁
