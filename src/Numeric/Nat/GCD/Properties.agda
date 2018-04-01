@@ -2,6 +2,7 @@
 module Numeric.Nat.GCD.Properties where
 
 open import Prelude
+open import Numeric.Nat.Properties
 open import Numeric.Nat.Divide
 open import Numeric.Nat.Divide.Properties
 open import Numeric.Nat.GCD
@@ -9,7 +10,9 @@ open import Numeric.Nat.GCD.Extended
 open import Tactic.Nat
 open import Tactic.Cong
 
---- Properties ---
+gcd-is-gcd : ∀ d a b → gcd! a b ≡ d → IsGCD d a b
+gcd-is-gcd d a b refl with gcd a b
+... | gcd-res _ isgcd = isgcd
 
 gcd-divides-l : ∀ a b → gcd! a b Divides a
 gcd-divides-l a b with gcd a b
@@ -94,6 +97,8 @@ gcd-assoc a b c with gcd a b | gcd b c
                      λ k k|a k|bc → gabc k (gab k k|a (k|bc |> bc|b))
                                            (k|bc |> bc|c))
 
+-- Coprimality properties
+
 coprime-sym : ∀ a b → Coprime a b → Coprime b a
 coprime-sym a b p = gcd-commute b a ⟨≡⟩ p
 
@@ -130,6 +135,52 @@ is-gcd-factors-coprime {a} {b} {d@(suc _)} p@(is-gcd (factor qa refl) (factor qb
     lem₃ 0 ()
     lem₃ 1 _ = refl
     lem₃ (suc (suc n)) eq = refute eq
+
+private
+  mul-gcd-distr-l' : ∀ a b c ⦃ a>0 : NonZero a ⦄ ⦃ b>0 : NonZero b ⦄ → gcd! (a * b) (a * c) ≡ a * gcd! b c
+  mul-gcd-distr-l' a b c with gcd b c | gcd (a * b) (a * c)
+  ... | gcd-res d gcd-bc@(is-gcd (factor! b′) (factor! c′) _)
+      | gcd-res δ gcd-abac@(is-gcd (factor u uδ=ab) (factor v vδ=ac) g) =
+    let instance _ = nonzero-is-gcd-l gcd-bc
+                 _ : NonZero (d * a)
+                 _ = mul-nonzero d a
+    in case g (d * a) (factor b′ auto) (factor c′ auto) of λ where
+         (factor w wda=δ) →
+           let dab′=dauw =
+                 d * a * b′        ≡⟨ by uδ=ab ⟩
+                 u * δ             ≡⟨ u *_ $≡ wda=δ ⟩ʳ
+                 u * (w * (d * a)) ≡⟨ auto ⟩
+                 d * a * (u * w)   ∎
+               dac′=davw =
+                 d * a * c′        ≡⟨ by vδ=ac ⟩
+                 v * δ             ≡⟨ v *_ $≡ wda=δ ⟩ʳ
+                 v * (w * (d * a)) ≡⟨ auto ⟩
+                 d * a * (v * w) ∎
+
+               uw=b′ : u * w ≡ b′
+               uw=b′ = sym (mul-inj₂ (d * a) b′ (u * w) dab′=dauw)
+               vw=c′ : v * w ≡ c′
+               vw=c′ = sym (mul-inj₂ (d * a) c′ (v * w) dac′=davw)
+               w=1 : w ≡ 1
+               w=1 = divides-one (divide-coprime w b′ c′ (is-gcd-factors-coprime gcd-bc)
+                                 (factor u uw=b′)
+                                 (factor v vw=c′))
+           in case w=1 of λ where refl → by wda=δ
+
+mul-gcd-distr-l : ∀ a b c → gcd! (a * b) (a * c) ≡ a * gcd! b c
+mul-gcd-distr-l zero b c = refl
+mul-gcd-distr-l a zero c = (λ z → gcd! z (a * c)) $≡ mul-zero-r a
+mul-gcd-distr-l a@(suc _) b@(suc _) c = mul-gcd-distr-l' a b c
+
+mul-gcd-distr-r : ∀ a b c → gcd! (a * c) (b * c) ≡ gcd! a b * c
+mul-gcd-distr-r a b c =
+  gcd! (a * c) (b * c)
+    ≡⟨ gcd! $≡ mul-commute a c *≡ mul-commute b c ⟩
+  gcd! (c * a) (c * b)
+    ≡⟨ mul-gcd-distr-l c a b ⟩
+  c * gcd! a b
+    ≡⟨ auto ⟩
+  gcd! a b * c ∎
 
 -- Divide two numbers by their gcd and return the result, the gcd, and some useful properties.
 -- Continuation-passing for efficiency reasons.
