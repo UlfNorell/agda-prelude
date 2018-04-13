@@ -115,8 +115,13 @@ lem-eval-sns-ns n ρ = lem-eval-sns-nS n ρ ⟨≡⟩ʳ ns-sound n (atomEnvS ρ)
   lem-zero-sub u v k (auto ⟨≡⟩ complete v u auto)
 ⟨-⟩-sound′ a b ρ | u ∷ us , v ∷ vs | complete =
   let eval = λ x → ⟦ x ⟧n (atomEnv ρ) in
-  auto ⟨≡⟩ cong₂ _-_ (lem-eval-sn-n (u ∷ us) ρ) (lem-eval-sn-n (v ∷ vs) ρ) ⟨≡⟩
-  lem-sub (eval a) (eval b) (eval (u ∷ us)) (eval (v ∷ vs)) (complete (eval b) (eval a) auto)
+  (⟦ u ∷ us ⟧sn ρ - ⟦ v ∷ vs ⟧sn ρ) * 1 + 0 + 0
+    ≡⟨ auto ⟩
+  ⟦ u ∷ us ⟧sn ρ - ⟦ v ∷ vs ⟧sn ρ
+    ≡⟨ cong₂ _-_ (lem-eval-sn-n (u ∷ us) ρ) (lem-eval-sn-n (v ∷ vs) ρ) ⟩
+  eval (u ∷ us) - eval (v ∷ vs)
+    ≡⟨ lem-sub (eval a) (eval b) (eval (u ∷ us)) (eval (v ∷ vs)) (complete (eval b) (eval a) auto) ⟩
+  eval a - eval b ∎
 
 ⟨-⟩-sound : ∀ a b ρ → ⟦ a -nf b ⟧n (atomEnv ρ) ≡ ⟦ a ⟧n (atomEnv ρ) - ⟦ b ⟧n (atomEnv ρ)
 ⟨-⟩-sound a b ρ with is-subtraction a
