@@ -70,6 +70,13 @@ divides-one {1} _ = refl
 divides-one {suc (suc a)} (factor zero ())
 divides-one {suc (suc a)} (factor (suc k) eq) = refute eq
 
+mul=1-l : (a b : Nat) → a * b ≡ 1 → a ≡ 1
+mul=1-l a b eq =
+  divides-one (transport (a Divides_) eq (divides-mul-l b divides-refl))
+
+mul=1-r : (a b : Nat) → a * b ≡ 1 → b ≡ 1
+mul=1-r a b eq = mul=1-l b a (by eq)
+
 divides-less : ∀ {a b} {{_ : NonZero b}} → a Divides b → a ≤ b
 divides-less {{}} (factor! 0)
 divides-less {a} (factor! (suc q)) = auto

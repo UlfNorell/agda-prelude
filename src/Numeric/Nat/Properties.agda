@@ -47,12 +47,19 @@ _⟨≤⟩_ : {a b c : Nat} → a ≤ b → b ≤ c → a ≤ c
 diff! k ⟨≤⟩ diff! k₁ = auto
 
 private
-  less-mul-r′ : ∀ a b → NonZero b → a ≤ a * b
-  less-mul-r′ _  zero ()
-  less-mul-r′ a (suc b) _ = auto
+  leq-mul-r′ : ∀ a b → NonZero b → a ≤ a * b
+  leq-mul-r′ _  zero ()
+  leq-mul-r′ a (suc b) _ = auto
 
-less-mul-r : ∀ a b {{_ : NonZero b}} → a ≤ a * b
-less-mul-r a b = fast-diff (less-mul-r′ _ b it)
+leq-mul-r : ∀ a b {{_ : NonZero b}} → a ≤ a * b
+leq-mul-r a b = fast-diff (leq-mul-r′ _ b it)
+
+-- Used for the well-founded induction over factorisation.
+less-mul-l : {a b : Nat} → a > 1 → b > 1 → a < a * b
+less-mul-l (diff! k) (diff! j) = auto
+
+less-mul-r : {a b : Nat} → a > 1 → b > 1 → b < a * b
+less-mul-r (diff! k) (diff! j) = auto
 
 add-nonzero-l : ∀ a b {{_ : NonZero a}} → NonZero (a + b)
 add-nonzero-l zero    b {{}}

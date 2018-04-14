@@ -25,14 +25,6 @@ prime-split a b isP p|ab =
     (left p/a)  → right (coprime-divide-mul-l _ a b p/a p|ab)
     (right p|a) → left p|a
 
-private
-  -- Used for the well-founded induction over factorisation in coprimeByPrimes.
-  lem-l : (a b : Nat) → a > 1 → b > 1 → a < a * b
-  lem-l a b (diff! k) (diff! j) = auto
-
-  lem-r : (a b : Nat) → a > 1 → b > 1 → b < a * b
-  lem-r a b (diff! k) (diff! j) = auto
-
 -- It's enough to check prime divisors when checking coprimality.
 module _ (a b : Nat) (f : ∀ p → Prime p → p Divides a → p Divides b → p Divides 1) where
 
@@ -43,10 +35,10 @@ module _ (a b : Nat) (f : ∀ p → Prime p → p Divides a → p Divides b → 
         (yes isP) → f k isP k|a k|b
         (no (composite i j i>1 j>1 refl)) →
           let i|1 : i Divides 1
-              i|1 = coprimeByPrimes′ i (wf i (lem-l i j i>1 j>1))
+              i|1 = coprimeByPrimes′ i (wf i (less-mul-l i>1 j>1))
                                        (mul-divides-l i j a k|a) (mul-divides-l i j b k|b)
               j|1 : j Divides 1
-              j|1 = coprimeByPrimes′ j (wf j (lem-r i j i>1 j>1))
+              j|1 = coprimeByPrimes′ j (wf j (less-mul-r i>1 j>1))
                                        (mul-divides-r i j a k|a) (mul-divides-r i j b k|b)
           in case₂ divides-one i|1 , divides-one j|1 of λ where
                refl refl → factor! 1
