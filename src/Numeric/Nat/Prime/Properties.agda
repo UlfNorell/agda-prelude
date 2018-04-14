@@ -12,12 +12,22 @@ open import Numeric.Nat.GCD.Properties
 open import Numeric.Nat.Prime
 open import Tactic.Nat
 
+prime-nonzero : ∀ {p} → Prime p → NonZero p
+prime-nonzero {0} (prime p>1 _) = refute p>1
+prime-nonzero {suc _} _ = _
+
 prime-coprime/divide : ∀ p a → Prime p → Either (Coprime p a) (p Divides a)
 prime-coprime/divide p a (prime _ isp) with gcd p a
 prime-coprime/divide p a (prime _ isp) | gcd-res d isGCD =
   case isp d (IsGCD.d|a isGCD) of λ where
     (left d=1)   → left  d=1
     (right refl) → right (IsGCD.d|b isGCD)
+
+prime-divide-prime : ∀ {p q} → Prime p → Prime q → p Divides q → p ≡ q
+prime-divide-prime {p} (prime p>1 _) (prime _ dq) p|q =
+  case dq p p|q of λ where
+    (left refl) → refute p>1
+    (right p=q) → p=q
 
 prime-split : ∀ {p} a b → Prime p → p Divides (a * b) → Either (p Divides a) (p Divides b)
 prime-split a b isP p|ab =
