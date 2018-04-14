@@ -2,6 +2,7 @@
 module Container.List.Properties where
 
 open import Prelude
+open import Prelude.Nat.Properties
 
 foldr-map-fusion : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
                      (f : B → C → C) (g : A → B) (z : C) (xs : List A) →
@@ -37,3 +38,13 @@ foldl-foldr f z assoc idl idr (x ∷ xs)
         | idl x ⟨≡⟩ʳ idr x
         = foldl-assoc f assoc x z xs
 
+-- Properties of _++_
+
+map-++ : ∀ {a b} {A : Set a} {B : Set b} (f : A → B) (xs ys : List A) →
+           map f (xs ++ ys) ≡ map f xs ++ map f ys
+map-++ f []       ys = refl
+map-++ f (x ∷ xs) ys = f x ∷_ $≡ map-++ f xs ys
+
+product-++ : (xs ys : List Nat) → productR (xs ++ ys) ≡ productR xs * productR ys
+product-++ []       ys = sym (add-zero-r _)
+product-++ (x ∷ xs) ys = x *_ $≡ product-++ xs ys ⟨≡⟩ mul-assoc x _ _
