@@ -64,6 +64,25 @@ traverseAll : ∀ {a b} {A : Set a} {B : A → Set a} {F : Set a → Set b}
 traverseAll f []       = pure []
 traverseAll f (x ∷ xs) = ⦇ f x ∷ traverseAll f xs ⦈
 
+module _ {a b} {A : Set a} {P : A → Set b} where
+
+  -- Append
+
+  infixr 5 _++All_
+  _++All_ : ∀ {xs ys} → All P xs → All P ys → All P (xs ++ ys)
+  []       ++All qs = qs
+  (p ∷ ps) ++All qs = p ∷ ps ++All qs
+
+  -- Delete
+
+  deleteIx : ∀ xs → Any P xs → List A
+  deleteIx (_ ∷ xs) (zero _) = xs
+  deleteIx (x ∷ xs) (suc  i) = x ∷ deleteIx xs i
+
+  deleteAllIx : ∀ {c} {Q : A → Set c} {xs} → All Q xs → (i : Any P xs) → All Q (deleteIx xs i)
+  deleteAllIx (q ∷ qs) (zero _) = qs
+  deleteAllIx (q ∷ qs) (suc i)  = q ∷ deleteAllIx qs i
+
 -- Equality --
 
 module _ {a b} {A : Set a} {P : A → Set b} {{EqP : ∀ {x} → Eq (P x)}} where
