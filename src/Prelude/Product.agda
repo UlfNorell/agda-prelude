@@ -2,20 +2,11 @@
 module Prelude.Product where
 
 open import Agda.Primitive
+open import Agda.Builtin.Sigma public
 open import Prelude.Function
 open import Prelude.Equality
 open import Prelude.Decidable
 open import Prelude.Ord
-
-infixr 1 _,_
-record Σ {a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
-  no-eta-equality
-  constructor _,_
-  field
-    fst : A
-    snd : B fst
-
-open Σ public
 
 instance
   ipair : ∀ {a b} {A : Set a} {B : A → Set b} {{x : A}} {{y : B x}} → Σ A B

@@ -70,13 +70,13 @@ underBinder = _ <$ modify (second $ map $ first $ weaken 1)
 parseProblem : List Term → Term → ParseTerm TC (Nat × List Term × Problem)
 parseProblem [] t = do
   φ ← parseFormula t
-  pure (0 , [] , [] ⊨ φ)
+  pure (0 , [] , ([] ⊨ φ))
 parseProblem (h ∷ Δ) t =
   caseM just <$> parseFormula h <|> pure nothing of λ where
     (just ψ) → do
       underBinder
-      fv , Hs , Γ ⊨ φ ← parseProblem Δ t
-      pure (suc fv , var fv [] ∷ Hs , ψ ∷ Γ ⊨ φ)
+      fv , Hs , (Γ ⊨ φ) ← parseProblem Δ t
+      pure (suc fv , var fv [] ∷ Hs , (ψ ∷ Γ ⊨ φ))
     nothing  → do
       underBinder
       fv , Hs , Q ← parseProblem Δ t
