@@ -38,6 +38,12 @@ foldl-foldr f z assoc idl idr (x ∷ xs)
         | idl x ⟨≡⟩ʳ idr x
         = foldl-assoc f assoc x z xs
 
+foldl!-foldl : ∀ {a b} {A : Set a} {B : Set b} (f : B → A → B) z (xs : List A) →
+                 foldl! f z xs ≡ foldl f z xs
+foldl!-foldl f z [] = refl
+foldl!-foldl f z (x ∷ xs) = forceLemma (f z x) (λ z′ → foldl! f z′ xs) ⟨≡⟩
+                            foldl!-foldl f (f z x) xs
+
 -- Properties of _++_
 
 map-++ : ∀ {a b} {A : Set a} {B : Set b} (f : A → B) (xs ys : List A) →
