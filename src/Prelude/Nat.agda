@@ -127,6 +127,9 @@ instance
 suc-monotone : {a b : Nat} → a < b → Nat.suc a < suc b
 suc-monotone (diff! k) = diff k (sym (add-suc-r (suc k) _))
 
+inv-suc-monotone : ∀{t v} → suc t < suc v → t < v
+inv-suc-monotone (diff! k) = diff k (add-suc-r k _) 
+
 suc-comparison : {a b : Nat} → Comparison _<_ a b → Comparison _<_ (Nat.suc a) (suc b)
 suc-comparison (less lt)    = less    (suc-monotone lt)
 suc-comparison (equal eq)   = equal   (suc $≡ eq)
