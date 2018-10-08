@@ -3,6 +3,7 @@ module Control.Monad.State where
 
 open import Prelude
 open import Control.Monad.Zero
+open import Control.Monad.Identity
 
 record StateT {a} (S : Set a) (M : Set a → Set a) (A : Set a) : Set a where
   no-eta-equality
@@ -53,3 +54,12 @@ module _ {a} {S : Set a} {M : Set a → Set a} where
 
     put : S → StateT S M S
     put s = modify (const s)
+
+State : ∀ {a} (S : Set a) (A : Set a) → Set a
+State S = StateT S Identity
+
+runState : ∀ {a} {S : Set a} {A : Set a} → State S A → S → A × S
+runState m s = runIdentity (runStateT m s)
+
+execState : ∀ {a} {S : Set a} {A : Set a} → State S A → S → S
+execState m s = snd (runState m s)
