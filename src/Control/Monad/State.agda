@@ -4,6 +4,7 @@ module Control.Monad.State where
 open import Prelude
 open import Control.Monad.Zero
 open import Control.Monad.Identity
+open import Control.Monad.Transformer
 
 record StateT {a} (S : Set a) (M : Set a → Set a) (A : Set a) : Set a where
   no-eta-equality
@@ -40,8 +41,8 @@ module _ {a} {S : Set a} {M : Set a → Set a} where
       MonadStateT : Monad {a = a} (StateT S M)
       _>>=_  {{MonadStateT}} = bindStateT
 
-    lift : {A : Set a} → M A → StateT S M A
-    runStateT (lift m) s = m >>= λ x → return (x , s)
+    liftStateT : {A : Set a} → M A → StateT S M A
+    runStateT (liftStateT m) s = m >>= λ x → return (x , s)
 
     gets : {A : Set a} → (S → A) → StateT S M A
     runStateT (gets f) s = return (f s , s)
@@ -54,6 +55,10 @@ module _ {a} {S : Set a} {M : Set a → Set a} where
 
     put : S → StateT S M S
     put s = modify (const s)
+
+instance
+  TransformerStateT : ∀ {a} {S : Set a} → Transformer (StateT S)
+  lift {{TransformerStateT}} = liftStateT
 
 State : ∀ {a} (S : Set a) (A : Set a) → Set a
 State S = StateT S Identity

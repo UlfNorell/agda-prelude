@@ -4,6 +4,7 @@ module Control.Monad.Writer where
 open import Prelude
 open import Control.Monad.Zero
 open import Control.Monad.Identity
+open import Control.Monad.Transformer
 
 record WriterT {a} (W : Set a) (M : Set a → Set a) (A : Set a) : Set a where
   no-eta-equality
@@ -41,8 +42,8 @@ module _ {a} {W : Set a} {M : Set a → Set a} where
       MonadWriterT : Monad {a = a} (WriterT W M)
       _>>=_  {{MonadWriterT}} = bindWriterT
 
-    lift : {A : Set a} → M A → WriterT W M A
-    runWriterT (lift m) = (_, mempty) <$> m
+    liftWriterT : {A : Set a} → M A → WriterT W M A
+    runWriterT (liftWriterT m) = (_, mempty) <$> m
 
     writer : {A : Set a} → A × W → WriterT W M A
     runWriterT (writer (x , w)) = return (x , w)
@@ -66,6 +67,9 @@ module _ {a} {W : Set a} {M : Set a → Set a} where
     censor : {A : Set a} → (W → W) → WriterT W M A → WriterT W M A
     censor f m = pass ((_, f) <$> m)
 
+instance
+  TransformerWriterT : ∀ {a} {W : Set a} {{_ : Monoid W}} → Transformer (WriterT W)
+  lift {{TransformerWriterT}} = liftWriterT
 
 Writer : ∀ {a} (W : Set a) (A : Set a) → Set a
 Writer W = WriterT W Identity

@@ -4,6 +4,7 @@ module Control.Monad.Reader where
 open import Prelude
 open import Control.Monad.Zero
 open import Control.Monad.Identity
+open import Control.Monad.Transformer
 
 record ReaderT {a} (R : Set a) (M : Set a → Set a) (A : Set a) : Set a where
   no-eta-equality
@@ -38,8 +39,8 @@ module _ {a} {R : Set a} {M : Set a → Set a} where
       MonadReaderT : Monad {a = a} (ReaderT R M)
       _>>=_  {{MonadReaderT}} = bindReaderT
 
-    lift : {A : Set a} → M A → ReaderT R M A
-    runReaderT (lift m) r = m
+    liftReaderT : {A : Set a} → M A → ReaderT R M A
+    runReaderT (liftReaderT m) r = m
 
     asks : {A : Set a} → (R → A) → ReaderT R M A
     runReaderT (asks f) r = return (f r)
@@ -49,6 +50,10 @@ module _ {a} {R : Set a} {M : Set a → Set a} where
 
     local : {A : Set a} → (R → R) → ReaderT R M A → ReaderT R M A
     runReaderT (local f m) r = runReaderT m (f r)
+
+instance
+  TransformerReaderT : ∀ {a} {R : Set a} → Transformer (ReaderT R)
+  lift {{TransformerReaderT}} = liftReaderT
 
 Reader : ∀ {a} (R : Set a) (A : Set a) → Set a
 Reader R = ReaderT R Identity
