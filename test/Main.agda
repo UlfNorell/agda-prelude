@@ -34,7 +34,7 @@ open import Numeric.Nat.Pow
 
 open import MonoidTactic
 
-open import DeriveEqTest
+-- open import DeriveEqTest
 
 Hello = printf "%c%s" 'H' "ello"
 World = printf "%-7s(%.6f)" "World" π
