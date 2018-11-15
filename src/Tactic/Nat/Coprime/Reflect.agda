@@ -6,6 +6,7 @@ import Agda.Builtin.Nat as Builtin
 open import Prelude
 open import Control.Monad.State
 open import Control.Monad.Zero
+open import Control.Monad.Transformer
 open import Container.Traversable
 open import Numeric.Nat.GCD
 

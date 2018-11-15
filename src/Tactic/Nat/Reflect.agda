@@ -3,6 +3,7 @@ module Tactic.Nat.Reflect where
 
 open import Prelude hiding (abs)
 open import Control.Monad.State
+open import Control.Monad.Transformer
 
 import Agda.Builtin.Nat as Builtin
 

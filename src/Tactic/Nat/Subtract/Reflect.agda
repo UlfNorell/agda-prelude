@@ -5,6 +5,7 @@ open import Prelude
 import Agda.Builtin.Nat as Builtin
 open import Builtin.Reflection
 open import Control.Monad.State
+open import Control.Monad.Transformer
 open import Tactic.Reflection.Quote
 open import Tactic.Reflection.DeBruijn
 open import Tactic.Reflection.Equality
