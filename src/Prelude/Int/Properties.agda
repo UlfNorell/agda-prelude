@@ -1,6 +1,7 @@
 
 module Prelude.Int.Properties where
 
+open import Prelude.Unit
 open import Prelude.Nat
 open import Prelude.Nat.Properties
 open import Prelude.Number

@@ -1,6 +1,7 @@
 
 module Prelude.Show where
 
+open import Prelude.Unit
 open import Prelude.String
 open import Prelude.Char
 open import Prelude.Nat

@@ -9,8 +9,9 @@
 -- Currently, the behaviour for non-textual file paths is undefined.
 module System.FilePath where
 
+open import Prelude.Unit
 open import Prelude.String
-  
+
 data Kind : Set where
   Rel : Kind
   Abs : Kind

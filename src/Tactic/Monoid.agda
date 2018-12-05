@@ -11,8 +11,8 @@ open import Tactic.Monoid.Exp
 open import Tactic.Monoid.Reflect
 open import Tactic.Monoid.Proofs
 
-monoidTactic : ∀ {a} {A : Set a} {{_ : Monoid A}} {{_ : MonoidLaws A}} → Tactic
-monoidTactic {A = A} {{dict}} {{laws}} hole = do
+monoidTactic : ∀ {a} {A : Set a} {MonA : Monoid A} {{_ : MonoidLaws A {{MonA}}}} → Tactic
+monoidTactic {A = A} {dict} {{laws}} hole = do
   goal   ← inferNormalisedType hole
   `A     ← quoteTC A
   unify goal (def (quote _≡_) (hArg unknown ∷ hArg `A ∷ vArg unknown ∷ vArg unknown ∷ []))
@@ -28,5 +28,5 @@ monoidTactic {A = A} {{dict}} {{laws}} hole = do
                      ∷ []
 
 macro
-  auto-monoid : ∀ {a} {A : Set a} {{Mon : Monoid A}} {{Laws : MonoidLaws A}} → Tactic
-  auto-monoid {{Mon}} {{Laws}} = monoidTactic {{Mon}} {{Laws}}
+  auto-monoid : ∀ {a} {A : Set a} {Mon : Monoid A} {{Laws : MonoidLaws A {{Mon}}}} → Tactic
+  auto-monoid {{Laws}} = monoidTactic {{Laws}}
