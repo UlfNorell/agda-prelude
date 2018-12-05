@@ -109,7 +109,7 @@ substAbs σ (abs x v) = abs x $ substTerm (safe (var 0 []) _ ∷ weaken 1 σ) v
 
 private
   toArgs : Nat → List (Arg SafeTerm) → List (Arg Term)
-  toArgs k = map (weaken k ∘ fmap safe-term)
+  toArgs k = map (λ x → weaken k (fmap safe-term x))
 
   SafeApplyType : Set → Set
   SafeApplyType A = List SafeTerm → Nat → A → List (Arg SafeTerm) → A
