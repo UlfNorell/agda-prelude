@@ -46,6 +46,7 @@ macro
   auto-coprime : Tactic
   auto-coprime ?hole = withNormalisation true $ do
     goal ← inferType ?hole
+    ensureNoMetas goal
     cxt  ← reverse <$> getContext
     (_ , Hyps , Q) , ρ ← runParse (parseProblem (map unArg cxt) goal)
     unify ?hole (def (quote proof) $ map vArg (` Q ∷ quotedEnv ρ ∷ Hyps))

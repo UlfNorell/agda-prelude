@@ -4,6 +4,7 @@ module Tactic.Nat.Subtract.Auto where
 open import Prelude
 open import Builtin.Reflection
 open import Tactic.Reflection.Quote
+open import Tactic.Reflection.Meta
 
 open import Tactic.Nat.Reflect
 open import Tactic.Nat.NF
@@ -29,13 +30,13 @@ autosub-proof (e₁ :< e₂) ρ | [] , (suc n , []) ∷ nf | simp =
 autosub-proof (e₁ :< e₂) ρ | _  , _ | simp = nothing
 
 autosub-tactic : Type → TC Term
-autosub-tactic t =
-  caseM termToSubEqn t of
-  λ { nothing → pure $ failedProof (quote invalidGoal) t
-    ; (just (eqn , Γ)) → pure $
-      getProof (quote cantProve) t $
-        def (quote autosub-proof)
-            ( vArg (` eqn)
-            ∷ vArg (quotedEnv Γ)
-            ∷ [] )
-    }
+autosub-tactic t = do
+  ensureNoMetas t
+  just (eqn , Γ) ← termToSubEqn t
+    where nothing → typeError $ strErr "Invalid goal:" ∷ termErr t ∷ []
+  pure $
+    getProof (quote cantProve) t $
+      def (quote autosub-proof)
+          ( vArg (` eqn)
+          ∷ vArg (quotedEnv Γ)
+          ∷ [] )

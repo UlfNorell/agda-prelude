@@ -70,6 +70,7 @@ macro
   by-cong : ∀ {a} {A : Set a} {x y : A} → x ≡ y → Tactic
   by-cong {x = x} {y} lemma hole = do
       `lemma  ← quoteTC lemma
+      ensureNoMetas =<< inferType hole
       lemMeta ← lemProxy `lemma
       solve lemMeta 100 hole <|> typeErrorS "Congruence failed"
       unify lemMeta `lemma

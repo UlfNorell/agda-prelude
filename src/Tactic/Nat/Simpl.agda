@@ -43,42 +43,43 @@ module _ {Atom : Set} {{_ : Eq Atom}} {{_ : Ord Atom}} where
   simplifyH (h ∷ [])     ρ H = simplifyEq h ρ H
   simplifyH (h ∷ h₂ ∷ g) ρ H = λ H₁ → simplifyH (h₂ ∷ g) ρ $ H (complicateEq h ρ H₁)
 
-simplify-tactic : Term → Type → TC Term
-simplify-tactic prf g =
-  inferType prf >>= λ h →
-  let t = pi (vArg h) (abs "_" (weaken 1 g)) in
-  caseM termToHyps t of
-  λ { nothing → pure $ failedProof (quote invalidGoal) t
-    ; (just (goal , Γ)) → pure $
-      def (quote flip)
-        $ vArg (def (quote simplifyH)
+simplify-tactic : {x y : Nat} → x ≡ y → Type → TC Term
+simplify-tactic {x} {y} prf g = do
+  `x   ← quoteTC x
+  `y   ← quoteTC y
+  `prf ← quoteTC prf
+  let h = def₂ (quote _≡_) `x `y
+      t = pi (vArg h) (abs "_" (weaken 1 g))
+  just (goal , Γ) ← termToHyps t
+    where nothing → typeError (strErr "Invalid goal" ∷ termErr t ∷ [])
+  pure $ def (quote flip)
+             $ vArg (def (quote simplifyH)
                     ( vArg (` goal)
                     ∷ vArg (quotedEnv Γ) ∷ [] ))
-        ∷ vArg prf ∷ []
-    }
+             ∷ vArg `prf ∷ []
 
-assumed-tactic : Term → Type → TC Term
-assumed-tactic prf g =
-  inferNormalisedType prf >>= λ h →
-  let t = pi (vArg h) (abs "_" (weaken 1 g)) in
-  caseM termToHyps t of
-  (λ { nothing → pure $ failedProof (quote invalidGoal) t
-     ; (just (goal , Γ)) → pure $
-       def (quote simplifyH) ( vArg (` goal)
-                             ∷ vArg (quotedEnv Γ)
-                             ∷ vArg (def (quote id) [])
-                             ∷ vArg prf ∷ [])
-     })
+assumed-tactic : {x y : Nat} → x ≡ y → Type → TC Term
+assumed-tactic {x} {y} prf g = do
+  `x   ← withNormalisation true $ quoteTC x
+  `y   ← withNormalisation true $ quoteTC y
+  `prf ← quoteTC prf
+  let h = def (quote _≡_) (hArg unknown ∷ hArg (def₀ (quote Nat)) ∷ vArg `x ∷ vArg `y ∷ [])
+  let t = pi (vArg h) (abs "_" (weaken 1 g))
+  just (goal , Γ) ← termToHyps t
+    where nothing → typeError (strErr "Invalid goal" ∷ termErr t ∷ [])
+  pure $
+    def (quote simplifyH) ( vArg (` goal)
+                          ∷ vArg (quotedEnv Γ)
+                          ∷ vArg (def (quote id) [])
+                          ∷ vArg `prf ∷ [] )
 
 macro
-  follows-from : Term → Tactic
-  follows-from prf hole =
-    inferNormalisedType hole >>= λ goal →
+  follows-from : {x y : Nat} → x ≡ y → Tactic
+  follows-from prf hole = do
+    goal ← inferNormalisedType hole
     unify hole =<< assumed-tactic prf goal
 
-  simplify : Term → Tactic
-  simplify prf hole =
-    inferNormalisedType hole >>= λ goal →
+  simplify : {x y : Nat} → x ≡ y → Tactic
+  simplify prf hole = do
+    goal ← inferNormalisedType hole
     unify hole =<< simplify-tactic prf goal
-
-    -- rewrite-argument-tactic (quote simplify-tactic)

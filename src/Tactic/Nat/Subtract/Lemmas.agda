@@ -47,7 +47,7 @@ sub-mul-distr-l (suc a) (suc b) c =
   sub-mul-distr-l a b c ⟨≡⟩
   lem-sub (suc a * c) (suc b * c) (a * c) (b * c) auto
 
-sub-mul-distr-r : ∀ a b c → a * (b - c) ≡ a * b - a * c
+sub-mul-distr-r : (a b c : Nat) → a * (b - c) ≡ a * b - a * c
 sub-mul-distr-r a b c =
   auto ⟨≡⟩ sub-mul-distr-l b c a
        ⟨≡⟩ cong₂ _-_ (mul-commute b a) (mul-commute c a)
@@ -142,7 +142,7 @@ private
   sound-mul-tm : ∀ s t ρ → ⟦ s *tm t ⟧n (atomEnv ρ) ≡ ⟦ s ⟧t (atomEnv ρ) * ⟦ t ⟧t (atomEnv ρ)
   sound-mul-tm s t ρ with is-subtraction-tm t
   sound-mul-tm (x , a) (y , b) ρ | no =
-    follows-from (_*_ (x * y) $≡ map-merge a b (atomEnv ρ))
+    follows-from (x * y *_ $≡ map-merge a b (atomEnv ρ))
   sound-mul-tm s ._ ρ | a ⟨-⟩ b =
     let eval  x = ⟦ x ⟧n (atomEnv ρ)
         evalt x = ⟦ x ⟧t (atomEnv ρ) in

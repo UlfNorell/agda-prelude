@@ -17,9 +17,13 @@ monoidTactic {A = A} {dict} {{laws}} hole = do
   `A     ← quoteTC A
   unify goal (def (quote _≡_) (hArg unknown ∷ hArg `A ∷ vArg unknown ∷ vArg unknown ∷ []))
     <|> do typeError $ strErr "Goal is not an equality" ∷ termErr goal ∷ []
+  goal   ← normalise goal
+  ensureNoMetas goal
   match  ← monoidMatcher dict
   `dict  ← quoteTC dict
   `laws  ← quoteTC laws
+  ensureNoMetas `dict
+  debugPrint "tactic.monoid" 20 $ strErr "monoidTactic" ∷ termErr goal ∷ strErr "dict =" ∷ termErr `dict ∷ []
   (lhs , rhs) , env ← parseGoal match goal
   unify hole (def (quote proof) (iArg `dict ∷ iArg `laws ∷ vArg (` lhs) ∷ vArg (` rhs) ∷
                                  vArg (quoteEnv `dict env) ∷ vArg (con (quote refl) []) ∷ []))

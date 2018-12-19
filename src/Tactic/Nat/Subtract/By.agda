@@ -161,17 +161,17 @@ private
     pure λ eq → prf (diff 0 (cong suc (sym eq)))
 
 by-tactic : Term → Type → TC Term
-by-tactic prf g =
-  inferNormalisedType prf >>= λ h →
-  let t = pi (vArg h) (abs "_" (weaken 1 g)) in
-  caseM termToSubHyps t of
-  λ { (just (hyp ∷ goal ∷ [] , Γ)) → pure $
-      applyTerm (safe
-        (getProof (quote cantProve) t $
-         def (quote by-proof)
-             ( vArg (` hyp)
-             ∷ vArg (` goal)
-             ∷ vArg (quotedEnv Γ)
-             ∷ [])) _) (vArg prf ∷ [])
-    ; _ → pure $ failedProof (quote invalidGoal) t
-    }
+by-tactic prf g = do
+  ensureNoMetas prf
+  h ← inferNormalisedType prf
+  let t = pi (vArg h) (abs "_" (weaken 1 g))
+  just (hyp ∷ goal ∷ [] , Γ) ← termToSubHyps t
+    where _ → typeError $ strErr "Invalid goal:" ∷ termErr t ∷ []
+  pure $
+    applyTerm (safe
+      (getProof (quote cantProve) t $
+       def (quote by-proof)
+           ( vArg (` hyp)
+           ∷ vArg (` goal)
+           ∷ vArg (quotedEnv Γ)
+           ∷ [])) _) (vArg prf ∷ [])
