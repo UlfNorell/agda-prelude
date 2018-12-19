@@ -53,6 +53,8 @@ fresh t =
 termToExpR : Term → R (Exp Var)
 termToExpR (a `+ b) = _⟨+⟩_ <$> termToExpR a <*> termToExpR b
 termToExpR (a `* b) = _⟨*⟩_ <$> termToExpR a <*> termToExpR b
+termToExpR (def (quote Semiring._+_) (_ ∷ _ ∷ vArg (meta x _) ∷ _)) = lift (blockOnMeta x)
+termToExpR (def (quote Semiring._*_) (_ ∷ _ ∷ vArg (meta x _) ∷ _)) = lift (blockOnMeta x)
 termToExpR `0       = pure (lit 0)
 termToExpR (`suc a) = ⟨suc⟩ <$> termToExpR a
 termToExpR (lit (nat n)) = pure (lit n)
