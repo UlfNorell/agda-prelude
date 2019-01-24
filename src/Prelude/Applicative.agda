@@ -10,51 +10,20 @@ open import Prelude.Number
 open import Prelude.Semiring
 open import Prelude.Fractional
 
-record Applicative {a b} (F : Set a → Set b) : Set (lsuc a ⊔ b) where
-  infixl 4 _<*>_ _<*_ _*>_
-  field
-    pure  : ∀ {A} → A → F A
-    _<*>_ : ∀ {A B} → F (A → B) → F A → F B
-    overlap {{super}} : Functor F
+open import Prelude.Applicative.Indexed {I = ⊤} as Indexed
 
-  _<*_ : ∀ {A B} → F A → F B → F A
-  a <* b = ⦇ const a b ⦈
+Applicative : ∀ {a b} (F : Set a → Set b) → Set (lsuc a ⊔ b)
+Applicative F = Indexed.IApplicative (λ _ _ → F)
 
-  _*>_ : ∀ {A B} → F A → F B → F B
-  a *> b = ⦇ (const id) a b ⦈
+Applicative′ : ∀ {a b} (F : ∀ {a} → Set a → Set a) → Set (lsuc (a ⊔ b))
+Applicative′ {a} {b} F = Indexed.IApplicative′ {a = a} {b = b} (λ _ _ → F)
 
-open Applicative {{...}} public
-
-{-# DISPLAY Applicative.pure  _ = pure  #-}
-{-# DISPLAY Applicative._<*>_ _ = _<*>_ #-}
-{-# DISPLAY Applicative._<*_  _ = _<*_  #-}
-{-# DISPLAY Applicative._*>_  _ = _*>_  #-}
+open Indexed public hiding (IApplicative; IApplicative′)
 
 fmapApplicative : ∀ {a b} {F : Set a → Set b} →
                     (∀ {A} → A → F A) → (∀ {A B} → F (A → B) → F A → F B) →
                     ∀ {A B} → (A → B) → F A → F B
 fmapApplicative pure _<*>_ f m = pure f <*> m
-
--- Level polymorphic functors
-record Applicative′ {a b} (F : ∀ {a} → Set a → Set a) : Set (lsuc (a ⊔ b)) where
-  infixl 4 _<*>′_
-  field
-    _<*>′_ : {A : Set a} {B : Set b} → F (A → B) → F A → F B
-    overlap {{super}} : Functor′ {a} {b} F
-
-open Applicative′ {{...}} public
-
-module _ {F : ∀ {a} → Set a → Set a}
-         {{_ : ∀ {a} → Applicative {a} F}}
-         {{_ : ∀ {a b} → Applicative′ {a} {b} F}}
-         {a b} {A : Set a} {B : Set b} where
-
-  infixl 4 _<*′_ _*>′_
-  _<*′_ : F A → F B → F A
-  a <*′ b = pure const <*>′ a <*>′ b
-
-  _*>′_ : F A → F B → F B
-  a *>′ b = pure (const id) <*>′ a <*>′ b
 
 module _ {a b} {F : Set a → Set b} {{AppF : Applicative F}} where
 
