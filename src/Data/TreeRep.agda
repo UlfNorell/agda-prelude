@@ -297,9 +297,9 @@ instance
 
       dec : TreeRep → Maybe (Σ A B)
       dec (node _ (x ∷ y ∷ _)) = do
-        x ← treeDecode x
+        x ← treeDecode x ofType Maybe A
         y ← treeDecode y
-        return (x , y)
+        just (x , y)
       dec _ = nothing
 
       emb : ∀ x → dec (enc x) ≡ just x
