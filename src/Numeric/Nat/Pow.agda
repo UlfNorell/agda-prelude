@@ -68,7 +68,7 @@ module _ {a} {A : Set a} {{_ : Semiring A}} where
           (a * a) ^ q * (a * a)
             ≡⟨ by-cong (lem-pow-mul-distr a q ⟨≡⟩ʳ lem-pow-add-distr a q q) ⟩
           a ^ (q + q) * (a * a)
-            ≡⟨ by-cong auto ⟩
+            ≡⟨ by-cong {x = q + q} {y = q * 2} auto ⟩
           a ^ (q * 2) * (a * a)
             ≡⟨ by-cong (idl a) ⟩
           a ^ (q * 2) * (a ^ 1 * a)
