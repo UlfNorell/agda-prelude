@@ -6,6 +6,7 @@ open import Prelude.Equality.Unsafe
 open import Builtin.Float
 open import Container.Traversable
 open import Control.Monad.Zero
+open import Prelude.Variables
 
 open import Agda.Builtin.Reflection as Builtin
 open Builtin public
@@ -98,37 +99,37 @@ pattern vArg x = arg (arg-info visible relevant) x
 pattern hArg x = arg (arg-info hidden relevant) x
 pattern iArg x = arg (arg-info instance′ relevant) x
 
-unArg : ∀ {A} → Arg A → A
+unArg : Arg A → A
 unArg (arg _ x) = x
 
-getArgInfo : ∀ {A} → Arg A → ArgInfo
+getArgInfo : Arg A → ArgInfo
 getArgInfo (arg i _) = i
 
-getVisibility : ∀ {A} → Arg A → Visibility
+getVisibility : Arg A → Visibility
 getVisibility (arg (arg-info v _) _) = v
 
-getRelevance : ∀ {A} → Arg A → Relevance
+getRelevance : Arg A → Relevance
 getRelevance (arg (arg-info _ r) _) = r
 
-isVisible : ∀ {A} → Arg A → Bool
+isVisible : Arg A → Bool
 isVisible (arg (arg-info visible _) _) = true
 isVisible _ = false
 
 instance
-  FunctorArg : Functor Arg
+  FunctorArg : Functor {a = ℓ} Arg
   fmap {{FunctorArg}} f (arg i x) = arg i (f x)
 
-  TraversableArg : Traversable Arg
+  TraversableArg : Traversable {a = ℓ} Arg
   traverse {{TraversableArg}} f (arg i x) = ⦇ (arg i) (f x) ⦈
 
-unAbs : ∀ {A} → Abs A → A
+unAbs : Abs A → A
 unAbs (abs _ x) = x
 
 instance
-  FunctorAbs : Functor Abs
+  FunctorAbs : Functor {a = ℓ} Abs
   fmap {{FunctorAbs}} f (abs s x) = abs s (f x)
 
-  TraversableAbs : Traversable Abs
+  TraversableAbs : Traversable {a = ℓ} Abs
   traverse {{TraversableAbs}} f (abs s x) = ⦇ (abs s) (f x) ⦈
 
 absurd-lam : Term
@@ -136,33 +137,33 @@ absurd-lam = pat-lam (absurd-clause (vArg absurd ∷ []) ∷ []) []
 
 --- TC monad ---
 
-mapTC : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → TC A → TC B
+mapTC : (A → B) → TC A → TC B
 mapTC f m = bindTC m λ x → returnTC (f x)
 
 instance
-  FunctorTC : ∀ {a} → Functor {a} TC
+  FunctorTC : Functor {ℓ} TC
   fmap {{FunctorTC}} = mapTC
 
-  ApplicativeTC : ∀ {a} → Applicative {a} TC
+  ApplicativeTC : Applicative {ℓ} TC
   pure  {{ApplicativeTC}} = returnTC
   _<*>_ {{ApplicativeTC}} = monadAp bindTC
 
-  MonadTC : ∀ {a} → Monad {a} TC
+  MonadTC : Monad {ℓ} TC
   _>>=_  {{MonadTC}} = bindTC
 
-  FunctorTC′ : ∀ {a b} → Functor′ {a} {b} TC
+  FunctorTC′ : Functor′ {ℓ₁} {ℓ₂} TC
   fmap′ {{FunctorTC′}} = mapTC
 
-  ApplicativeTC′ : ∀ {a b} → Applicative′ {a} {b} TC
+  ApplicativeTC′ : Applicative′ {ℓ₁} {ℓ₂} TC
   _<*>′_ {{ApplicativeTC′}} = monadAp′ bindTC
 
-  MonadTC′ : ∀ {a b} → Monad′ {a} {b} TC
+  MonadTC′ : Monad′ {ℓ₁} {ℓ₂} TC
   _>>=′_ {{MonadTC′}} = bindTC
 
-  FunctorZeroTC : ∀ {a} → FunctorZero {a} TC
+  FunctorZeroTC : FunctorZero {ℓ} TC
   empty {{FunctorZeroTC}} = typeError []
 
-  AlternativeTC : ∀ {a} → Alternative {a} TC
+  AlternativeTC : Alternative {ℓ} TC
   _<|>_ {{AlternativeTC}} = catchTC
 
 Tactic = Term → TC ⊤
@@ -221,10 +222,10 @@ recordConstructor r =
 
 -- Injectivity of constructors
 
-arg-inj₁ : ∀ {A i i′} {x x′ : A} → arg i x ≡ arg i′ x′ → i ≡ i′
+arg-inj₁ : ∀ {i i′} {x x′ : A} → arg i x ≡ arg i′ x′ → i ≡ i′
 arg-inj₁ refl = refl
 
-arg-inj₂ : ∀ {A i i′} {x x′ : A} → arg i x ≡ arg i′ x′ → x ≡ x′
+arg-inj₂ : ∀ {i i′} {x x′ : A} → arg i x ≡ arg i′ x′ → x ≡ x′
 arg-inj₂ refl = refl
 
 arg-info-inj₁ : ∀ {v v′ r r′} → arg-info v r ≡ arg-info v′ r′ → v ≡ v′
@@ -233,10 +234,10 @@ arg-info-inj₁ refl = refl
 arg-info-inj₂ : ∀ {v v′ r r′} → arg-info v r ≡ arg-info v′ r′ → r ≡ r′
 arg-info-inj₂ refl = refl
 
-abs-inj₁ : ∀ {A s s′} {x x′ : A} → abs s x ≡ abs s′ x′ → s ≡ s′
+abs-inj₁ : ∀ {s s′} {x x′ : A} → abs s x ≡ abs s′ x′ → s ≡ s′
 abs-inj₁ refl = refl
 
-abs-inj₂ : ∀ {A s s′} {x x′ : A} → abs s x ≡ abs s′ x′ → x ≡ x′
+abs-inj₂ : ∀ {s s′} {x x′ : A} → abs s x ≡ abs s′ x′ → x ≡ x′
 abs-inj₂ refl = refl
 
 --- Terms ---
