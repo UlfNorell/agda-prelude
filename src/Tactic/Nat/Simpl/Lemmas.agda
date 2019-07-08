@@ -92,26 +92,26 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
   cancel-sound′ a b [] (x ∷ nf₂) ρ H = H
   cancel-sound′ a b (x ∷ nf₁) [] ρ H = H
   cancel-sound′ a b ((i , x) ∷ nf₁) ((j , y) ∷ nf₂) ρ H
-    with compare x y
-  ... | less _ = add-assoc a _ _ ⟨≡⟩ cancel-sound′ (a + et ρ (i , x)) b nf₁ ((j , y) ∷ nf₂) ρ
-                   (add-assoc a _ _ ʳ⟨≡⟩ lem-sound a b ρ (_∷_ (i , x)) id (cancel nf₁ ((j , y) ∷ nf₂)) H)
-  ... | greater _ =
+    with cancel-sound′ (a + et ρ (i , x)) b nf₁ ((j , y) ∷ nf₂) ρ | compare x y
+  ... | ih | less _ = add-assoc a _ _ ⟨≡⟩ ih
+                        (add-assoc a _ _ ʳ⟨≡⟩ lem-sound a b ρ (_∷_ (i , x)) id (cancel nf₁ ((j , y) ∷ nf₂)) H)
+  ... | _  | greater _ =
           cancel-sound′ a (b + et ρ (j , y)) ((i , x) ∷ nf₁) nf₂ ρ
             (lem-sound a b ρ id (_∷_ (j , y)) (cancel ((i , x) ∷ nf₁) nf₂) H ⟨≡⟩ add-assoc b _ _)
           ⟨≡⟩ʳ add-assoc b _ _
-  cancel-sound′ a b ((i , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl
+  cancel-sound′ a b ((i , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | _ | equal refl
     with compare i j
-  cancel-sound′ a b ((i , x) ∷ nf₁) ((.(suc k + i) , .x) ∷ nf₂) ρ H | equal refl | less (diff! k) =
+  cancel-sound′ a b ((i , x) ∷ nf₁) ((.(suc k + i) , .x) ∷ nf₂) ρ H | _ | equal refl | less (diff! k) =
     shuffle₁ a (et ρ (i , x)) _
     ⟨≡⟩ cong (et ρ (i , x) +_) (cancel-sound′ a (b + et ρ (suc k , x)) nf₁ nf₂ ρ
           (lem-sound a b ρ id (_∷_ (suc k , x)) (cancel nf₁ nf₂) H ⟨≡⟩ add-assoc b _ _))
     ⟨≡⟩ auto
-  cancel-sound′ a b ((.(suc k + j) , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl | greater (diff! k) =
+  cancel-sound′ a b ((.(suc k + j) , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | _ | equal refl | greater (diff! k) =
     sym (shuffle₁ b (et ρ (j , x)) _
          ⟨≡⟩ cong (et ρ (j , x) +_) (sym (cancel-sound′ (a + et ρ (suc k , x)) b nf₁ nf₂ ρ
                (add-assoc a _ _ ʳ⟨≡⟩ lem-sound a b ρ (_∷_ (suc k , x)) id (cancel nf₁ nf₂) H)))
          ⟨≡⟩ auto)
-  cancel-sound′ a b ((i , x) ∷ nf₁) ((.i , .x) ∷ nf₂) ρ H | equal refl | equal refl =
+  cancel-sound′ a b ((i , x) ∷ nf₁) ((.i , .x) ∷ nf₂) ρ H | _ | equal refl | equal refl =
     shuffle₁ a (et ρ (i , x)) _
     ⟨≡⟩ cong (et ρ (i , x) +_) (cancel-sound′ a b nf₁ nf₂ ρ H)
     ⟨≡⟩ shuffle₁ (et ρ (i , x)) b _
@@ -152,33 +152,34 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
   cancel-complete′ a b [] [] ρ H = H
   cancel-complete′ a b [] (x ∷ nf₂) ρ H = H
   cancel-complete′ a b (x ∷ nf₁) [] ρ H = H
-  cancel-complete′ a b ((i , x) ∷ nf₁) ((j , y) ∷ nf₂) ρ H with compare x y
-  ... | less lt =
+  cancel-complete′ a b ((i , x) ∷ nf₁) ((j , y) ∷ nf₂) ρ H
+    with cancel-complete′ (a + et ρ (i , x)) b nf₁ ((j , y) ∷ nf₂) ρ | compare x y
+  ... | ih | less lt =
     lem-complete a b ρ (_∷_ (i , x)) id (cancel nf₁ ((j , y) ∷ nf₂))
       (add-assoc a _ _
-       ⟨≡⟩ cancel-complete′ (a + et ρ (i , x)) b nf₁ ((j , y) ∷ nf₂) ρ
+       ⟨≡⟩ ih
              (add-assoc a _ _ ʳ⟨≡⟩ H))
-  ... | greater _ =
+  ... | _ | greater _ =
     lem-complete a b ρ id (_∷_ (j , y)) (cancel ((i , x) ∷ nf₁) nf₂)
       (cancel-complete′ a (b + et ρ (j , y)) ((i , x) ∷ nf₁) nf₂ ρ
         (H ⟨≡⟩ add-assoc b _ _)
        ⟨≡⟩ʳ add-assoc b _ _)
-  cancel-complete′ a b ((i , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl with compare i j
-  cancel-complete′ a b ((i , x) ∷ nf₁) ((.(suc (k + i)) , .x) ∷ nf₂) ρ H | equal refl | less (diff! k) =
+  cancel-complete′ a b ((i , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | _ | equal refl with compare i j
+  cancel-complete′ a b ((i , x) ∷ nf₁) ((.(suc (k + i)) , .x) ∷ nf₂) ρ H | _ | equal refl | less (diff! k) =
     lem-complete a b ρ id (_∷_ (suc k , x)) (cancel nf₁ nf₂)
       (cancel-complete′ a (b + suc k * prod ρ x) nf₁ nf₂ ρ
         (add-inj₂ (i * prod ρ x) _ _
           (shuffle₁ (i * prod ρ x) a _
             ⟨≡⟩ H ⟨≡⟩ auto))
       ⟨≡⟩ʳ add-assoc b _ _)
-  cancel-complete′ a b ((.(suc (k + j)) , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | equal refl | greater (diff! k) =
+  cancel-complete′ a b ((.(suc (k + j)) , x) ∷ nf₁) ((j , .x) ∷ nf₂) ρ H | _ | equal refl | greater (diff! k) =
     lem-complete a b ρ (_∷_ (suc k , x)) id (cancel nf₁ nf₂)
       (add-assoc a _ _ ⟨≡⟩
        cancel-complete′ (a + suc k * prod ρ x) b nf₁ nf₂ ρ
          (add-inj₂ (j * prod ρ x) _ _
            (sym (shuffle₁ (j * prod ρ x) b _ ⟨≡⟩ʳ
                  auto ʳ⟨≡⟩ H))))
-  cancel-complete′ a b ((i , x) ∷ nf₁) ((.i , .x) ∷ nf₂) ρ H | equal refl | equal refl =
+  cancel-complete′ a b ((i , x) ∷ nf₁) ((.i , .x) ∷ nf₂) ρ H | _ | equal refl | equal refl =
     cancel-complete′ a b nf₁ nf₂ ρ
       (add-inj₂ (i * prod ρ x) _ _
         (shuffle₁ a (i * prod ρ x) _ ʳ⟨≡⟩ H ⟨≡⟩ shuffle₁ b (i * prod ρ x) _))

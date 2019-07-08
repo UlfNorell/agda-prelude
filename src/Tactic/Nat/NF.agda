@@ -63,13 +63,17 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
   ⟦ []     ⟧ns ρ = 0
   ⟦ t ∷ nf ⟧ns ρ = foldl (λ n t → n + ⟦ t ⟧ts ρ) (⟦ t ⟧ts ρ) nf
 
+  private
+    getdiff : {m n : Nat} → m < n → Nat
+    getdiff (diff k _) = k
+
   cancel : NF Atom → NF Atom → NF Atom × NF Atom
   cancel nf₁ [] = nf₁ , []
   cancel [] nf₂ = [] , nf₂
-  cancel ((i , x) ∷ nf₁) ((j , y) ∷ nf₂) with compare x y
-  ... | less    _ = first  (_∷_ (i , x)) (cancel nf₁ ((j , y) ∷ nf₂))
-  ... | greater _ = second (_∷_ (j , y)) (cancel ((i , x) ∷ nf₁) nf₂)
-  ... | equal   _ with compare i j
-  ...                | less    (diff k _) = second (_∷_ (suc k , y)) (cancel nf₁ nf₂)
-  ...                | greater (diff k _) = first  (_∷_ (suc k , x)) (cancel nf₁ nf₂)
-  ...                | equal    _         = cancel nf₁ nf₂
+  cancel ((i , x) ∷ nf₁) ((j , y) ∷ nf₂) = case-cmp compare x y
+    less    _ => first  (_∷_ (i , x)) (cancel nf₁ ((j , y) ∷ nf₂))
+    equal   _ => case-cmp compare i j
+      less    d => second (_∷_ (suc (getdiff d) , y)) (cancel nf₁ nf₂)
+      equal   _ => cancel nf₁ nf₂
+      greater d => first  (_∷_ (suc (getdiff d) , x)) (cancel nf₁ nf₂)
+    greater _ => second (_∷_ (j , y)) (cancel ((i , x) ∷ nf₁) nf₂)

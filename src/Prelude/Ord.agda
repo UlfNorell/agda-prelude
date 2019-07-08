@@ -7,6 +7,7 @@ open import Prelude.Decidable
 open import Prelude.Bool
 open import Prelude.Function
 open import Prelude.Empty
+open import Prelude.Variables
 
 data Comparison {a} {A : Set a} (_<_ : A → A → Set a) (x y : A) : Set a where
   less    : (lt : x < y) → Comparison _<_ x y
@@ -24,6 +25,24 @@ isGreater (less    _) = false
 isGreater (equal   _) = false
 isGreater (greater _) = true
 {-# INLINE isGreater #-}
+
+infixr 0 comparison-elim
+syntax comparison-elim c (λ lt → x) (λ eq → y) (λ gt → z) =
+  case-cmp c less    lt => x
+             equal   eq => y
+             greater gt => z
+
+-- The termination checker can't handle merge-like functions using 'with'.
+-- Use this instead.
+comparison-elim : {_<_ : A → A → Set _} →
+                  Comparison _<_ x y →
+                  (x < y → B) →
+                  (x ≡ y → B) →
+                  (y < x → B) → B
+comparison-elim (less    p) lt eq gt = lt p
+comparison-elim (equal   p) lt eq gt = eq p
+comparison-elim (greater p) lt eq gt = gt p
+{-# INLINE comparison-elim #-}
 
 data LessEq {a} {A : Set a} (_<_ : A → A → Set a) (x y : A) : Set a where
   instance

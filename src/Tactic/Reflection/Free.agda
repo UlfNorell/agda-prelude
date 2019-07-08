@@ -11,10 +11,11 @@ private
   _∪_ : VarSet → VarSet → VarSet
   []       ∪ ys = ys
   xs       ∪ [] = xs
-  (x ∷ xs) ∪ (y ∷ ys) with compare x y
-  ... | (less    _) = x ∷ (xs ∪ (y ∷ ys))
-  ... | (equal   _) = x ∷ (xs ∪ ys)
-  ... | (greater _) = y ∷ ((x ∷ xs) ∪ ys)
+  (x ∷ xs) ∪ (y ∷ ys) =
+    case-cmp compare x y
+      less    _ => x ∷ (xs ∪ (y ∷ ys))
+      equal   _ => x ∷ (xs ∪ ys)
+      greater _ => y ∷ ((x ∷ xs) ∪ ys)
 
   ∅ : VarSet
   ∅ = []

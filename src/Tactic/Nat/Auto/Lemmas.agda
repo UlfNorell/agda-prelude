@@ -49,22 +49,22 @@ module _ {Atom : Set} {{_ : Ord Atom}} where
   ⟨+⟩-sound [] []               ρ = refl
   ⟨+⟩-sound [] (_ ∷ _)          ρ = refl
   ⟨+⟩-sound (t ∷ v₁)  []        ρ = sym (add-zero-r _)
-  ⟨+⟩-sound ((i , t₁) ∷ v₁) ((j , t₂) ∷ v₂) ρ with compare t₁ t₂
-  ... | less _ rewrite ⟨+⟩-sound v₁ ((j , t₂) ∷ v₂) ρ
-                     = add-assoc (i * productR (map ρ t₁)) _ _
-  ... | equal eq rewrite eq | ⟨+⟩-sound v₁ v₂ ρ
+  ⟨+⟩-sound ((i , t₁) ∷ v₁) ((j , t₂) ∷ v₂) ρ with ⟨+⟩-sound v₁ ((j , t₂) ∷ v₂) ρ | compare t₁ t₂
+  ... | ih | less _    rewrite ih
+                       = add-assoc (i * productR (map ρ t₁)) _ _
+  ... | _  | equal eq  rewrite eq | ⟨+⟩-sound v₁ v₂ ρ
                        | mul-distr-r i j (productR (map ρ t₂))
                        = shuffle₂ (⟦ i , t₂ ⟧t ρ) (⟦ j , t₂ ⟧t ρ) _ _
-  ... | greater _ rewrite ⟨+⟩-sound ((i , t₁) ∷ v₁) v₂ ρ
-                        = shuffle₁ (⟦ j , t₂ ⟧t ρ) (⟦ i , t₁ ⟧t ρ) _ _
+  ... | _  | greater _ rewrite ⟨+⟩-sound ((i , t₁) ∷ v₁) v₂ ρ
+                       = shuffle₁ (⟦ j , t₂ ⟧t ρ) (⟦ i , t₁ ⟧t ρ) _ _
 
   map-merge : ∀ x y (ρ : Env Atom) → productR (map ρ (merge x y)) ≡ productR (map ρ x) * productR (map ρ y)
   map-merge [] [] ρ = refl
   map-merge [] (x ∷ xs) ρ = sym (add-zero-r (productR (ρ x ∷ map ρ xs)))
   map-merge (x ∷ xs) [] ρ = sym (mul-one-r _)
-  map-merge (x ∷ xs) (y ∷ ys) ρ with x <? y
-  ... | true  rewrite map-merge xs (y ∷ ys) ρ = mul-assoc (ρ x) _ _
-  ... | false rewrite map-merge (x ∷ xs) ys ρ = shuffle₄ (ρ y) (ρ x) _ _
+  map-merge (x ∷ xs) (y ∷ ys) ρ with map-merge xs (y ∷ ys) ρ | x <? y
+  ... | ih | true  rewrite ih                      = mul-assoc (ρ x) _ _
+  ... | _  | false rewrite map-merge (x ∷ xs) ys ρ = shuffle₄ (ρ y) (ρ x) _ _
 
   mulTm-sound : ∀ t t′ (ρ : Env Atom) →
                   ⟦ mulTm t t′ ⟧t ρ ≡ ⟦ t ⟧t ρ * ⟦ t′ ⟧t ρ
