@@ -2,6 +2,7 @@
 module Tactic.Nat.Reflect where
 
 open import Prelude hiding (abs)
+open import Prelude.Variables
 open import Control.Monad.State
 open import Control.Monad.Transformer
 
@@ -18,13 +19,13 @@ open import Tactic.Nat.Exp
 
 R = StateT (Nat × List (Term × Nat)) TC
 
-fail : ∀ {A} → R A
+fail : R A
 fail = lift (typeErrorS "reflection error")
 
-liftMaybe : ∀ {A} → Maybe A → R A
+liftMaybe : Maybe A → R A
 liftMaybe = maybe fail pure
 
-runR : ∀ {A} → R A → TC (Maybe (A × List Term))
+runR : R A → TC (Maybe (A × List Term))
 runR r =
   maybeA (second (reverse ∘ map fst ∘ snd) <$> runStateT r (0 , []))
 
@@ -46,7 +47,7 @@ fresh t =
   get >>= uncurry′ λ i Γ →
    var i <$ put (suc i , (t , i) ∷ Γ)
 
-⟨suc⟩ : ∀ {X} → Exp X → Exp X
+⟨suc⟩ : Exp A → Exp A
 ⟨suc⟩ (lit n) = lit (suc n)
 ⟨suc⟩ (lit n ⟨+⟩ e) = lit (suc n) ⟨+⟩ e
 ⟨suc⟩ e = lit 1 ⟨+⟩ e
@@ -124,7 +125,7 @@ data ProofError {a} : Set a → Set (lsuc a) where
 qProofError : Term → Term
 qProofError v = con (quote bad-goal) (defaultArg v ∷ [])
 
-implicitArg instanceArg : ∀ {A} → A → Arg A
+implicitArg instanceArg : A → Arg A
 implicitArg = arg (arg-info hidden relevant)
 instanceArg = arg (arg-info instance′ relevant)
 

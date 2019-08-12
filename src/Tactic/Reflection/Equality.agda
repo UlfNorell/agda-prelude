@@ -2,6 +2,7 @@
 module Tactic.Reflection.Equality where
 
 open import Prelude
+open import Prelude.Variables
 open import Builtin.Reflection
 open import Builtin.Float
 
@@ -27,7 +28,7 @@ instance
   _==_ {{EqArgInfo}} (arg-info v r) (arg-info v₁ r₁) =
     decEq₂ arg-info-inj₁ arg-info-inj₂ (v == v₁) (r == r₁)
 
-  EqArg : ∀ {A} {{EqA : Eq A}} → Eq (Arg A)
+  EqArg : {{EqA : Eq A}} → Eq (Arg A)
   _==_ {{EqArg}} (arg i x) (arg i₁ x₁) = decEq₂ arg-inj₁ arg-inj₂ (i == i₁) (x == x₁)
 
   EqLiteral : Eq Literal

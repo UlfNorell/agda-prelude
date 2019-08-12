@@ -2,6 +2,7 @@
 module Tactic.Nat.Subtract.Auto where
 
 open import Prelude
+open import Prelude.Variables
 open import Builtin.Reflection
 open import Tactic.Reflection.Quote
 open import Tactic.Reflection.Meta

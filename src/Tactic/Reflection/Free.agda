@@ -2,6 +2,7 @@
 module Tactic.Reflection.Free where
 
 open import Prelude
+open import Prelude.Variables
 open import Builtin.Reflection
 open import Tactic.Reflection.DeBruijn
 
@@ -71,8 +72,8 @@ instance
   FreeSort : FreeVars Sort
   freeVars {{FreeSort}} = freeSort 0
 
-  FreeArg : ∀ {A} {{_ : FreeVars A}} → FreeVars (Arg A)
+  FreeArg : {{_ : FreeVars A}} → FreeVars (Arg A)
   freeVars {{FreeArg}} (arg _ x) = freeVars x
 
-  FreeList : ∀ {a} {A : Set a} {{_ : FreeVars A}} → FreeVars (List A)
+  FreeList : {{_ : FreeVars A}} → FreeVars (List A)
   freeVars {{FreeList}} = foldr (λ x → freeVars x ∪_) ∅
