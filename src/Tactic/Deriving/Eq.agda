@@ -1,5 +1,6 @@
 
 open import Prelude hiding (abs)
+open import Prelude.Variables
 open import Container.List
 open import Container.Traversable
 open import Tactic.Reflection hiding (substArgs) renaming (unify to unifyTC)
@@ -24,22 +25,22 @@ private
 
   -- Helper functions --
 
-  nLam : ∀ {A} → List (Arg A) → Term → Term
+  nLam : List (Arg A) → Term → Term
   nLam [] t = t
   nLam (arg (arg-info v _) s ∷ tel) t = lam v (abs "x" (nLam tel t))
 
-  nPi : ∀ {A} → List (Arg A) → Term → Term
+  nPi : List (Arg A) → Term → Term
   nPi [] t = t
   nPi (arg i _ ∷ tel) t = pi (arg i unknown) (abs "x" (nPi tel t))
 
-  newArgs : ∀ {A} → List (Arg A) → List (Arg Term)
-  newArgs {A} tel = newArgsFrom (length tel) tel
+  newArgs : List (Arg A) → List (Arg Term)
+  newArgs {A = A} tel = newArgsFrom (length tel) tel
     where
       newArgsFrom : Nat → List (Arg A) → List (Arg Term)
       newArgsFrom (suc n) (arg i _ ∷ tel) = arg i (var n []) ∷ newArgsFrom n tel
       newArgsFrom _ _ = []
 
-  hideTel : ∀ {A} → List (Arg A) → List (Arg A)
+  hideTel : List (Arg A) → List (Arg A)
   hideTel [] = []
   hideTel (arg (arg-info _ r) t ∷ tel) = arg (arg-info hidden r) t ∷ hideTel tel
 
