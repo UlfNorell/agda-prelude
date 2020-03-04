@@ -9,9 +9,8 @@ data All {a b} {A : Set a} (P : A → Set b) : List A → Set (a ⊔ b) where
   _∷_ : ∀ {x xs} (p : P x) (ps : All P xs) → All P (x ∷ xs)
 
 data Any {a b} {A : Set a} (P : A → Set b) : List A → Set (a ⊔ b) where
-  instance
-    zero : ∀ {x xs} (p : P x) → Any P (x ∷ xs)
-    suc  : ∀ {x xs} (i : Any P xs) → Any P (x ∷ xs)
+  zero : ∀ {x xs} (p : P x) → Any P (x ∷ xs)
+  suc  : ∀ {x xs} (i : Any P xs) → Any P (x ∷ xs)
 
 pattern zero! = zero refl
 

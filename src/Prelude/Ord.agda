@@ -45,9 +45,8 @@ comparison-elim (greater p) lt eq gt = gt p
 {-# INLINE comparison-elim #-}
 
 data LessEq {a} {A : Set a} (_<_ : A → A → Set a) (x y : A) : Set a where
-  instance
-    less  : x < y → LessEq _<_ x y
-    equal : x ≡ y → LessEq _<_ x y
+  less  : x < y → LessEq _<_ x y
+  equal : x ≡ y → LessEq _<_ x y
 
 record Ord {a} (A : Set a) : Set (lsuc a) where
   infix 4 _<_ _≤_
