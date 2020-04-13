@@ -9,7 +9,7 @@ patternArgsVars : List (Arg Pattern) → Nat
 
 patternVars : Pattern → Nat
 patternVars (con _ ps) = patternArgsVars ps
-patternVars dot = 1
+patternVars dot = 0
 patternVars (var _) = 1
 patternVars (lit x) = 0
 patternVars (proj _) = 0
