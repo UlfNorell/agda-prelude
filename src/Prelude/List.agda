@@ -112,6 +112,10 @@ lookup : ⦃ Eq A ⦄ → List (A × B) → A → Maybe B
 lookup [] _ = nothing
 lookup ((x₁ , v) ∷ xs) x = ifYes (x == x₁) then just v else lookup xs x
 
+nub : ⦃ Eq A ⦄ → List A → List A
+nub [] = []
+nub (x ∷ xs) = x ∷ filter (isNo ∘ (x ==_)) (nub xs)
+
 index : List A → Nat → Maybe A
 index [] _             = nothing
 index (x ∷ xs) 0       = just x
@@ -264,3 +268,52 @@ instance
 
   MonadList′ : Monad′ {ℓ₁} {ℓ₂} List
   _>>=′_ {{MonadList′}} xs f = concatMap f xs
+
+--- More functions ---
+
+IsPrefixOf : {A : Set ℓ} → List A → List A → Set ℓ
+IsPrefixOf xs ys = ∃ zs , ys ≡ xs ++ zs
+
+isPrefixOf : ⦃ Eq A ⦄ → (xs ys : List A) → Dec (IsPrefixOf xs ys)
+isPrefixOf []       ys = yes (ys , refl)
+isPrefixOf (x ∷ xs) [] = no λ where (zs , ())
+isPrefixOf (x ∷ xs) (y ∷ ys) with y == x | isPrefixOf xs ys
+... | yes y=x | yes (zs , xs⊑ys) = yes (zs , (_∷_ $≡ y=x *≡ xs⊑ys))
+... | _       | no noprefix      = no λ where (zs , eq) → noprefix ((zs , cons-inj-tail eq))
+... | no  y≠x | _                = no λ where (zs , eq) → y≠x (cons-inj-head eq)
+
+isPrefixOf? : ⦃ Eq A ⦄ → List A → List A → Bool
+isPrefixOf? xs ys = isYes (isPrefixOf xs ys)
+
+dropPrefix : ⦃ Eq A ⦄ → List A → List A → Maybe (List A)
+dropPrefix xs ys =
+  case isPrefixOf xs ys of λ where
+    (yes (tl , _)) → just tl
+    (no _)         → nothing
+
+commonPrefix : ⦃ Eq A ⦄ → (xs ys : List A) → ∃ zs , IsPrefixOf zs xs × IsPrefixOf zs ys
+commonPrefix [] ys = [] , (_ , refl) , (_ , refl)
+commonPrefix xs [] = [] , (_ , refl) , (_ , refl)
+commonPrefix (x ∷ xs) (y ∷ ys) with y == x | commonPrefix xs ys
+... | yes y=x | zs , (xs₁ , eqx) , (ys₁ , eqy) = (x ∷ zs) , (xs₁ , (x ∷_ $≡ eqx)) , (ys₁ , (_∷_ $≡ y=x *≡ eqy))
+... | no  _   | _                              = [] , (_ , refl) , (_ , refl)
+
+commonPrefix! : ⦃ Eq A ⦄ → (xs ys : List A) → List A
+commonPrefix! xs ys = fst (commonPrefix xs ys)
+
+wordsBy : (A → Bool) → List A → List (List A)
+wordsBy {A = A} p = go in-word ∘ dropWhile p
+  where
+    data Mode : Set where
+      in-word in-space : Mode
+
+    cons : A → List (List A) → List (List A)
+    cons x []         = [ x ] ∷ []
+    cons x (xs ∷ xss) = (x ∷ xs) ∷ xss
+
+    go : Mode → List A → List (List A)
+    go _    []       = []
+    go mode     (x ∷ xs) with p x
+    go mode     (x ∷ xs) | false = cons x (go in-word xs)
+    go in-word  (x ∷ xs) | true  = [] ∷ go in-space xs
+    go in-space (x ∷ xs) | true  = go in-space xs
