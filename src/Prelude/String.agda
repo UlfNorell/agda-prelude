@@ -29,22 +29,6 @@ unpackString-inj refl | ._ = unsafeEqual
 infixr 5 _&_
 _&_ = primStringAppend
 
-parseNat : String → Maybe Nat
-parseNat = parseNat′ ∘ unpackString
-  where
-    pDigit : Char → Maybe Nat
-    pDigit c =
-      if isDigit c then just (charToNat c - charToNat '0')
-                   else nothing
-
-    pNat : Nat → List Char → Maybe Nat
-    pNat n [] = just n
-    pNat n (c ∷ s) = pDigit c >>= λ d → pNat (n * 10 + d) s
-
-    parseNat′ : List Char → Maybe Nat
-    parseNat′ [] = nothing
-    parseNat′ (c ∷ s) = pDigit c >>= λ d → pNat d s
-
 -- Eq --
 
 instance
@@ -80,3 +64,51 @@ instance
   MonoidString : Monoid String
   mempty {{MonoidString}} = ""
   _<>_   {{MonoidString}} = primStringAppend
+
+-- More functions --
+
+parseNat : String → Maybe Nat
+parseNat = parseNat′ ∘ unpackString
+  where
+    pDigit : Char → Maybe Nat
+    pDigit c =
+      if isDigit c then just (charToNat c - charToNat '0')
+                   else nothing
+
+    pNat : Nat → List Char → Maybe Nat
+    pNat n [] = just n
+    pNat n (c ∷ s) = pDigit c >>= λ d → pNat (n * 10 + d) s
+
+    parseNat′ : List Char → Maybe Nat
+    parseNat′ [] = nothing
+    parseNat′ (c ∷ s) = pDigit c >>= λ d → pNat d s
+
+onChars : (List Char → List Char) → String → String
+onChars f = packString ∘ f ∘ unpackString
+
+words : String → List String
+words = map packString ∘ wordsBy isSpace ∘ unpackString
+
+ltrim : String → String
+ltrim = onChars (dropWhile isSpace)
+
+rtrim : String → String
+rtrim = onChars (reverse ∘ dropWhile isSpace ∘ reverse)
+
+trim : String → String
+trim = rtrim ∘ ltrim
+
+strTake : Nat → String → String
+strTake n = onChars (take n)
+
+strDrop : Nat → String → String
+strDrop n = onChars (drop n)
+
+strLength : String → Nat
+strLength = length ∘ unpackString
+
+strIsPrefixOf? : String → String → Bool
+strIsPrefixOf? = isPrefixOf? on unpackString
+
+strCommonPrefix : String → String → String
+strCommonPrefix s₁ s₂ = packString $ (commonPrefix! on unpackString) s₁ s₂
