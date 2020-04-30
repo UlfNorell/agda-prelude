@@ -86,6 +86,16 @@ drop zero    xs       = xs
 drop (suc n) []       = []
 drop (suc n) (x ∷ xs) = drop n xs
 
+takeWhile : (A → Bool) → List A → List A
+takeWhile p []       = []
+takeWhile p (x ∷ xs) = if p x then x ∷ takeWhile p xs
+                              else []
+
+dropWhile : (A → Bool) → List A → List A
+dropWhile p [] = []
+dropWhile p (x ∷ xs) = if p x then dropWhile p xs
+                              else x ∷ xs
+
 splitAt : Nat → List A → List A × List A
 splitAt zero    xs       = [] , xs
 splitAt (suc n) []       = [] , []
