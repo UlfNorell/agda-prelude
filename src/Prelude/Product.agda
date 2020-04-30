@@ -7,10 +7,19 @@ open import Prelude.Function
 open import Prelude.Equality
 open import Prelude.Decidable
 open import Prelude.Ord
+open import Prelude.Variables
+
+private
+  variable a b : Level
 
 instance
   ipair : ∀ {a b} {A : Set a} {B : A → Set b} {{x : A}} {{y : B x}} → Σ A B
   ipair {{x}} {{y}} = x , y
+
+infixr -10 Exist
+syntax Exist (λ x → B) = ∃ x , B
+Exist : {A : Set a} → (A → Set b) → Set (a ⊔ b)
+Exist {A = A} B = Σ A B
 
 infixr 3 _×_
 _×_ : ∀ {a b} → Set a → Set b → Set (a ⊔ b)
