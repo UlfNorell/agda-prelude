@@ -39,8 +39,8 @@ auto-tactic t hole = do
   unify hole (def₄ (quote auto-proof) (` e₁) (` e₂) prf (quotedEnv Γ))
   unify prf (con₀ (quote refl)) <|> do
     def (quote _≡_) (_ ∷ _ ∷ vArg lnf ∷ vArg rnf ∷ []) ← normalise =<< inferType prf
-      where sgoal → typeError $ strErr "Huh? This is a weird equality goal:" ∷ termErr sgoal ∷ []
-    typeError $ strErr "Normal forms are not equal:" ∷ termErr lnf ∷ strErr "≠" ∷ termErr rnf ∷ []
+      where sgoal → typeErrorFmt "Huh? This is a weird equality goal: %t" sgoal
+    typeErrorFmt "Normal forms are not equal: %t ≠ %t" lnf rnf
 
 macro
   auto : Tactic

@@ -51,7 +51,7 @@ simplify-tactic {x} {y} prf g = do
   let h = def₂ (quote _≡_) `x `y
       t = pi (vArg h) (abs "_" (weaken 1 g))
   just (goal , Γ) ← termToHyps t
-    where nothing → typeError (strErr "Invalid goal" ∷ termErr t ∷ [])
+    where nothing → typeErrorFmt "Invalid goal: %t" t
   pure $ def (quote flip)
              $ vArg (def (quote simplifyH)
                     ( vArg (` goal)
@@ -66,7 +66,7 @@ assumed-tactic {x} {y} prf g = do
   let h = def (quote _≡_) (hArg unknown ∷ hArg (def₀ (quote Nat)) ∷ vArg `x ∷ vArg `y ∷ [])
   let t = pi (vArg h) (abs "_" (weaken 1 g))
   just (goal , Γ) ← termToHyps t
-    where nothing → typeError (strErr "Invalid goal" ∷ termErr t ∷ [])
+    where nothing → typeErrorFmt "Invalid goal: %t" t
   pure $
     def (quote simplifyH) ( vArg (` goal)
                           ∷ vArg (quotedEnv Γ)

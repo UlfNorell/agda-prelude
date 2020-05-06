@@ -52,7 +52,6 @@ macro
     unify ?hole (def (quote proof) $ map vArg (` Q ∷ quotedEnv ρ ∷ Hyps))
       <|> do
         case Q of λ where
-          (Γ ⊨ φ) → typeError (strErr "Cannot prove" ∷
-                               termErr (unquoteF ρ φ) ∷
-                               strErr "from" ∷
-                               punctuate (strErr "and") (map (termErr ∘ unquoteF ρ) Γ))
+          (Γ ⊨ φ) → typeErrorFmt "Cannot prove %t from %e"
+                                 (unquoteF ρ φ)
+                                 (punctuate (strErr "and") (map (termErr ∘ unquoteF ρ) Γ))

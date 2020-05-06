@@ -16,20 +16,19 @@ monoidTactic {A = A} {dict} {{laws}} hole = do
   goal   ← inferNormalisedType hole
   `A     ← quoteTC A
   unify goal (def (quote _≡_) (hArg unknown ∷ hArg `A ∷ vArg unknown ∷ vArg unknown ∷ []))
-    <|> do typeError $ strErr "Goal is not an equality" ∷ termErr goal ∷ []
+    <|> do typeErrorFmt "Goal is not an equality: %t" goal
   goal   ← normalise goal
   ensureNoMetas goal
   match  ← monoidMatcher dict
   `dict  ← quoteTC dict
   `laws  ← quoteTC laws
   ensureNoMetas `dict
-  debugPrint "tactic.monoid" 20 $ strErr "monoidTactic" ∷ termErr goal ∷ strErr "dict =" ∷ termErr `dict ∷ []
+  debugPrintFmt "tactic.monoid" 20 "monoidTactic %t, dict = %t" goal `dict
   (lhs , rhs) , env ← parseGoal match goal
   unify hole (def (quote proof) (iArg `dict ∷ iArg `laws ∷ vArg (` lhs) ∷ vArg (` rhs) ∷
                                  vArg (quoteEnv `dict env) ∷ vArg (con (quote refl) []) ∷ []))
-    <|> do typeError $ strErr "Can't prove" ∷ termErr (` lhs) ∷ strErr "==" ∷ termErr (` rhs)
-                     ∷ strErr "because" ∷ termErr (` (flatten lhs)) ∷ strErr "/=" ∷ termErr (` (flatten rhs))
-                     ∷ []
+    <|> do typeErrorFmt "Can't prove %t == %t because %t /= %t"
+                        (` lhs) (` rhs) (` (flatten lhs)) (` (flatten rhs))
 
 macro
   auto-monoid : ∀ {a} {A : Set a} {Mon : Monoid A} {{Laws : MonoidLaws A {{Mon}}}} → Tactic
