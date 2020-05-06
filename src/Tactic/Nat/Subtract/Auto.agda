@@ -6,6 +6,7 @@ open import Prelude.Variables
 open import Builtin.Reflection
 open import Tactic.Reflection.Quote
 open import Tactic.Reflection.Meta
+open import Tactic.Reflection.Printf
 
 open import Tactic.Nat.Reflect
 open import Tactic.Nat.NF
@@ -34,7 +35,7 @@ autosub-tactic : Type → TC Term
 autosub-tactic t = do
   ensureNoMetas t
   just (eqn , Γ) ← termToSubEqn t
-    where nothing → typeError $ strErr "Invalid goal:" ∷ termErr t ∷ []
+    where nothing → typeErrorFmt "Invalid goal: %t" t
   pure $
     getProof (quote cantProve) t $
       def (quote autosub-proof)
