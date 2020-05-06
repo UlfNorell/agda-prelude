@@ -63,6 +63,10 @@ module _ ⦃ _ : FunctorZero F ⦄ where
   guard (yes p) x = x ⦃ p ⦄
   guard (no  _) _ = empty
 
+  yes! : ⦃ Applicative F ⦄ → (d : Dec A) → F A
+  yes! (yes p) = pure p
+  yes! (no  _) = empty
+
 module _ ⦃ _ : Alternative F ⦄ where
 
   choice : List (F A) → F A
