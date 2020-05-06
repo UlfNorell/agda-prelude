@@ -9,6 +9,7 @@ open import Tactic.Reflection.Substitute public
 open import Tactic.Reflection.Free       public
 open import Tactic.Reflection.Equality   public
 open import Tactic.Reflection.Meta       public
+open import Tactic.Reflection.Printf     public hiding (formatError)
 
 set₀ : Type
 set₀ = agda-sort (lit 0)
