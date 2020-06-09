@@ -41,6 +41,7 @@ private
 record Factorisation (n : Nat) : Set where
   no-eta-equality
   constructor mkFactors
+  pattern
   field
     factors       : List Nat
     factors-prime : All Prime factors

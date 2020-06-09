@@ -15,6 +15,7 @@ open import Tactic.Nat
 record IsLCM m a b : Set where
   no-eta-equality
   constructor is-lcm
+  pattern
   field
     a|m : a Divides m
     b|m : b Divides m
@@ -23,6 +24,7 @@ record IsLCM m a b : Set where
 record LCM a b : Set where
   no-eta-equality
   constructor lcm-res
+  pattern
   field
     m : Nat
     isLCM : IsLCM m a b
