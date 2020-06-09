@@ -62,8 +62,8 @@ private
   freeClauses n [] = ∅
   freeClauses n (c ∷ cs) = freeClause n c ∪ freeClauses n cs
 
-  freeClause n (clause ps b)     = freeTerm (patternBindings ps + n) b
-  freeClause n (absurd-clause _) = ∅
+  freeClause n (clause tel ps b)     = freeTerm (length tel + n) b
+  freeClause n (absurd-clause tel _) = ∅
 
 instance
   FreeTerm : FreeVars Term

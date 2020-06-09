@@ -17,8 +17,8 @@ module Tactic.Reflection.Reright where
     reorderVars xs (lam v t) = lam v (reorderVars (0 ∷ weaken 1 xs) <$> t)
     reorderVars xs (pat-lam cs args) = pat-lam (fmap (reorderVarsInClause xs) cs) ((fmap ∘ fmap) (reorderVars xs) args) where
       reorderVarsInClause : List Nat → Clause → Clause -- TODO reorder patterns?
-      reorderVarsInClause xs (clause ps t) = (clause ps (reorderVars xs t))
-      reorderVarsInClause xs (absurd-clause ps) = (absurd-clause ps)
+      reorderVarsInClause xs (clause tel ps t) = (clause tel ps (reorderVars xs t))
+      reorderVarsInClause xs (absurd-clause tel ps) = (absurd-clause tel ps)
     reorderVars xs (pi a b) = pi (reorderVars xs <$> a) (reorderVars (0 ∷ weaken 1 xs) <$> b)
     reorderVars xs (agda-sort (set t)) = agda-sort (set (reorderVars xs t))
     reorderVars xs (agda-sort (lit n)) = agda-sort (lit n)
@@ -125,7 +125,7 @@ module Tactic.Reflection.Reright where
 
         Γʷ = caseF Γʷ' of _R[ var₀ (length [iᶜ∣iᶜ∉FVᴬ]) / Lʷ ] where
           Γʷ' : Maybe (List (Arg Type))
-          Γʷ' = _++_ <$> Γʷ/⁻ᴬ <*> (_∷_ <$> (strengthen (length [iᶜ∣iᶜ∉FVᴬ] + 1) $ hArg (reorderVars [iʷ] A)) <*> Γʷ/ᴬ) where
+          Γʷ' = _++_ <$> Γʷ/⁻ᴬ <*> (_∷_ <$> (strengthen (length [iᶜ∣iᶜ∉FVᴬ] + 1) $ hArg (reorderVars [iʷ] A)) <*> Γʷ/ᴬ)
 
         𝐺ʷ = reorderVars [iʷ] 𝐺 r[ var₀ (length [iᶜ∣iᶜ∉FVᴬ]) / Lʷ ]
 
@@ -146,7 +146,7 @@ module Tactic.Reflection.Reright where
           𝐺ʷʳ = 𝐺ʷ r[ Rʷ / var₀ (length [iᶜ∣iᶜ∉FVᴬ]) ]
 
         helper-type : Maybe Type
-        helper-type = telPi <$> (_++_ <$> (reverse <$> Γʷ) <*> (_∷_ <$> (pure $ vArg (def₂ (quote _≡_) (var₀ (length [iᶜ∣iᶜ∉FVᴬ])) Rʷ)) <*> ([_] ∘ vArg <$> (weaken 1 <$> gʳ)))) <*> pure (weaken 2 𝐺ʷ)
+        helper-type = telPi <$> (_++_ <$> (reverse <$> (map ("_" ,_) <$> Γʷ)) <*> (_∷_ <$> (pure $ ("_" , vArg (def₂ (quote _≡_) (var₀ (length [iᶜ∣iᶜ∉FVᴬ])) Rʷ))) <*> ([_] ∘ ("_" ,′_) ∘ vArg <$> (weaken 1 <$> gʳ)))) <*> pure (weaken 2 𝐺ʷ)
 
       make-vars-from-args : List Nat → List (Arg Type) → Maybe (List (Arg Type))
       make-vars-from-args [] [] = pure []
@@ -175,9 +175,9 @@ module Tactic.Reflection.Reright where
                            strErr "\n[iᶜ∣iᶜ∉FVᴬ]" ∷ termErr (` [iᶜ∣iᶜ∉FVᴬ]) ∷
                            strErr "\n[iʷ]" ∷ termErr (` [iʷ]) ∷
                            [] ))
-              (λ {(helper-type , helper-patterns , helper-term) →
+              (λ {(helper-type , helper-tel , helper-patterns , helper-term) →
                 catchTC
-                  (define (vArg n) helper-type [ clause helper-patterns helper-term ])
+                  (define (vArg n) helper-type [ clause helper-tel helper-patterns helper-term ])
                   (typeError ( strErr "error defining helper function" ∷
                                strErr "\nhelper-type:" ∷ termErr helper-type ∷
                                strErr "\n`helper-type:" ∷ termErr (` helper-type) ∷
@@ -200,11 +200,14 @@ module Tactic.Reflection.Reright where
                                strErr "\n[iʷ]" ∷ termErr (` [iʷ]) ∷
                                [] ))
                   })
-              (_,_ <$> helper-type <*> (_,_ <$> helper-patterns <*> helper-term))
+              (_,_ <$> helper-type <*> (_,_ <$> helper-tel <*> (_,_  <$> helper-patterns <*> helper-term)))
         where
 
+        helper-tel : Maybe (List (String × Arg Type))
+        helper-tel = (λ a b c d → a ++ b ++ c ++ d) <$> (map ("_" ,_) ∘ reverse <$> Γʷ/ᴬ) <*> pure [ "_" , hArg unknown ] <*> (map ("_" ,_) ∘ reverse <$> Γʷ/⁻ᴬ) <*> pure [ "_" , vArg unknown ]
+
         helper-patterns : Maybe (List (Arg Pattern))
-        helper-patterns = (λ pa w p-a pr → pa ++ w ∷ (p-a ++ pr)) <$> (telePat ∘ reverse <$> Γʷ/ᴬ) <*> just (hArg dot) <*> (telePat ∘ reverse <$> Γʷ/⁻ᴬ) <*> pure (vArg (con₀ (quote refl)) ∷ [ vArg (var "_") ])
+        helper-patterns = (λ pa w p-a pr → pa ++ w ∷ (p-a ++ pr)) <$> (telePat ∘ reverse ∘ map ("_" ,_) <$> Γʷ/ᴬ) <*> just (hArg (dot unknown)) <*> (telePat ∘ reverse ∘ map ("_" ,_) <$> Γʷ/⁻ᴬ) <*> pure (vArg (con₀ (quote refl)) ∷ [ vArg (var 0) ])
 
         helper-term : Maybe Term
         helper-term = do

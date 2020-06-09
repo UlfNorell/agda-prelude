@@ -64,6 +64,16 @@ decEq₂ f-inj₁ f-inj₂ (no neq)    _         = no λ eq → neq (f-inj₁ eq
 decEq₂ f-inj₁ f-inj₂  _         (no neq)   = no λ eq → neq (f-inj₂ eq)
 decEq₂ f-inj₁ f-inj₂ (yes refl) (yes refl) = yes refl
 
+decEq₃ : ∀ {a b c d} {A : Set a} {B : Set b} {C : Set c} {D : Set d} {f : A → B → C → D} →
+           (∀ {x y z u v w} → f x y z ≡ f u v w → x ≡ u) →
+           (∀ {x y z u v w} → f x y z ≡ f u v w → y ≡ v) →
+           (∀ {x y z u v w} → f x y z ≡ f u v w → z ≡ w) →
+           ∀ {x y z u v w} → Dec (x ≡ u) → Dec (y ≡ v) → Dec (z ≡ w) → Dec (f x y z ≡ f u v w)
+decEq₃ f-inj₁ f-inj₂ f-inj₃ (no neq)    _         _          = no λ eq → neq (f-inj₁ eq)
+decEq₃ f-inj₁ f-inj₂ f-inj₃  _         (no neq)   _          = no λ eq → neq (f-inj₂ eq)
+decEq₃ f-inj₁ f-inj₂ f-inj₃  _         _          (no neq)   = no λ eq → neq (f-inj₃ eq)
+decEq₃ f-inj₁ f-inj₂ f-inj₃ (yes refl) (yes refl) (yes refl) = yes refl
+
 {-# INLINE decEq₁ #-}
 {-# INLINE decEq₂ #-}
 

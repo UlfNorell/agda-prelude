@@ -16,12 +16,15 @@ private
   mapIx f []       = []
   mapIx f (x ∷ xs) = f 0 x ∷ mapIx (f ∘ suc) xs
 
+  telePats : Telescope → List (Arg Pattern)
+  telePats tel = zipWith (λ { (_ , arg i _) x → arg i (var x) }) tel (reverse $ from 0 for (length tel))
+
   -- encode (ci x₁ .. xn) = node i (treeEncode x₁) .. (treeEncode xn)
   encodeClause : Nat → Nat → Name → TC Clause
   encodeClause np i c = do
-    args ← drop np <$> argTel c
-    let xs = reverse (mapIx const args)
-    return (clause [ vArg (con c (map (var "x" <$_) args)) ]
+    tel ← drop np <$> argTel c
+    let xs = reverse (mapIx const tel)
+    return (clause tel [ vArg (con c (telePats tel)) ]
                    (con₂ (quote node)
                          (lit (nat i))
                          (quoteList (map (λ i → def₁ (quote treeEncode) (var i [])) xs))))
@@ -37,7 +40,8 @@ private
   decodeClause np i c = do
     args ← drop np <$> argTel c
     let xs = reverse (mapIx const args)
-    pure (clause [ vArg (con₂ (quote node) (lit (nat i)) (quoteListP (map (λ _ → var "x") args))) ]
+    pure (clause args
+                 [ vArg (con₂ (quote node) (lit (nat i)) (quoteListP (map var $ reverse $ from 0 for (length args)))) ]
                  (foldl qAp (con₁ (quote just) (con₀ c))
                             (map (λ i → def₁ (quote treeDecode) (var i [])) xs)))
 
@@ -52,13 +56,13 @@ private
     cs ← getConstructors d
     np ← getParameters d
     cs ← traverse id (mapIx (decodeClause np) cs)
-    pure (cs ++ clause (vArg (var "_") ∷ []) (con₀ (quote nothing)) ∷ [])
+    pure (cs ++ clause [ "x" , vArg unknown ] (vArg (var 0) ∷ []) (con₀ (quote nothing)) ∷ [])
 
   proofClause : Nat → Nat → Name → TC Clause
   proofClause np i c = do
-    args ← drop np <$> argTel c
-    let xs = reverse (mapIx const args)
-    pure (clause [ vArg (con c (map (var "x" <$_) args)) ]
+    tel ← drop np <$> argTel c
+    let xs = reverse (mapIx const tel)
+    pure (clause tel [ vArg (con c (telePats tel)) ]
                  (foldl (λ eq eq₁ → def₂ (quote _=*=′_) eq eq₁)
                         (con₀ (quote refl))
                         (map (λ i → def₁ (quote isTreeEmbedding) (var i [])) xs)))
@@ -70,8 +74,8 @@ private
     traverse id (mapIx (proofClause np) cs)
 
   makeProjection : Name → Clause → Clause
-  makeProjection f (clause ps b)      = clause (vArg (proj f) ∷ ps) b
-  makeProjection f (absurd-clause ps) = absurd-clause (vArg (proj f) ∷ ps)
+  makeProjection f (clause tel ps b)      = clause tel (vArg (proj f) ∷ ps) b
+  makeProjection f (absurd-clause tel ps) = absurd-clause tel (vArg (proj f) ∷ ps)
 
   instanceClauses : Name → TC (List Clause)
   instanceClauses d = do

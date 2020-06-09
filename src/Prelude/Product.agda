@@ -63,6 +63,14 @@ sigma-inj-snd : ∀ {a b} {A : Set a} {B : A → Set b} {x : A} {y y₁ : B x} �
                _≡_ {A = Σ A B} (x , y) (x , y₁) → y ≡ y₁
 sigma-inj-snd refl = refl
 
+pair-inj-fst : ∀ {a b} {A : Set a} {B : Set b} {x x₁ : A} {y y₁ : B} →
+               _≡_ {A = A × B} (x , y) (x₁ , y₁) → x ≡ x₁
+pair-inj-fst = sigma-inj-fst
+
+pair-inj-snd : ∀ {a b} {A : Set a} {B : Set b} {x x₁ : A} {y y₁ : B} →
+               _≡_ {A = A × B} (x , y) (x₁ , y₁) → y ≡ y₁
+pair-inj-snd refl = refl
+
 instance
   EqSigma : ∀ {a b} {A : Set a} {B : A → Set b} {{EqA : Eq A}} {{EqB : ∀ {x} → Eq (B x)}} → Eq (Σ A B)
   _==_ {{EqSigma}} (x , y) (x₁ , y₁) with x == x₁

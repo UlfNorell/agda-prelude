@@ -20,22 +20,6 @@ record DeBruijn {a} (A : Set a) : Set a where
 
 open DeBruijn {{...}} public
 
-patternBindings : List (Arg Pattern) → Nat
-patternBindings = binds
-  where
-    binds : List (Arg Pattern) → Nat
-    bind  : Pattern → Nat
-
-    binds []             = 0
-    binds (arg _ a ∷ as) = bind a + binds as
-
-    bind (con c ps) = binds ps
-    bind dot        = 1
-    bind (var _)    = 1
-    bind (lit l)    = 0
-    bind (proj x)   = 0
-    bind absurd     = 0
-
 private
   Str : Set → Set
   Str A = Nat → Nat → A → Maybe A
@@ -78,8 +62,22 @@ private
   strClauses lo k [] = just []
   strClauses lo k (c ∷ cs) = _∷_ <$> strClause lo k c <*> strClauses lo k cs
 
-  strClause lo k (clause ps b)      = clause ps <$> strTerm (lo + patternBindings ps) k b
-  strClause lo k (absurd-clause ps) = just (absurd-clause ps)
+  strClause lo k (clause tel ps b)      = clause tel ps <$> strTerm (lo + length tel) k b
+  strClause lo k (absurd-clause tel ps) = just (absurd-clause tel ps)
+
+  strPat    : Str Pattern
+  strPatArg : Str (Arg Pattern)
+  strPats   : Str (List (Arg Pattern))
+
+  strPat    lo k (con c ps) = con c <$> strPats lo k ps
+  strPat    lo k (dot t)    = dot <$> strTerm lo k t
+  strPat    lo k (var x)    = var <$> strVar lo k x
+  strPat    lo k (lit l)    = pure (lit l)
+  strPat    lo k (proj f)   = pure (proj f)
+  strPat    lo k absurd     = pure absurd
+  strPatArg lo k (arg i p)  = arg i <$> strPat lo k p
+  strPats   lo k []         = pure []
+  strPats   lo k (p ∷ ps)   = _∷_ <$> strPatArg lo k p <*> strPats lo k ps
 
 private
   Wk : Set → Set
@@ -118,8 +116,22 @@ private
   wkClauses lo k [] = []
   wkClauses lo k (c ∷ cs) = wkClause lo k c ∷ wkClauses lo k cs
 
-  wkClause lo k (clause ps b)      = clause ps (wk (lo + patternBindings ps) k b)
-  wkClause lo k (absurd-clause ps) = absurd-clause ps
+  wkClause lo k (clause tel ps b)      = clause tel ps (wk (lo + length tel) k b)
+  wkClause lo k (absurd-clause tel ps) = absurd-clause tel ps
+
+  wkPat    : Wk Pattern
+  wkPatArg : Wk (Arg Pattern)
+  wkPats   : Wk (List (Arg Pattern))
+
+  wkPat    lo k (con c ps) = con c (wkPats lo k ps)
+  wkPat    lo k (dot t)    = dot (wk lo k t)
+  wkPat    lo k (var x)    = var (wkVar lo k x)
+  wkPat    lo k (lit l)    = lit l
+  wkPat    lo k (proj f)   = proj f
+  wkPat    lo k absurd     = absurd
+  wkPatArg lo k (arg i p)  = arg i (wkPat lo k p)
+  wkPats   lo k []         = []
+  wkPats   lo k (p ∷ ps)   = wkPatArg lo k p ∷ wkPats lo k ps
 
 -- Instances --
 
@@ -137,6 +149,10 @@ instance
   strengthenFrom {{DeBruijnTerm}} = strTerm
   weakenFrom     {{DeBruijnTerm}} = wk
 
+  DeBruijnPattern : DeBruijn Pattern
+  strengthenFrom {{DeBruijnPattern}} = strPat
+  weakenFrom     {{DeBruijnPattern}} = wkPat
+
   DeBruijnList : ∀ {a} {A : Set a} {{_ : DeBruijn A}} → DeBruijn (List A)
   DeBruijnList = DeBruijnTraversable
 
@@ -148,6 +164,14 @@ instance
 
   DeBruijnMaybe : {A : Set} {{_ : DeBruijn A}} → DeBruijn (Maybe A)
   DeBruijnMaybe = DeBruijnTraversable
+
+  DeBruijnPair : ∀ {a b} {A : Set a} {B : Set b} {{_ : DeBruijn A}} {{_ : DeBruijn B}} → DeBruijn (A × B)
+  strengthenFrom {{DeBruijnPair}} lo k (x , y) = _,_ <$>′ strengthenFrom lo k x <*>′ strengthenFrom lo k y
+  weakenFrom     {{DeBruijnPair}} lo k (x , y) = weakenFrom lo k x , weakenFrom lo k y
+
+  DeBruijnString : DeBruijn String
+  strengthenFrom {{DeBruijnString}} _ _ = just
+  weakenFrom     {{DeBruijnString}} _ _ = id
 
 -- Strip bound names (to ensure _==_ checks α-equality)
 -- Doesn't touch pattern variables in pattern lambdas.
@@ -182,8 +206,8 @@ mutual
     stripClauses (x ∷ xs) = stripClause x ∷ stripClauses xs
 
     stripClause : Clause → Clause
-    stripClause (clause ps t) = clause ps (stripBoundNames t)
-    stripClause (absurd-clause ps) = absurd-clause ps
+    stripClause (clause tel ps t) = clause tel ps (stripBoundNames t)
+    stripClause (absurd-clause tel ps) = absurd-clause tel ps
 
     stripSort : Sort → Sort
     stripSort (set t) = set (stripBoundNames t)

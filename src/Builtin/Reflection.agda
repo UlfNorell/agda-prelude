@@ -133,7 +133,7 @@ instance
   traverse {{TraversableAbs}} f (abs s x) = ⦇ (abs s) (f x) ⦈
 
 absurd-lam : Term
-absurd-lam = pat-lam (absurd-clause (vArg absurd ∷ []) ∷ []) []
+absurd-lam = pat-lam (absurd-clause (("()" , vArg unknown) ∷ []) (vArg absurd ∷ []) ∷ []) []
 
 --- TC monad ---
 
@@ -309,6 +309,9 @@ pcon-inj₂ refl = refl
 pvar-inj : ∀ {x y} → Pattern.var x ≡ var y → x ≡ y
 pvar-inj refl = refl
 
+pdot-inj : ∀ {x y} → Pattern.dot x ≡ dot y → x ≡ y
+pdot-inj refl = refl
+
 plit-inj : ∀ {x y} → Pattern.lit x ≡ lit y → x ≡ y
 plit-inj refl = refl
 
@@ -317,14 +320,20 @@ proj-inj refl = refl
 
 --- Clauses ---
 
-clause-inj₁ : ∀ {x y z w} → clause x y ≡ clause z w → x ≡ z
+clause-inj₁ : ∀ {x y z u v w} → clause x y z ≡ clause u v w → x ≡ u
 clause-inj₁ refl = refl
 
-clause-inj₂ : ∀ {x y z w} → clause x y ≡ clause z w → y ≡ w
+clause-inj₂ : ∀ {x y z u v w} → clause x y z ≡ clause u v w → y ≡ v
 clause-inj₂ refl = refl
 
-absurd-clause-inj : ∀ {x y} → absurd-clause x ≡ absurd-clause y → x ≡ y
-absurd-clause-inj refl = refl
+clause-inj₃ : ∀ {x y z u v w} → clause x y z ≡ clause u v w → z ≡ w
+clause-inj₃ refl = refl
+
+absurd-clause-inj₁ : ∀ {x y z w} → absurd-clause x y ≡ absurd-clause z w → x ≡ z
+absurd-clause-inj₁ refl = refl
+
+absurd-clause-inj₂ : ∀ {x y z w} → absurd-clause x y ≡ absurd-clause z w → y ≡ w
+absurd-clause-inj₂ refl = refl
 
 --- Literals ---
 

@@ -91,6 +91,7 @@ private
   eqTerm   : (x y : Term)    → Dec (x ≡ y)
   eqPat    : (x y : Pattern) → Dec (x ≡ y)
   eqClause : (x y : Clause)  → Dec (x ≡ y)
+  eqTel    : (x y : List (String × Arg Type)) → Dec (x ≡ y)
 
   eqArgTerm : (x y : Arg Term) → Dec (x ≡ y)
   eqArgTerm (arg i x) (arg i₁ x₁) = decEq₂ arg-inj₁ arg-inj₂ (i == i₁) (eqTerm x x₁)
@@ -234,52 +235,57 @@ private
   eqSort unknown (lit n) = no λ ()
 
   eqPat (con c ps) (con c₁ ps₁) = decEq₂ pcon-inj₁ pcon-inj₂ (c == c₁) (eqPats ps ps₁)
-  eqPat  dot        dot         = yes refl
+  eqPat (dot u)    (dot u₁)     = decEq₁ pdot-inj (eqTerm u u₁)
   eqPat (var s)    (var s₁)     = decEq₁ pvar-inj (s == s₁)
   eqPat (lit l)    (lit l₁)     = decEq₁ plit-inj (l == l₁)
   eqPat (proj f)   (proj f₁)    = decEq₁ proj-inj (f == f₁)
   eqPat  absurd     absurd      = yes refl
 
-  eqPat (con _ _) dot      = no λ ()
+  eqPat (con _ _) (dot _)  = no λ ()
   eqPat (con _ _) (var _)  = no λ ()
   eqPat (con _ _) (lit _)  = no λ ()
   eqPat (con _ _) (proj _) = no λ ()
   eqPat (con _ _) absurd   = no λ ()
 
-  eqPat dot (con _ _) = no λ ()
-  eqPat dot (var _)   = no λ ()
-  eqPat dot (lit _)   = no λ ()
-  eqPat dot (proj _)  = no λ ()
-  eqPat dot absurd    = no λ ()
+  eqPat (dot _) (con _ _) = no λ ()
+  eqPat (dot _) (var _)   = no λ ()
+  eqPat (dot _) (lit _)   = no λ ()
+  eqPat (dot _) (proj _)  = no λ ()
+  eqPat (dot _) absurd    = no λ ()
 
   eqPat (var _) (con _ _) = no λ ()
-  eqPat (var _) dot       = no λ ()
+  eqPat (var _) (dot _)   = no λ ()
   eqPat (var _) (lit _)   = no λ ()
   eqPat (var _) (proj _)  = no λ ()
   eqPat (var _) absurd    = no λ ()
 
   eqPat (lit _) (con _ _) = no λ ()
-  eqPat (lit _) dot       = no λ ()
+  eqPat (lit _) (dot _)   = no λ ()
   eqPat (lit _) (var _)   = no λ ()
   eqPat (lit _) (proj _)  = no λ ()
   eqPat (lit _) absurd    = no λ ()
 
   eqPat (proj _) (con _ _) = no λ ()
-  eqPat (proj _) dot       = no λ ()
+  eqPat (proj _) (dot _)   = no λ ()
   eqPat (proj _) (var _)   = no λ ()
   eqPat (proj _) (lit _)   = no λ ()
   eqPat (proj _) absurd    = no λ ()
 
   eqPat absurd (con _ _) = no λ ()
-  eqPat absurd dot       = no λ ()
+  eqPat absurd (dot _)   = no λ ()
   eqPat absurd (var _)   = no λ ()
   eqPat absurd (lit _)   = no λ ()
   eqPat absurd (proj _)  = no λ ()
 
-  eqClause (clause ps t)      (clause ps₁ t₁)     = decEq₂ clause-inj₁ clause-inj₂ (eqPats ps ps₁) (eqTerm t t₁)
-  eqClause (absurd-clause ps) (absurd-clause ps₁) = decEq₁ absurd-clause-inj (eqPats ps ps₁)
-  eqClause (clause _ _) (absurd-clause _) = no λ ()
-  eqClause (absurd-clause _) (clause _ _) = no λ ()
+  eqClause (clause tel ps t)      (clause tel₁ ps₁ t₁)     = decEq₃ clause-inj₁ clause-inj₂ clause-inj₃ (eqTel tel tel₁) (eqPats ps ps₁) (eqTerm t t₁)
+  eqClause (absurd-clause tel ps) (absurd-clause tel₁ ps₁) = decEq₂ absurd-clause-inj₁ absurd-clause-inj₂ (eqTel tel tel₁) (eqPats ps ps₁)
+  eqClause (clause _ _ _) (absurd-clause _ _) = no λ ()
+  eqClause (absurd-clause _ _) (clause _ _ _) = no λ ()
+
+  eqTel []             []             = yes refl
+  eqTel ((x , a) ∷ xs) ((y , b) ∷ ys) = decEq₂ cons-inj-head cons-inj-tail (decEq₂ pair-inj-fst pair-inj-snd (x == y) (eqArgTerm a b)) (eqTel xs ys)
+  eqTel [] (_ ∷ _) = no λ ()
+  eqTel (_ ∷ _) [] = no λ ()
 
 instance
   EqTerm : Eq Term
