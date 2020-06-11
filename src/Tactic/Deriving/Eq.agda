@@ -25,24 +25,30 @@ private
 
   -- Helper functions --
 
-  nLam : List (Arg A) → Term → Term
+  nLam : Telescope → Term → Term
   nLam [] t = t
-  nLam (arg (arg-info v _) s ∷ tel) t = lam v (abs "x" (nLam tel t))
+  nLam ((x , arg (arg-info v _) s) ∷ tel) t = lam v (abs x (nLam tel t))
 
-  nPi : List (Arg A) → Term → Term
+  nPi : Telescope → Term → Term
   nPi [] t = t
-  nPi (arg i _ ∷ tel) t = pi (arg i unknown) (abs "x" (nPi tel t))
+  nPi ((x , arg i _) ∷ tel) t = pi (arg i unknown) (abs x (nPi tel t))
 
-  newArgs : List (Arg A) → List (Arg Term)
-  newArgs {A = A} tel = newArgsFrom (length tel) tel
+  newVars' : (Nat → A) → List (Arg B) → List (Arg A)
+  newVars' {A = A} {B = B} mkVar tel = newArgsFrom (length tel) tel
     where
-      newArgsFrom : Nat → List (Arg A) → List (Arg Term)
-      newArgsFrom (suc n) (arg i _ ∷ tel) = arg i (var n []) ∷ newArgsFrom n tel
+      newArgsFrom : Nat → List (Arg B) → List (Arg A)
+      newArgsFrom (suc n) (arg i _ ∷ tel) = arg i (mkVar n) ∷ newArgsFrom n tel
       newArgsFrom _ _ = []
 
-  hideTel : List (Arg A) → List (Arg A)
+  newVars : List (Arg A) → List (Arg Term)
+  newVars = newVars' (λ x → var x [])
+
+  newPatVars : List (Arg A) → List (Arg Pattern)
+  newPatVars = newVars' var
+
+  hideTel : Telescope → Telescope
   hideTel [] = []
-  hideTel (arg (arg-info _ r) t ∷ tel) = arg (arg-info hidden r) t ∷ hideTel tel
+  hideTel ((x , arg (arg-info _ r) t) ∷ tel) = (x , arg (arg-info hidden r) t) ∷ hideTel tel
 
   weakenTelFrom : (from n : Nat) → Telescope → Telescope
   weakenTelFrom from n [] = []
@@ -64,7 +70,7 @@ private
   #args : (c : Name) → TC Nat
   #args c = length <$> argsTel c
 
-  params : (c : Name) → TC (List (Arg Type))
+  params : (c : Name) → TC Telescope
   params c = telView <$> getType c >>= λ
     { (tel , def d ixs) → flip take tel <$> #pars d
     ; _                 → pure []
@@ -184,10 +190,6 @@ private
     strengthenFrom {{DeBruijnForced}} _ _ = just
     weakenFrom     {{DeBruijnForced}} _ _ = id
 
-    DeBruijnProd : {A B : Set} {{_ : DeBruijn A}} {{_ : DeBruijn B}} → DeBruijn (A × B)
-    strengthenFrom {{DeBruijnProd}} m n (x , y) = ⦇ strengthenFrom m n x , strengthenFrom m n y ⦈
-    weakenFrom     {{DeBruijnProd}} m n (x , y) = weakenFrom m n x , weakenFrom m n y
-
   RemainingArgs : Nat → Set
   RemainingArgs = Vec (Arg (Forced × Term × Term))
 
@@ -206,9 +208,9 @@ private
   -- The final argument should be (weakenTel (#argsc + #freec) (argsTel c)),
   -- but we don't really care about the types of the arguments anyway.
     where
-      classify : Nat → List Nat → (m n : Nat) (tel : List (Arg Type)) → RemainingArgs (length tel)
+      classify : Nat → List Nat → (m n : Nat) (tel : Telescope) → RemainingArgs (length tel)
       classify _ _ m n [] = []
-      classify #freec forcedc m n (arg i ty ∷ tel) =
+      classify #freec forcedc m n ((_ , arg i ty) ∷ tel) =
         if (elem m forcedc)
         then arg i (forced , var (#freec + m) [] , var (#freec + m) []) ∷
              classify #freec forcedc (m - 1) n       tel
@@ -256,7 +258,7 @@ private
       checkEqArgsYes : Term
       checkEqArgsYes =
         def (quote transport) (
-          (vArg (vLam "x" (nPi (rightArgsFree args) (def₁ (quote Dec)
+          (vArg (vLam "x" (nPi (map ("x" ,_) (rightArgsFree args)) (def₁ (quote Dec)
             (wk 2
                (con c (xs ++ arg i y ∷ (leftArgs args)))
              `≡
@@ -264,7 +266,7 @@ private
                     arg i (var remainingFree []) ∷
                     rightArgs (refreshArgs (wk 2 args)))))))) ∷
           (vArg (var 0 [])) ∷
-          (vArg (nLam (rightArgsFree args)
+          (vArg (nLam (map ("x" ,_) (rightArgsFree args))
             (checkEqArgs c
               (wk 1 (xs ++ [ arg i y ]))
               (refreshArgs (wk 1 args))))) ∷
@@ -273,7 +275,7 @@ private
       checkEqArgsNo : Term
       checkEqArgsNo =
         con₁ (quote no) (vLam "eq" (var 1 (vArg (def₃ (quote _∋_)
-          (nPi (hideTel (arg i z ∷ rightArgsFree args))
+          (nPi (hideTel (("_" , arg i z) ∷ map ("_" ,_) (rightArgsFree args)))
             (weaken (3 + remainingFree) (con c (xs ++ arg i y ∷ leftArgs args))
               `≡ con c (wk 3 xs ++
                         arg i (var remainingFree []) ∷
@@ -281,7 +283,8 @@ private
             `→
              wk 4 y `≡ var (1 + remainingFree) []))
           (pat-lam (clause
-            (replicate (1 + remainingFree) (hArg dot) ++ vArg `refl ∷ [])
+            []
+            (replicate (1 + remainingFree) (hArg (dot unknown)) ++ vArg `refl ∷ [])
             `refl ∷ []) [])
           (var 0 [])) ∷ [])))
 
@@ -289,49 +292,64 @@ private
 
   matchingClause : (c : Name) → TC Clause
   matchingClause c = do
-      _ , args ← classifyArgs c
-      paramPats ← map (fmap λ _ → var "A") ∘ hideTel <$> params c
-      params    ← makeParams args
-      pure (clause (paramPats ++
-                  vArg (con c (makeLeftPattern args)) ∷
-                  vArg (con c (makeRightPattern args)) ∷ [])
-                 (checkEqArgs c params args))
+      _ , args  ← classifyArgs c
+      let #cargs-total = length (vecToList args)
+          #cargs-free  = countFree args
+      paramTel  ← hideTel <$> params c
+      let paramPats = weaken (#cargs-total + #cargs-free) $ newPatVars $ map snd paramTel
+      let paramArgs = weaken (#cargs-total + #cargs-free) $ newVars $ map snd paramTel
+      pure (clause (paramTel ++ ctel-total args ++ ctel-free args)
+                   (paramPats ++
+                    vArg (con c (makeLeftPattern args (#cargs-total + #cargs-free))) ∷
+                    vArg (con c (makeRightPattern args #cargs-free)) ∷ [])
+                   (checkEqArgs c paramArgs args))
     where
-      args = classifyArgs c
+      ctel-total : RemainingArgs n → Telescope
+      ctel-total [] = []
+      ctel-total (arg i _ ∷ args) = ("_" , arg i unknown) ∷ ctel-total args
 
-      makeParamsPats : TC (List (Arg Pattern))
-      makeParamsPats = map (fmap λ _ → var "A") ∘ hideTel <$> params c
+      ctel-free : RemainingArgs n → Telescope
+      ctel-free [] = []
+      ctel-free (arg i (forced , _) ∷ args) = ctel-free args
+      ctel-free (arg i (free   , _) ∷ args) = ("_" , arg i unknown) ∷ ctel-free args
 
-      makeParams : ∀ {n} → RemainingArgs n → TC (List (Arg Term))
-      makeParams args = do
-        ps ← params c
-        pure (weaken (length (vecToList args) + countFree args) (newArgs ps))
+      makeLeftPattern : ∀ {n} → RemainingArgs n → Nat → List (Arg Pattern)
+      makeLeftPattern (arg i x ∷ xs) (suc n) = arg i (var n) ∷ makeLeftPattern xs n
+      makeLeftPattern _ _ = []
 
-      makeLeftPattern : ∀ {n} → RemainingArgs n → List (Arg Pattern)
-      makeLeftPattern [] = []
-      makeLeftPattern (arg i _ ∷ xs) = arg i (var "x") ∷ makeLeftPattern xs
-
-      makeRightPattern : ∀ {n} → RemainingArgs n → List (Arg Pattern)
-      makeRightPattern [] = []
-      makeRightPattern (arg i (forced , _ , _) ∷ xs) = arg i dot ∷ makeRightPattern xs
-      makeRightPattern (arg i (free   , _ , _) ∷ xs) = arg i (var "y") ∷ makeRightPattern xs
+      makeRightPattern : ∀ {n} → RemainingArgs n → Nat → List (Arg Pattern)
+      makeRightPattern (arg i (forced , _ , _) ∷ xs) n       = arg i (dot unknown) ∷ makeRightPattern xs n
+      makeRightPattern (arg i (free   , _ , _) ∷ xs) (suc n) = arg i (var n) ∷ makeRightPattern xs n
+      makeRightPattern _ _ = []
 
   -- Mismatching constructor case --
 
   mismatchingClause : (c₁ c₂ : Name) (fs : List Nat) → TC Clause
   mismatchingClause c₁ c₂ fs = do
-      args₁ ← argsTel c₁
-      args₂ ← argsTel c₂
-      let #args₁ = length args₁
-          #args₂ = length args₂
-      pure (clause (vArg (con c₁ (makePattern (#args₁ + #args₂ - 1) args₁)) ∷
-                     vArg (con c₂ (makePattern (#args₂ - 1) args₂)) ∷ [])
-                    (con (quote no) ([ vArg (pat-lam ([ absurd-clause ([ vArg absurd ]) ]) []) ])))
+      tel₁ ← argsTel c₁
+      tel₂ ← argsTel c₂
+      let #args₁ = length tel₁
+          #args₂ = length tel₂
+          free-tel₁ = makeFreeTel (#args₁ + #args₂) tel₁
+          free-tel₂ = makeFreeTel #args₂ tel₂
+          #free-args₁ = length free-tel₁
+          #free-args₂ = length free-tel₂
+      pure (clause (free-tel₁ ++ free-tel₂)
+                   (vArg (con c₁ (makePattern (#args₁ + #args₂) (#free-args₁ + #free-args₂) tel₁)) ∷
+                    vArg (con c₂ (makePattern #args₂ #free-args₂ tel₂)) ∷ [])
+                   (con (quote no) ([ vArg (pat-lam ([ absurd-clause [ "()" , vArg unknown ] ([ vArg absurd ]) ]) []) ])))
     where
-      makePattern : (k : Nat) (args : List (Arg Type)) → List (Arg Pattern)
-      makePattern k [] = []
-      makePattern k (arg i _ ∷ args) = (if (elem k fs) then (arg i dot) else arg i (var "x"))
-                                         ∷ makePattern (k - 1) args
+      makeFreeTel : (k : Nat) → Telescope → Telescope
+      makeFreeTel (suc k) ((x , a) ∷ xs) = if (elem k fs) then [] else [ x , (unknown <$ a) ] ++ makeFreeTel k xs
+      makeFreeTel _       _              = []
+
+      makePattern : (k : Nat) (n : Nat) (tel : Telescope) → List (Arg Pattern)
+      makePattern (suc k) n ((_ , arg i _) ∷ args) =
+        if (elem k fs)
+        then arg i (dot unknown) ∷ makePattern k n args
+        else arg i (var (n - 1)) ∷ makePattern k (n - 1) args
+      makePattern k n _                     = []
+
 
   -- Clauses --
 
@@ -369,10 +387,10 @@ private
     def d (makeArgs (n + k) xs) `→ def d (makeArgs (n + k + 1) xs) `→
     def₁ (quote Dec) (var 1 [] `≡ var 0 [])
     where k = length is
-  computeType d n xs is (a ∷ tel) =
+  computeType d n xs is ((x , a) ∷ tel) =
     unArg a `→ʰ
     (case computeInstanceType 0 [] (weaken 1 $ unArg a) of
-     λ { (just i) → computeType d (1 + n) ((n <$ a) ∷ xs) (iArg (weaken (length is) i) ∷ weaken 1 is) tel
+     λ { (just i) → computeType d (1 + n) ((n <$ a) ∷ xs) ((x , iArg (weaken (length is) i)) ∷ weaken 1 is) tel
        ; nothing →  computeType d (1 + n) ((n <$ a) ∷ xs) (weaken 1 is) tel })
 
 
@@ -395,7 +413,7 @@ defineEqInstance iname d = do
   fname ← freshName ("_==[" & show d & "]_")
   declareDef (vArg fname) =<< eqType d
   dictCon ← recordConstructor (quote Eq)
-  defineFun iname (clause [] (con₁ dictCon (def₀ fname)) ∷ [])
+  defineFun iname (clause [] [] (con₁ dictCon (def₀ fname)) ∷ [])
   defineFun fname =<< eqDefinition d
   return _
 

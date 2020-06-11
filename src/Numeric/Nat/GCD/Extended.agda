@@ -28,6 +28,7 @@ data BézoutIdentity (d a b : Nat) : Set where
 record ExtendedGCD (a b : Nat) : Set where
   no-eta-equality
   constructor gcd-res
+  pattern
   field d      : Nat
         isGCD  : IsGCD d a b
         bézout : BézoutIdentity d a b
@@ -41,6 +42,7 @@ private
   record ExtendedGCD′ (a b r₀ r₁ : Nat) : Set where
     no-eta-equality
     constructor gcd-res
+    pattern
     field d      : Nat
           isGCD  : IsGCD d r₀ r₁
           bézout : BézoutIdentity d a b

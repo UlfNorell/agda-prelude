@@ -28,8 +28,8 @@ module Tactic.Reflection.Replace where
       where
 
       replaceClause : Term → Term → Clause → Clause
-      replaceClause l r (clause pats x) = clause pats $ x r[ r / l ]
-      replaceClause l r (absurd-clause pats) = absurd-clause pats
+      replaceClause l r (clause tel pats x) = clause tel pats $ x r[ r / l ]
+      replaceClause l r (absurd-clause tel pats) = absurd-clause tel pats
 
       replaceSort : Term → Term → Sort → Sort
       replaceSort l r (set t) = set $ t r[ r / l ]

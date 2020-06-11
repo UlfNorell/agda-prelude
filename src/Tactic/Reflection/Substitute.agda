@@ -5,19 +5,6 @@ open import Prelude hiding (abs)
 open import Builtin.Reflection
 open import Tactic.Reflection.DeBruijn
 
-patternArgsVars : List (Arg Pattern) → Nat
-
-patternVars : Pattern → Nat
-patternVars (con _ ps) = patternArgsVars ps
-patternVars dot = 0
-patternVars (var _) = 1
-patternVars (lit x) = 0
-patternVars (proj _) = 0
-patternVars absurd = 0
-
-patternArgsVars [] = 0
-patternArgsVars (arg _ p ∷ ps) = patternVars p + patternArgsVars ps
-
 IsSafe : Term → Set
 IsSafe (lam _ _) = ⊥
 IsSafe _ = ⊤
@@ -95,12 +82,12 @@ substSort σ unknown = unknown
 substClauses σ [] = []
 substClauses σ (c ∷ cs) = substClause σ c ∷ substClauses σ cs
 
-substClause σ (clause ps b) =
-  case patternArgsVars ps of λ
-  { zero    → clause ps (substTerm σ b)
-  ; (suc n) → clause ps (substTerm (reverse (map (λ i → safe (var i []) _) (from 0 to n)) ++ weaken (suc n) σ) b)
+substClause σ (clause tel ps b) =
+  case length tel of λ
+  { zero    → clause tel ps (substTerm σ b)
+  ; (suc n) → clause tel ps (substTerm (reverse (map (λ i → safe (var i []) _) (from 0 to n)) ++ weaken (suc n) σ) b)
   }
-substClause σ (absurd-clause ps) = absurd-clause ps
+substClause σ (absurd-clause tel ps) = absurd-clause tel ps
 
 substArgs σ [] = []
 substArgs σ (x ∷ args) = substArg σ x ∷ substArgs σ args

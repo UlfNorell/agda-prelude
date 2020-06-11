@@ -17,11 +17,11 @@ private
 
   computeTel : Name → Nat → List (Arg Nat) → Telescope → Telescope → Telescope × List (Arg Term)
   computeTel d n xs is [] = reverse is , makeArgs (n + length is) xs
-  computeTel d n xs is (a ∷ tel) =
-    first (hArg (unArg a) ∷_) $
+  computeTel d n xs is ((x , a) ∷ tel) =
+    first ((x , hArg (unArg a)) ∷_) $
     case computeInstanceType d 0 [] (weaken 1 $ unArg a) of λ
     { (just i) → computeTel d (1 + n) ((n <$ a) ∷ xs)
-                              (iArg (weaken (length is) i) ∷ weaken 1 is) tel
+                              ((x , iArg (weaken (length is) i)) ∷ weaken 1 is) tel
     ; nothing  → computeTel d (1 + n) ((n <$ a) ∷ xs) (weaken 1 is) tel }
 
 -- Computes the telescope of instances for a given datatype and class. For instance,

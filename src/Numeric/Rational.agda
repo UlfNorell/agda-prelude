@@ -16,6 +16,7 @@ open import Tactic.Nat.Coprime
 record Rational : Set where
   no-eta-equality
   constructor ratio
+  pattern
   field numerator   : Nat
         denominator : Nat
         ⦃ d>0 ⦄    : NonZero denominator

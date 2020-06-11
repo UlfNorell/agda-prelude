@@ -14,9 +14,13 @@ noMetaArgs : List (Arg Term) → TC ⊤
 noMetaArgs [] = pure _
 noMetaArgs (v ∷ vs) = noMetaArg v *> noMetaArgs vs
 
+noMetaTel : List (String × Arg Type) → TC ⊤
+noMetaTel [] = pure _
+noMetaTel ((x , arg _ a) ∷ tel) = ensureNoMetas a *> noMetaTel tel
+
 noMetaClause : Clause → TC ⊤
-noMetaClause (clause ps t) = ensureNoMetas t
-noMetaClause (absurd-clause ps) = pure _
+noMetaClause (clause tel ps t) = noMetaTel tel *> ensureNoMetas t
+noMetaClause (absurd-clause tel ps) = pure _
 
 noMetaClauses : List Clause → TC ⊤
 noMetaClauses [] = pure _

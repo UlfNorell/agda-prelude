@@ -42,12 +42,12 @@ private
     ; _ → typeErrorS "impossible" }
 
   patArgs : Telescope → List (Arg Pattern)
-  patArgs tel = map (var "x" <$_) tel
+  patArgs tel = zipWith (λ x (_ , a) → var x <$ a) (reverse (from 0 for (length tel))) tel
 
   quoteArgs′ : Nat → Telescope → List Term
   quoteArgs′ 0 _  = []
   quoteArgs′ _ [] = []
-  quoteArgs′ (suc n) (a ∷ tel) =
+  quoteArgs′ (suc n) ((x , a) ∷ tel) =
     qArg (def₁ (quote `) (var n []) <$ a) ∷ quoteArgs′ n tel
 
   quoteArgs : Nat → Telescope → Term
@@ -57,14 +57,15 @@ private
   constructorClause : Nat → Name → TC Clause
   constructorClause pars c = do
     tel ← drop pars ∘ fst ∘ telView <$> getType c
-    pure (clause (vArg (con c (patArgs tel)) ∷ [])
-                    (con₂ (quote Term.con) (lit (name c)) (quoteArgs pars tel)))
+    pure (clause tel
+                 (vArg (con c (patArgs tel)) ∷ [])
+                 (con₂ (quote Term.con) (lit (name c)) (quoteArgs pars tel)))
 
   quoteClauses : Name → TC (List Clause)
   quoteClauses d = do
     n ← getParameters d
     caseM getConstructors d of λ where
-      [] → pure [ absurd-clause (vArg absurd ∷ []) ]
+      [] → pure [ absurd-clause (("()" , vArg unknown) ∷ []) (vArg absurd ∷ []) ]
       cs → mapM (constructorClause n) cs
 
 declareQuotableInstance : Name → Name → TC ⊤
@@ -76,7 +77,7 @@ defineQuotableInstance iname d = do
   fname ← freshName ("quote[" & show d & "]")
   declareDef (vArg fname) =<< quoteType d
   dictCon ← dictConstructor
-  defineFun iname (clause [] (con₁ dictCon (def₀ fname)) ∷ [])
+  defineFun iname (clause [] [] (con₁ dictCon (def₀ fname)) ∷ [])
   defineFun fname =<< quoteClauses d
   return _
 

@@ -14,6 +14,7 @@ open import Tactic.Nat
 record IsGCD (d a b : Nat) : Set where
   no-eta-equality
   constructor is-gcd
+  pattern
   field d|a : d Divides a
         d|b : d Divides b
         g   : ∀ k → k Divides a → k Divides b → k Divides d
@@ -21,6 +22,7 @@ record IsGCD (d a b : Nat) : Set where
 record GCD (a b : Nat) : Set where
   no-eta-equality
   constructor gcd-res
+  pattern
   field d     : Nat
         isGCD : IsGCD d a b
 
