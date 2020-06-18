@@ -1,10 +1,9 @@
-
 module Control.WellFounded where
 
 open import Prelude
 open import Prelude.Nat.Properties using (suc-inj)
 
-data Acc {a} {A : Set a} (_<_ : A → A → Set a) (x : A) : Set a where
+data Acc {a b} {A : Set a} (_<_ : A → A → Set b) (x : A) : Set (a ⊔ b) where
   acc : (∀ y → y < x → Acc _<_ y) → Acc _<_ x
 
 -- LessNat is well-founded --
