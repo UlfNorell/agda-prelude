@@ -1,5 +1,5 @@
 
-module Text.Printf where
+module Text.Printf.Prelude where
 
 open import Prelude hiding (parseNat)
 open import Builtin.Float

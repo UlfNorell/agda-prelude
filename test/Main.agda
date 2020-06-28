@@ -7,7 +7,7 @@ open import Container.Foldable
 open import Container.List
 open import Text.Parse
 open import Text.Lex
-open import Text.Printf
+open import Text.Printf.Prelude
 open import Control.Monad.State
 open import Control.Monad.Transformer
 open import Control.WellFounded
