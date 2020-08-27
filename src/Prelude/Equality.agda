@@ -1,9 +1,11 @@
-
 module Prelude.Equality where
 
 open import Prelude.Decidable
+open import Prelude.Empty
 
 open import Agda.Builtin.Equality public
+
+
 
 record Eq {a} (A : Set a) : Set a where
   infix 4 _==_
@@ -12,8 +14,17 @@ record Eq {a} (A : Set a) : Set a where
 
 open Eq {{...}} public
 
+
+infix 4 _≢_
+_≢_ : ∀ {a} {A : Set a} → (x y : A) → Set a
+x ≢ y = ¬ (x ≡ y)
+
+≢-sym : ∀ {a} {A : Set a} {x y : A} → x ≢ y → y ≢ x
+≢-sym x≢y refl = x≢y refl
+
 sym : ∀ {a} {A : Set a} {x y : A} → x ≡ y → y ≡ x
 sym refl = refl
+
 
 infixr 0 _⟨≡⟩_ _⟨≡⟩ʳ_ _ʳ⟨≡⟩_ _ʳ⟨≡⟩ʳ_
 
@@ -96,6 +107,7 @@ x ≡⟨ refl ⟩ʳ p = p
 
 _∎ : ∀ {a} {A : Set a} (x : A) → x ≡ x
 x ∎ = refl
+
 
 -- Instances --
 
