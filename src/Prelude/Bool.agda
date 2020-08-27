@@ -1,4 +1,3 @@
-
 module Prelude.Bool where
 
 open import Prelude.Unit
@@ -8,6 +7,7 @@ open import Prelude.Decidable
 open import Prelude.Function
 
 open import Agda.Builtin.Bool public
+
 
 infix 0 if_then_else_
 if_then_else_ : ∀ {a} {A : Set a} → Bool → A → A → A
@@ -62,3 +62,6 @@ infix 0 if′_then_else_
 if′_then_else_ : ∀ {a} {A : Set a} (b : Bool) → ({{_ : IsTrue b}} → A) → ({{_ : IsFalse b}} → A) → A
 if′ true  then x else _ = x
 if′ false then _ else y = y
+
+_==?_ : ∀ {a} {A : Set a} {{EqA : Eq A}} → A → A → Bool
+_==?_ x y = isYes (x == y)
