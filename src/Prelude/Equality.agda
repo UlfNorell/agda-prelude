@@ -25,6 +25,10 @@ x ≢ y = ¬ (x ≡ y)
 sym : ∀ {a} {A : Set a} {x y : A} → x ≡ y → y ≡ x
 sym refl = refl
 
+==-reflexive : ∀ {a} {A : Set a} → {{_ : Eq A}} → (x : A) → (x == x) ≡ yes refl
+==-reflexive x with  x == x
+...| yes refl = refl
+...| no notEq = ⊥-elim (notEq refl)
 
 infixr 0 _⟨≡⟩_ _⟨≡⟩ʳ_ _ʳ⟨≡⟩_ _ʳ⟨≡⟩ʳ_
 
