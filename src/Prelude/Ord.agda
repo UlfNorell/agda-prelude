@@ -1,4 +1,3 @@
-
 module Prelude.Ord where
 
 open import Agda.Primitive
@@ -74,6 +73,18 @@ module _ {a} {A : Set a} {{_ : Ord A}} where
 
   _≥_ : A → A → Set a
   a ≥ b = b ≤ a
+
+  _≮_ : A → A → Set a
+  a ≮ b = ¬ (a < b)
+
+  _≯_ : A → A → Set a
+  _≯_ = flip _≮_
+
+  _≰_ : A → A → Set a
+  a ≰ b = ¬ (a ≤ b)
+
+  _≱_ : A → A → Set a
+  _≱_ = flip _≰_
 
   infix 4 _>_ _≥_ _<?_ _≤?_ _>?_ _≥?_
 
