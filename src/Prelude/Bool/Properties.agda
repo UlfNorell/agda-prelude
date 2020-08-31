@@ -16,22 +16,16 @@ de-morg-neg-conj false false  = refl
 de-morg-neg-disj : (a : Bool) → (b : Bool) → not (a || b) ≡ (not a && not b)
 de-morg-neg-disj true true = refl
 de-morg-neg-disj false true = refl
-de-morg-neg-disj true false  = refl
-de-morg-neg-disj false false  = refl
+de-morg-neg-disj true false = refl
+de-morg-neg-disj false false = refl
 
-true≢false : _≢_ {A = Bool} true false
-true≢false ()
+x||true : (x : Bool) → (x || true) ≡ true
+x||true true = refl
+x||true false = refl
 
-false≢true : _≢_ {A = Bool} false true
-false≢true ()
-
-x||true : (x || true) ≡ true
-x||true {true} = refl
-x||true {false} = refl
-
-x&&false : (x && false) ≡ false
-x&&false {true} = refl
-x&&false {false} = refl
+x&&false : (x : Bool) → (x && false) ≡ false
+x&&false true = refl
+x&&false false = refl
 
 IsTrue⇒≡ : IsTrue x → x ≡ true
 IsTrue⇒≡ true = refl
