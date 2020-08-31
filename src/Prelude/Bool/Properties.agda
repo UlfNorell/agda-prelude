@@ -5,6 +5,7 @@ open import Prelude.Equality
 open import Prelude.Bool
 open import Prelude.Decidable
 open import Prelude.Empty
+open import Prelude.Variables
 
 de-morg-neg-conj : (a : Bool) → (b : Bool) → not (a && b) ≡ (not a || not b)
 de-morg-neg-conj true true = refl
@@ -24,30 +25,27 @@ true≢false ()
 false≢true : _≢_ {A = Bool} false true
 false≢true ()
 
-x||true : {x : Bool} → (x || true) ≡ true
+x||true : (x || true) ≡ true
 x||true {true} = refl
 x||true {false} = refl
 
-x&&false : {x : Bool} → (x && false) ≡ false
+x&&false : (x && false) ≡ false
 x&&false {true} = refl
 x&&false {false} = refl
 
-module _ {x : Bool} where
+IsTrue⇒≡ : IsTrue x → x ≡ true
+IsTrue⇒≡ true = refl
 
-  IsTrue⇒≡ : IsTrue x → x ≡ true
-  IsTrue⇒≡ true = refl
+IsFalse⇒≡ : IsFalse x → x ≡ false
+IsFalse⇒≡ false = refl
 
-  IsFalse⇒≡ : IsFalse x → x ≡ false
-  IsFalse⇒≡ false = refl
+not[x]≡false⇒x≡true : not x ≡ false → x ≡ true
+not[x]≡false⇒x≡true {true} _ = refl
+not[x]≡false⇒x≡true {false} ()
 
-  not[x]≡false⇒x≡true : {x : Bool} → not x ≡ false → x ≡ true
-  not[x]≡false⇒x≡true {true} _ = refl
-  not[x]≡false⇒x≡true {false} ()
-
-
-  not[x]≡true⇒x≡false : {x : Bool} → not x ≡ true → x ≡ false
-  not[x]≡true⇒x≡false {true} ()
-  not[x]≡true⇒x≡false {false} _ = refl
+not[x]≡true⇒x≡false : not x ≡ true → x ≡ false
+not[x]≡true⇒x≡false {true} ()
+not[x]≡true⇒x≡false {false} _ = refl
 
 -- Properties of ==? --
 module _ {a} {A : Set a} {{EqA : Eq A}} where
