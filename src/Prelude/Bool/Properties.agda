@@ -7,7 +7,7 @@ open import Prelude.Decidable
 open import Prelude.Empty
 open import Prelude.Variables
 
-de-morg-neg-conj : (a : Bool) → (b : Bool) → not (a && b) ≡ (not a || not b)
+de-morg-neg-conj : (a b : Bool) → not (a && b) ≡ (not a || not b)
 de-morg-neg-conj true true = refl
 de-morg-neg-conj false true = refl
 de-morg-neg-conj true false  = refl
