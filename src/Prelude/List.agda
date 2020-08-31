@@ -1,4 +1,3 @@
-
 module Prelude.List where
 
 open import Prelude.Nat
@@ -15,6 +14,8 @@ open import Prelude.Equality
 open import Prelude.Ord
 open import Prelude.Semiring
 open import Prelude.Strict
+
+open import Prelude.Sized
 
 open import Agda.Builtin.List public
 
@@ -243,6 +244,9 @@ instance
 --- Functor ---
 
 instance
+  SizedList : Sized (List A)
+  size {{SizedList}} = length
+
   FunctorList : ∀ {a} → Functor (List {a})
   fmap {{FunctorList}} = map
 
