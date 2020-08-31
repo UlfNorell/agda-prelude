@@ -13,7 +13,7 @@ de-morg-neg-conj false true = refl
 de-morg-neg-conj true false  = refl
 de-morg-neg-conj false false  = refl
 
-de-morg-neg-disj : (a : Bool) → (b : Bool) → not (a || b) ≡ (not a && not b)
+de-morg-neg-disj : (a b : Bool) → not (a || b) ≡ (not a && not b)
 de-morg-neg-disj true true = refl
 de-morg-neg-disj false true = refl
 de-morg-neg-disj true false  = refl
