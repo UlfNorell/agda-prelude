@@ -59,14 +59,13 @@ module _  {ℓ} {A : Set ℓ} {{Ord/LawsA : Ord/Laws A}} where
   <?⇒< {a = a} {b = b} a<?b
     with compare a b
   ...| less a<b = a<b
-  ...| equal a≡b rewrite a≡b =
-    ⊥-elim (false≢true a<?b)
-  ...| greater _ = ⊥-elim (false≢true  a<?b)
+  ...| equal a≡b rewrite a≡b = case a<?b of λ ()
+  ...| greater _ = case a<?b of λ ()
 
   ≮?⇒≮ : {a b : A} → (a <? b) ≡ false → a ≮ b
-  ≮?⇒≮ {a = a} {b = b} a<?b≡false
+  ≮?⇒≮ {a = a} {b = b} a≮?b
     with compare a b
-  ...| less a<b = λ x → true≢false a<?b≡false
+  ...| less _ = case a≮?b of λ ()
   ...| equal a≡b rewrite a≡b = λ a<b → ⊥-elim (less-antirefl a<b)
   ...| greater a>b = λ a<b → ⊥-elim (less-antisym a>b a<b)
 
@@ -74,17 +73,16 @@ module _  {ℓ} {A : Set ℓ} {{Ord/LawsA : Ord/Laws A}} where
   ≤?⇒≤ {a = a} {b = b} a≤?b
     with inspect (compare b a)
   ...| less a<b with≡ compare≡ rewrite compare≡ =
-       ⊥-elim (false≢true a≤?b)
+       case a≤?b of λ ()
   ...| equal a≡b with≡ _ = eq-to-leq (sym a≡b)
   ...| greater a>b with≡ _ = lt-to-leq a>b
 
   ≰?⇒≰ :  {a b : A} → (a ≤? b) ≡ false → a ≰ b
   ≰?⇒≰ {a = a} {b = b} a≰?b
     with (compare b a)
-  ...| less b<a =
-       <⇒≱ b<a
-  ...| equal a≡b rewrite a≡b = ⊥-elim (true≢false a≰?b)
-  ...| greater a>b = ⊥-elim (true≢false a≰?b)
+  ...| less b<a = <⇒≱ b<a
+  ...| equal a≡b rewrite a≡b = case a≰?b of λ ()
+  ...| greater _ = case a≰?b of λ ()
 
   ≰?⇒≥ : {a b : A} → (a ≤? b) ≡ false → a ≥ b
   ≰?⇒≥ = ≰⇒≥ ∘ ≰?⇒≰
