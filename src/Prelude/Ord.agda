@@ -1,4 +1,3 @@
-
 module Prelude.Ord where
 
 open import Agda.Primitive
@@ -75,7 +74,21 @@ module _ {a} {A : Set a} {{_ : Ord A}} where
   _≥_ : A → A → Set a
   a ≥ b = b ≤ a
 
-  infix 4 _>_ _≥_ _<?_ _≤?_ _>?_ _≥?_
+  _≮_ : A → A → Set a
+  a ≮ b = ¬ (a < b)
+
+  _≯_ : A → A → Set a
+  _≯_ = flip _≮_
+
+  _≰_ : A → A → Set a
+  a ≰ b = ¬ (a ≤ b)
+
+  _≱_ : A → A → Set a
+  _≱_ = flip _≰_
+
+  infix 4 _>_ _≥_ _≮_ _≯_ _≰_ _≱_
+          _<?_ _≤?_ _>?_ _≥?_
+          _≮?_ _≯?_ _≰?_ _≱?_
 
   _<?_ : A → A → Bool
   x <? y = isLess (compare x y)
@@ -88,6 +101,18 @@ module _ {a} {A : Set a} {{_ : Ord A}} where
 
   _≥?_ : A → A → Bool
   x ≥? y = not (x <? y)
+
+  _≮?_ : A → A → Bool
+  _≮?_ = _≥?_
+
+  _≯?_ : A → A → Bool
+  _≯?_ = flip _≮?_
+
+  _≰?_ : A → A → Bool
+  _≰?_ = _>?_
+
+  _≱?_ : A → A → Bool
+  _≱?_ = flip _≰?_
 
   min : A → A → A
   min x y = if x <? y then x else y
@@ -206,3 +231,23 @@ instance
   Ord/Laws.super OrdLawsBool = it
   less-antirefl {{OrdLawsBool}} ()
   less-trans    {{OrdLawsBool}} false<true ()
+
+
+module _ {a} {A : Set a} {{OrdA : Ord/Laws A}} where
+
+
+  _≤-dec_ : (a b : A) → Dec (a ≤ b)
+  _≤-dec_ a b
+    with compare a b
+  ...| less a<b = yes (lt-to-leq a<b)
+  ...| equal a≡b = yes (eq-to-leq a≡b)
+  ...| greater a>b = no (λ x → leq-less-antisym x a>b)
+
+  _<-dec_ : (a b : A) → Dec (a < b)
+  _<-dec_ a b
+    with compare a b
+  ...| less a<b = yes a<b
+  ...| equal a≡b rewrite a≡b = no less-antirefl
+  ...| greater a>b = no (λ x → less-antisym x a>b)
+
+  infix 4 _<-dec_ _≤-dec_
