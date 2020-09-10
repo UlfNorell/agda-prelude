@@ -1,4 +1,3 @@
-
 module Prelude.String where
 
 open import Agda.Primitive
@@ -61,9 +60,15 @@ instance
 
 instance
   open import Prelude.Monoid
+  open import Prelude.Semigroup
+
+  SemigroupString : Semigroup String
+  _<>_ {{SemigroupString}} = primStringAppend
+
   MonoidString : Monoid String
+  Monoid.super MonoidString = it
   mempty {{MonoidString}} = ""
-  _<>_   {{MonoidString}} = primStringAppend
+
 
 -- More functions --
 

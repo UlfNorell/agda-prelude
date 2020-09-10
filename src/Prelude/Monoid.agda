@@ -1,23 +1,38 @@
-
 module Prelude.Monoid where
 
 open import Prelude.Function
 open import Prelude.Maybe
-open import Prelude.List
+
+open import Prelude.List.Base
+
 open import Prelude.Semiring
+
+open import Prelude.Semigroup
+
 open import Prelude.Applicative
 open import Prelude.Functor
+open import Prelude.Equality
+
+open import Prelude.Variables
 
 record Monoid {a} (A : Set a) : Set a where
-  infixr 6 _<>_
   field
+    {{super}} : Semigroup A
     mempty : A
-    _<>_   : A → A → A
-
-open Monoid {{...}} public
+open Monoid {{...}} public hiding (super)
 
 {-# DISPLAY Monoid.mempty _ = mempty #-}
-{-# DISPLAY Monoid._<>_ _ a b = a <> b #-}
+
+
+record Monoid/Laws {ℓ} (A : Set ℓ) : Set ℓ where
+  field
+    overlap {{super}} : Monoid A
+    left-identity : (e : A) → mempty <> e ≡ e
+    right-identity : (e : A) → e <> mempty ≡ e
+    -- Using Semigroup/Laws instance creates inference problems
+    monoid-assoc : (a b c : A) → (a <> b) <> c ≡ a <> (b <> c)
+open Monoid/Laws {{...}} public hiding (super)
+
 
 mconcat : ∀ {a} {A : Set a} {{MonA : Monoid A}} → List A → A
 mconcat = foldr _<>_ mempty
@@ -25,29 +40,32 @@ mconcat = foldr _<>_ mempty
 --- Instances ---
 
 instance
+
   MonoidList : ∀ {a} {A : Set a} → Monoid (List A)
+  Monoid.super MonoidList = it
   mempty {{MonoidList}} = []
-  _<>_   {{MonoidList}} = _++_
 
   MonoidFun : ∀ {a b} {A : Set a} {B : A → Set b} {{_ : ∀ {x} → Monoid (B x)}} → Monoid (∀ x → B x)
-  mempty {{MonoidFun}}     _ = mempty
-  _<>_   {{MonoidFun}} f g x = f x <> g x
+  Monoid.super (MonoidFun {a} {b} {A} {B} {{SG}}) =
+    SemigroupFun {a} {b} {A} {B} {{Monoid.super SG}}
+  mempty {{MonoidFun}} _ = mempty
 
   MonoidMaybe : ∀ {a} {A : Set a} → Monoid (Maybe A)
+  Monoid.super MonoidMaybe = it
   mempty {{MonoidMaybe}} = nothing
-  _<>_   {{MonoidMaybe}} nothing  y = y
-  _<>_   {{MonoidMaybe}} (just x) _ = just x
 
 record Sum {a} (A : Set a) : Set a where
   constructor mkSum
   field getSum : A
-
 open Sum public
 
 instance
+  SemigroupSum : ∀ {a} {A : Set a} {{_ : Semiring A}} → Semigroup (Sum A)
+  getSum (_<>_   {{SemigroupSum}} x y) = getSum x + getSum y
+
   MonoidSum : ∀ {a} {A : Set a} {{_ : Semiring A}} → Monoid (Sum A)
-  getSum (mempty {{MonoidSum}})     = zro
-  getSum (_<>_   {{MonoidSum}} x y) = getSum x + getSum y
+  Monoid.super MonoidSum = it
+  getSum (mempty {{MonoidSum}}) = zro
 
 record Product {a} (A : Set a) : Set a where
   constructor mkProduct
@@ -56,9 +74,12 @@ record Product {a} (A : Set a) : Set a where
 open Product public
 
 instance
+  SemigroupProduct : ∀ {a} {A : Set a} {{_ : Semiring A}} → Semigroup (Product A)
+  getProduct (_<>_   {{SemigroupProduct}} x y) = getProduct x * getProduct y
+
   MonoidProduct : ∀ {a} {A : Set a} {{_ : Semiring A}} → Monoid (Product A)
-  getProduct (mempty {{MonoidProduct}})     = one
-  getProduct (_<>_   {{MonoidProduct}} x y) = getProduct x * getProduct y
+  Monoid.super MonoidProduct = it
+  getProduct (mempty {{MonoidProduct}}) = one
 
 record Const {a b} (A : Set a) (B : Set b) : Set a where
   constructor mkConst
