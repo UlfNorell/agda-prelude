@@ -1,4 +1,3 @@
-
 module Container.List where
 
 open import Prelude
@@ -35,6 +34,8 @@ module _ {a b} {A : Set a} {P : A → Set b} where
 infix 3 _∈_
 _∈_ : ∀ {a} {A : Set a} → A → List A → Set a
 x ∈ xs = Any (_≡_ x) xs
+
+
 
 forgetAny : ∀ {a p} {A : Set a} {P : A → Set p} {xs : List A} → Any P xs → Nat
 forgetAny (zero _) = zero
