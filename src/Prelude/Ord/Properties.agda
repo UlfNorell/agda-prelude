@@ -71,3 +71,10 @@ module _  {ℓ} {A : Set ℓ} {{_ : Ord/Laws A}} where
 
   ≰?⇒≥ : {a b : A} → (a ≤? b) ≡ false → a ≥ b
   ≰?⇒≥ = ≰⇒≥ ∘ ≰?⇒≰
+
+  ≤⇒≤? : {a b : A} → a ≤ b → (a ≤? b) ≡ true
+  ≤⇒≤? {a = a} {b = b} a≤b
+    with compare b a
+  ... | less lt = ⊥-elim ((<⇒≱ lt) a≤b)
+  ... | equal eq = refl
+  ... | greater gt = refl

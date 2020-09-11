@@ -11,6 +11,11 @@ data Permutation {a} {A : Set a} : List A → List A → Set a where
   _∷_ : ∀ {x xs ys} (i : x ∈ ys) → Permutation xs (deleteIx ys i) →
           Permutation (x ∷ xs) ys
 
+null-perm : {xs : List A}
+          → Permutation xs []
+          → xs ≡ []
+null-perm {xs = .[]} [] = Prelude.refl
+
 refl : (xs : List A)
      → Permutation xs xs
 refl [] = []
@@ -115,8 +120,8 @@ deleteIx-tail-right (suc x∈ys) (suc (suc x₂∈del[ys]) ∷ p)
   (suc y∈ys) ∷ deleteIx-tail-right (suc x∈del[ys]) p
 
 sym : {xs ys : List A}
-                → Permutation xs ys
-                → Permutation ys xs
+    → Permutation xs ys
+    → Permutation ys xs
 sym {xs = []} {ys = []} [] = []
 sym {xs = []} {ys = (x ∷ ys)} ()
 sym {xs = (x ∷ xs)} {ys = .(_ ∷ _)} ((zero {x₁} {xs₁} x≡x₁) ∷ p)
@@ -224,3 +229,28 @@ permuation-++ (_∷_ {x} {(x₁ ∷ xs)} {(x₁' ∷ xs')} (suc x∈xs') perm-xs
                                           (cons y (permuation-++ perm-xs-xs' perm-ys-ys'))))
               )
             (from-≡ (Eq.sym (deleteIx-∈-++-left x (x₁' ∷ xs') (y₁' ∷ ys') (suc  x∈xs'))))
+
+
+
+flip-++-right :
+  (ys zs : List A)
+  → Permutation xs (ys ++ zs)
+  → Permutation xs (zs ++ ys)
+flip-++-right ys [] perm
+  rewrite right-identity ys = perm
+flip-++-right ys (z ∷ zs) perm =
+  let (z∈ , swap) = deleteIx-head-right (trans perm (sym (cons-++ z ys zs)))
+  in deleteIx-destr-left z∈ (flip-++-right ys zs swap)
+
+flip-++-left :
+  (xs ys : List A)
+  → Permutation (xs ++ ys) zs
+  → Permutation (ys ++ xs) zs
+flip-++-left xs ys p = sym (flip-++-right xs ys (sym p))
+
+flip-++ :
+  (xs xs' ys ys' : List A)
+  → Permutation (xs ++ xs') (ys ++ ys')
+  → Permutation (xs' ++ xs) (ys' ++ ys)
+flip-++ xs xs' ys ys' p =
+  flip-++-left xs xs' (flip-++-right ys ys' p)

@@ -5,6 +5,7 @@ open import Prelude.Nat.Properties
 open import Prelude.Variables
 open import Container.List
 
+
 foldr-map-fusion : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
                      (f : B → C → C) (g : A → B) (z : C) (xs : List A) →
                      foldr f z (map g xs) ≡ foldr (f ∘ g) z xs
