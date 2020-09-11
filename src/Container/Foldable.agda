@@ -1,4 +1,3 @@
-
 module Container.Foldable where
 
 open import Prelude
@@ -14,24 +13,12 @@ fold : ∀ {a w} {W : Set w} {F : Set w → Set a} {{FoldF : Foldable F}} {{MonW
 fold = foldMap id
 
 minimum : ∀ {a w} {W : Set w} {F : Set w → Set a} {{FoldF : Foldable F}} {{OrdW : Ord W}} → F W → Maybe W
-minimum = foldMap {{MonW = monoid}} just
-  where
-    monoid : Monoid _
-    Monoid.mempty monoid = nothing
-    Monoid._<>_ monoid (just x) (just y) = just (min x y)
-    Monoid._<>_ monoid (just x) nothing = just x
-    Monoid._<>_ monoid nothing (just y) = just y
-    Monoid._<>_ monoid nothing nothing = nothing
+minimum = foldMap just
+
 
 maximum : ∀ {a w} {W : Set w} {F : Set w → Set a} {{FoldF : Foldable F}} {{OrdW : Ord W}} → F W → Maybe W
-maximum = foldMap {{MonW = monoid}} just
-  where
-    monoid : Monoid _
-    Monoid.mempty monoid = nothing
-    Monoid._<>_ monoid (just x) (just y) = just (max x y)
-    Monoid._<>_ monoid (just x) nothing = just x
-    Monoid._<>_ monoid nothing (just y) = just y
-    Monoid._<>_ monoid nothing nothing = nothing
+maximum = foldMap just
+
 
 --- Instances ---
 

@@ -1,9 +1,15 @@
-module Container.List.Permutation where
+module Prelude.List.Relations.Permutation where
 
-open import Prelude hiding (trans ; sym ; refl)
+open import Prelude.Equality using (_≡_ ; transport )
 import Prelude.Equality as Eq
-open import Container.List
-open import Container.List.Properties
+open import Prelude.Product
+open import Prelude.Function
+
+open import Prelude.Monoid
+open import Prelude.List.Base
+open import Prelude.List.Properties
+open import Prelude.List.Relations.Any
+open import Prelude.List.Relations.Properties
 open import Prelude.Variables
 
 data Permutation {a} {A : Set a} : List A → List A → Set a where
@@ -14,7 +20,7 @@ data Permutation {a} {A : Set a} : List A → List A → Set a where
 null-perm : {xs : List A}
           → Permutation xs []
           → xs ≡ []
-null-perm {xs = .[]} [] = Prelude.refl
+null-perm {xs = .[]} [] = Eq.refl
 
 refl : (xs : List A)
      → Permutation xs xs

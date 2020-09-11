@@ -1,4 +1,4 @@
-module Container.List.Linked where
+module Prelude.List.Relations.Linked where
 
 open import Prelude.List.Base
 open import Agda.Primitive      public

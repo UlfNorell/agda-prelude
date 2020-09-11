@@ -1,14 +1,16 @@
-module Container.List.Sorted where
+module Prelude.List.Relations.Sorted where
 
 open import Prelude.Equality
 open import Prelude.Variables
-open import Prelude.List.Base
+
 open import Prelude.Product
 open import Prelude.Decidable
 
-open import Container.List.Permutation using (Permutation ; [] ; _∷_)
-open import Container.List.Linked
-open import Container.List
+open import Prelude.List.Base
+open import Prelude.List.Relations.Permutation using (Permutation ; [] ; _∷_)
+open import Prelude.List.Relations.Linked
+open import Prelude.List.Relations.Any
+
 
 
 OrderedBy : ∀ {ℓ₁} {A : Set ℓ} → (A → A → Set ℓ₁) → List A → Set (ℓ ⊔ ℓ₁)

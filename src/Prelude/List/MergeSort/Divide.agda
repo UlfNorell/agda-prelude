@@ -1,4 +1,4 @@
-module Container.List.MergeSort.Divide where
+module Prelude.List.MergeSort.Divide where
 
 open import Prelude.Equality
 open import Prelude.Semiring
@@ -12,10 +12,10 @@ open import Prelude.Monoid
 open import Prelude.List.Properties
 
 open import Control.WellFounded
-open import Container.List.Linked
-open import Container.List.Any
-open import Container.List.Permutation using (Permutation ; [] ; _∷_)
-import Container.List.Permutation as Perm
+open import Prelude.List.Relations.Linked
+open import Prelude.List.Relations.Any
+open import Prelude.List.Relations.Permutation using (Permutation ; [] ; _∷_)
+import Prelude.List.Relations.Permutation as Perm
 
 open import Prelude.Nat.Properties
 

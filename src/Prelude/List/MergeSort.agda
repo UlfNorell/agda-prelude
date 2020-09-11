@@ -1,6 +1,6 @@
 -- Contains the definition and main properties of MergeSort
 -- the actual sorting function is |mergeSortBy|
-module Container.List.MergeSort where
+module Prelude.List.MergeSort where
 
 open import Prelude.Function
 open import Prelude.Equality.Inspect
@@ -17,17 +17,17 @@ open import Prelude.List.Properties
 open import Prelude.Monoid
 
 open import Control.WellFounded
-open import Container.List.Linked
-open import Container.List.Sorted
-open import Container.List.Any
+open import Prelude.List.Relations.Linked
+open import Prelude.List.Relations.Sorted
+open import Prelude.List.Relations.Any
 
 open import Prelude.Nat.Properties
 
 open import Prelude.Variables
 
-open import Container.List.MergeSort.Divide renaming (module Properties to DivideProperies)
-open import Container.List.Permutation using (Permutation ; [] ; _∷_ )
-import Container.List.Permutation as Perm
+open import Prelude.List.MergeSort.Divide renaming (module Properties to DivideProperies)
+open import Prelude.List.Relations.Permutation using (Permutation ; [] ; _∷_ )
+import Prelude.List.Relations.Permutation as Perm
 
 mergeBy : (A → A → Bool) → List A → List A → List A
 mergeBy rel [] l₂ = l₂

@@ -161,9 +161,6 @@ module _ ⦃ _ : Ord A ⦄ where
   insert x [] = x ∷ []
   insert x (y ∷ xs) = if x <? y then x ∷ y ∷ xs else y ∷ insert x xs
 
-  sort : List A → List A
-  sort [] = []
-  sort (x ∷ xs) = insert x (sort xs)
 
 infix 10 from_for_ from_to_ from_for_step_ from-to-step
 from_for_ : Nat → Nat → List Nat
