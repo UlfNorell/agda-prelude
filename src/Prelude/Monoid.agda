@@ -6,8 +6,7 @@ open import Prelude.Maybe
 open import Prelude.List.Base
 
 open import Prelude.Semiring
-
-open import Prelude.Semigroup
+open import Prelude.Semigroup public
 
 open import Prelude.Applicative
 open import Prelude.Functor
