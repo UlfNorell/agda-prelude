@@ -13,12 +13,31 @@ fold : ∀ {a w} {W : Set w} {F : Set w → Set a} {{FoldF : Foldable F}} {{MonW
 fold = foldMap id
 
 minimum : ∀ {a w} {W : Set w} {F : Set w → Set a} {{FoldF : Foldable F}} {{OrdW : Ord W}} → F W → Maybe W
-minimum = foldMap just
+minimum = foldMap {{MonW = monoid}} just
+  where
+    semigroup : Semigroup _
+    _<>_ {{semigroup}} (just x) (just y) = just (min x y)
+    _<>_ {{semigroup}} (just x) nothing = just x
+    _<>_ {{semigroup}} nothing (just y) = just y
+    _<>_ {{semigroup}} nothing nothing = nothing
+
+    monoid : Monoid _
+    Monoid.super monoid = semigroup
+    mempty {{monoid}} = nothing
 
 
 maximum : ∀ {a w} {W : Set w} {F : Set w → Set a} {{FoldF : Foldable F}} {{OrdW : Ord W}} → F W → Maybe W
-maximum = foldMap just
+maximum = foldMap {{MonW = monoid}} just
+  where
+    semigroup : Semigroup _
+    _<>_ {{semigroup}} (just x) (just y) = just (max x y)
+    _<>_ {{semigroup}} (just x) nothing = just x
+    _<>_ {{semigroup}} nothing (just y) = just y
+    _<>_ {{semigroup}} nothing nothing = nothing
 
+    monoid : Monoid _
+    Monoid.super monoid = semigroup
+    mempty {{monoid}} = nothing
 
 --- Instances ---
 
