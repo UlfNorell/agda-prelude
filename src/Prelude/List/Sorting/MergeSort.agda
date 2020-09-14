@@ -1,6 +1,6 @@
 -- Contains the definition and main properties of MergeSort
 -- the actual sorting function is |mergeSortBy|
-module Prelude.List.MergeSort where
+module Prelude.List.Sorting.MergeSort where
 
 open import Prelude.Function
 open import Prelude.Equality.Inspect

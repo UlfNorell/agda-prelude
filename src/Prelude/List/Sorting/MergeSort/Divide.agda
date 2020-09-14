@@ -1,4 +1,4 @@
-module Prelude.List.MergeSort.Divide where
+module Prelude.List.Sorting.MergeSort.Divide where
 
 open import Prelude.Equality
 open import Prelude.Semiring
