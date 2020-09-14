@@ -10,12 +10,7 @@ open import Prelude.Monad
 open import Prelude.Equality
 open import Prelude.Decidable
 
-data Maybe {a} (A : Set a) : Set a where
-  nothing : Maybe A
-  just    : A → Maybe A
-
-{-# FOREIGN GHC type AgdaMaybe l = Maybe #-}
-{-# COMPILE GHC Maybe = data MAlonzo.Code.Prelude.Maybe.AgdaMaybe (Nothing | Just) #-}
+open import Agda.Builtin.Maybe public
 
 maybe : ∀ {a b} {A : Set a} {B : Set b} → B → (A → B) → Maybe A → B
 maybe z f nothing  = z
