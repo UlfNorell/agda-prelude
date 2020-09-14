@@ -1,6 +1,10 @@
 module Control.WellFounded where
-
-open import Prelude
+open import Agda.Primitive
+open import Prelude.Ord
+open import Prelude.Nat
+open import Prelude.Semigroup
+open import Prelude.Semiring
+open import Prelude.Equality
 open import Prelude.Nat.Properties using (suc-inj)
 
 data Acc {a b} {A : Set a} (_<_ : A → A → Set b) (x : A) : Set (a ⊔ b) where

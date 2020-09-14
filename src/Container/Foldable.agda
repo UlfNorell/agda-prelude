@@ -1,4 +1,3 @@
-
 module Container.Foldable where
 
 open import Prelude
@@ -16,22 +15,29 @@ fold = foldMap id
 minimum : ∀ {a w} {W : Set w} {F : Set w → Set a} {{FoldF : Foldable F}} {{OrdW : Ord W}} → F W → Maybe W
 minimum = foldMap {{MonW = monoid}} just
   where
+    semigroup : Semigroup _
+    _<>_ {{semigroup}} (just x) (just y) = just (min x y)
+    _<>_ {{semigroup}} (just x) nothing = just x
+    _<>_ {{semigroup}} nothing (just y) = just y
+    _<>_ {{semigroup}} nothing nothing = nothing
+
     monoid : Monoid _
-    Monoid.mempty monoid = nothing
-    Monoid._<>_ monoid (just x) (just y) = just (min x y)
-    Monoid._<>_ monoid (just x) nothing = just x
-    Monoid._<>_ monoid nothing (just y) = just y
-    Monoid._<>_ monoid nothing nothing = nothing
+    Monoid.super monoid = semigroup
+    mempty {{monoid}} = nothing
+
 
 maximum : ∀ {a w} {W : Set w} {F : Set w → Set a} {{FoldF : Foldable F}} {{OrdW : Ord W}} → F W → Maybe W
 maximum = foldMap {{MonW = monoid}} just
   where
+    semigroup : Semigroup _
+    _<>_ {{semigroup}} (just x) (just y) = just (max x y)
+    _<>_ {{semigroup}} (just x) nothing = just x
+    _<>_ {{semigroup}} nothing (just y) = just y
+    _<>_ {{semigroup}} nothing nothing = nothing
+
     monoid : Monoid _
-    Monoid.mempty monoid = nothing
-    Monoid._<>_ monoid (just x) (just y) = just (max x y)
-    Monoid._<>_ monoid (just x) nothing = just x
-    Monoid._<>_ monoid nothing (just y) = just y
-    Monoid._<>_ monoid nothing nothing = nothing
+    Monoid.super monoid = semigroup
+    mempty {{monoid}} = nothing
 
 --- Instances ---
 

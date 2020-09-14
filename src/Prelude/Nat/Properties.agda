@@ -1,4 +1,3 @@
-
 module Prelude.Nat.Properties where
 
 open import Prelude.Bool
@@ -18,6 +17,10 @@ add-zero-r (suc n) = suc $≡ add-zero-r n
 add-suc-r : (n m : Nat) → n + suc m ≡ suc (n + m)
 add-suc-r zero    m = refl
 add-suc-r (suc n) m = suc $≡ add-suc-r n m
+
+add-one-r : (n : Nat) → n + 1 ≡ suc n
+add-one-r zero = refl
+add-one-r (suc n) = cong suc (add-one-r n)
 
 add-commute : (a b : Nat) → a + b ≡ b + a
 add-commute zero    b = sym (add-zero-r _)
