@@ -124,18 +124,19 @@ private
 
   showFrac : Nat → Float → String
   showFrac 0       _ = ""
-  showFrac 1       x = show (round (10 * x))
+  showFrac 1       x = show (round! (10 * x))
   showFrac (suc p) x = show n & showFrac p (x′ - intToFloat n)
     where x′ = 10 * x
-          n  = floor x′
+          n  = floor! x′
 
   showPosFloat : Flags → Float → String
   showPosFloat f x =
-    case Flags.precision f of λ
-    { nothing  → show x
-    ; (just 0) → show (floor x)
-    ; (just p) → show (floor x) & "." & showFrac p (x - intToFloat (floor x))
-    }
+    if isInfinite x then "Inf"
+    else if isNaN x then "NaN"
+    else case Flags.precision f of λ where
+      nothing  → show x
+      (just 0) → show (floor! x)
+      (just p) → show (floor! x) & "." & showFrac p (x - intToFloat (floor! x))
 
   showFloat : Flags → Float → String
   showFloat f x with x <? 0.0

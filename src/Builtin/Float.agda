@@ -66,13 +66,30 @@ instance
   Fractional.Constraint FracFloat _ _ = ⊤
   Fractional._/_ FracFloat x y = primFloatDiv x y
 
-floor   = primFloor
-round   = primRound
-ceiling = primCeiling
-exp     = primExp
-ln      = primLog
-sin     = primSin
+floor   = primFloatFloor
+round   = primFloatRound
+ceiling = primFloatCeiling
+exp     = primFloatExp
+ln      = primFloatLog
+sin     = primFloatSin
 sqrt    = primFloatSqrt
+
+isNaN      = primFloatIsNaN
+isInfinite = primFloatIsInfinite
+
+isFinite : Float → Bool
+isFinite x = not (isNaN x || isInfinite x)
+
+-- Non-maybe rounding, that returns 0 for ±Inf and NaN
+
+round! : Float → Int
+round! = fromMaybe 0 ∘ round
+
+floor! : Float → Int
+floor! = fromMaybe 0 ∘ floor
+
+ceiling! : Float → Int
+ceiling! = fromMaybe 0 ∘ ceiling
 
 π : Float
 π = 3.141592653589793
