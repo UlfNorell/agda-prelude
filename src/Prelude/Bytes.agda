@@ -36,6 +36,9 @@ instance
 
 instance
   open import Prelude.Monoid
+  SemigroupBytes : Semigroup Bytes
+  _<>_   {{SemigroupBytes}} = Internal.append
+
   MonoidBytes : Monoid Bytes
+  Monoid.super MonoidBytes = SemigroupBytes
   mempty {{MonoidBytes}} = Internal.empty
-  _<>_   {{MonoidBytes}} = Internal.append

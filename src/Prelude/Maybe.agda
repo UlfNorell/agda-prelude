@@ -1,4 +1,3 @@
-
 module Prelude.Maybe where
 
 open import Prelude.Unit

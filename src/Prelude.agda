@@ -1,4 +1,3 @@
-
 module Prelude where
 
 open import Agda.Primitive      public
@@ -25,6 +24,7 @@ open import Prelude.Fractional  public
 open import Prelude.Erased      public
 open import Prelude.Strict      public
 
+open import Prelude.Semigroup   public
 open import Prelude.Monoid      public
 open import Prelude.Equality    public
 open import Prelude.Decidable   public
