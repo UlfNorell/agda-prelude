@@ -29,6 +29,7 @@ record Monoid/Laws {ℓ} (A : Set ℓ) : Set ℓ where
     left-identity : (e : A) → mempty <> e ≡ e
     right-identity : (e : A) → e <> mempty ≡ e
     -- Using Semigroup/Laws instance creates inference problems
+    -- Maby we can do this in a better way?
     monoid-assoc : (a b c : A) → (a <> b) <> c ≡ a <> (b <> c)
 open Monoid/Laws {{...}} public hiding (super)
 
@@ -52,6 +53,18 @@ instance
   MonoidMaybe : ∀ {a} {A : Set a} → Monoid (Maybe A)
   Monoid.super MonoidMaybe = it
   mempty {{MonoidMaybe}} = nothing
+
+
+  -- Temporarily here, better version comes in the list update
+  Monoid/LawsList : Monoid/Laws (List A)
+  Monoid/Laws.super Monoid/LawsList = it
+  left-identity {{Monoid/LawsList}} _ = refl
+  right-identity {{Monoid/LawsList}} [] = refl
+  right-identity {{Monoid/LawsList}} (x ∷ xs) =
+    cong (x ∷_) (right-identity xs)
+  monoid-assoc {{Monoid/LawsList}} [] ys zs = refl
+  monoid-assoc {{Monoid/LawsList}} (x ∷ xs) ys zs =
+    cong (x ∷_) (monoid-assoc xs ys zs)
 
 record Sum {a} (A : Set a) : Set a where
   constructor mkSum

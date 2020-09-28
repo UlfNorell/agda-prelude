@@ -1,4 +1,3 @@
-
 module Tactic.Monoid.Reflect where
 
 open import Prelude
@@ -45,7 +44,7 @@ private
   match<> : ∀ {a} {A : Set a} → Monoid A → TC (Term → Maybe (Vec Term 2))
   match<> {A = A} dict = do
     `A    ← quoteTC A
-    `plus ← quoteTC (Monoid._<>_ dict)
+    `plus ← quoteTC (Semigroup._<>_ (Monoid.super dict))
     extendContext (vArg `A) $
       extendContext (vArg $ weaken 1 `A) $
       match 2 <$> normalise (safeApply (weaken 2 `plus) (vArg (safe (var 0 []) _) ∷

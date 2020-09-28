@@ -1,26 +1,24 @@
-
 module Tactic.Monoid where
 
 open import Prelude
 open import Tactic.Reflection
 open import Tactic.Reflection.Quote
 
-open import Structure.Monoid.Laws
 
 open import Tactic.Monoid.Exp
 open import Tactic.Monoid.Reflect
 open import Tactic.Monoid.Proofs
 
-monoidTactic : ∀ {a} {A : Set a} {MonA : Monoid A} {{_ : MonoidLaws A {{MonA}}}} → Tactic
-monoidTactic {A = A} {dict} {{laws}} hole = do
+monoidTactic : ∀ {a} {A : Set a} {{_ : Monoid/Laws A}} → Tactic
+monoidTactic {A = A} {{laws}} hole = do
   goal   ← inferNormalisedType hole
   `A     ← quoteTC A
   unify goal (def (quote _≡_) (hArg unknown ∷ hArg `A ∷ vArg unknown ∷ vArg unknown ∷ []))
     <|> do typeErrorFmt "Goal is not an equality: %t" goal
   goal   ← normalise goal
   ensureNoMetas goal
-  match  ← monoidMatcher dict
-  `dict  ← quoteTC dict
+  match  ← monoidMatcher (Monoid/Laws.super laws)
+  `dict  ← quoteTC (Monoid/Laws.super laws)
   `laws  ← quoteTC laws
   ensureNoMetas `dict
   debugPrintFmt "tactic.monoid" 20 "monoidTactic %t, dict = %t" goal `dict
@@ -31,5 +29,5 @@ monoidTactic {A = A} {dict} {{laws}} hole = do
                         (` lhs) (` rhs) (` (flatten lhs)) (` (flatten rhs))
 
 macro
-  auto-monoid : ∀ {a} {A : Set a} {Mon : Monoid A} {{Laws : MonoidLaws A {{Mon}}}} → Tactic
+  auto-monoid : ∀ {a} {A : Set a} {{Laws : Monoid/Laws A}} → Tactic
   auto-monoid {{Laws}} = monoidTactic {{Laws}}
