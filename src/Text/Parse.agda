@@ -1,4 +1,3 @@
-
 module Text.Parse (Tok : Set) where
 
 open import Prelude
@@ -67,9 +66,13 @@ instance
   MonadP : Monad P
   _>>=_  {{MonadP}} = bind
 
+  SemigroupP : ∀ {A} → Semigroup (P A)
+  _<>_   {{SemigroupP}} = _+++_
+
   MonoidP : ∀ {A} → Monoid (P A)
+  Monoid.super MonoidP = SemigroupP
   mempty {{MonoidP}} = fail
-  _<>_   {{MonoidP}} = _+++_
+
 
 --- Derived combinators ---
 

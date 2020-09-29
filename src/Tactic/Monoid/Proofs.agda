@@ -1,8 +1,6 @@
-
 module Tactic.Monoid.Proofs where
 
 open import Prelude
-open import Structure.Monoid.Laws
 
 open import Tactic.Monoid.Exp
 
@@ -18,14 +16,14 @@ map/++ : ∀ {a b} {A : Set a} {B : Set b} (f : A → B) (xs ys : List A) → ma
 map/++ f [] ys = refl
 map/++ f (x ∷ xs) ys = f x ∷_ $≡ map/++ f xs ys
 
-module _ {a} {A : Set a} {{Mon : Monoid A}} {{Laws : MonoidLaws A}} where
+module _ {a} {A : Set a} {{Mon : Monoid A}} {{Laws : Monoid/Laws A}} where
 
   mconcat/++ : (xs ys : List A) → mconcat (xs ++ ys) ≡ mconcat xs <> mconcat ys
-  mconcat/++ [] ys = sym (idLeft _)
-  mconcat/++ (x ∷ xs) ys = x <>_ $≡ mconcat/++ xs ys ⟨≡⟩ <>assoc x _ _
+  mconcat/++ [] ys = sym (left-identity _)
+  mconcat/++ (x ∷ xs) ys = x <>_ $≡ mconcat/++ xs ys ⟨≡⟩ sym (monoid-assoc x _ _)
 
   sound : ∀ e (ρ : Nat → A) → ⟦ e ⟧ ρ ≡ ⟦ flatten e ⟧n ρ
-  sound (var x) ρ = sym (idRight (ρ x))
+  sound (var x) ρ = sym (right-identity (ρ x))
   sound ε ρ = refl
   sound (e ⊕ e₁) ρ = _<>_ $≡ sound e ρ *≡ sound e₁ ρ ⟨≡⟩ʳ
                      mconcat $≡ map/++ ρ (flatten e) (flatten e₁) ⟨≡⟩
@@ -33,5 +31,3 @@ module _ {a} {A : Set a} {{Mon : Monoid A}} {{Laws : MonoidLaws A}} where
 
   proof : ∀ e e₁ (ρ : Nat → A) → flatten e ≡ flatten e₁ → ⟦ e ⟧ ρ ≡ ⟦ e₁ ⟧ ρ
   proof e e₁ ρ nfeq = eraseEquality $ sound e ρ ⟨≡⟩ (⟦_⟧n ρ) $≡ nfeq ⟨≡⟩ʳ sound e₁ ρ
-
-
