@@ -1,8 +1,27 @@
+module Prelude.List.Properties where
 
-module Container.List.Properties where
+open import Prelude.Function
 
-open import Prelude
+open import Prelude.Bool
+open import Prelude.Bool.Properties
+
+open import Prelude.Nat
 open import Prelude.Nat.Properties
+
+open import Prelude.Semiring
+
+open import Prelude.List.Base
+
+open import Prelude.Decidable
+
+open import Prelude.Monoid
+open import Prelude.Semigroup
+
+open import Prelude.Equality
+open import Prelude.Equality.Inspect
+open import Prelude.Variables
+
+open import Prelude.Strict
 
 foldr-map-fusion : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
                      (f : B → C → C) (g : A → B) (z : C) (xs : List A) →

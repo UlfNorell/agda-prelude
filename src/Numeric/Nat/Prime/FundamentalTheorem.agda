@@ -1,11 +1,10 @@
-
 module Numeric.Nat.Prime.FundamentalTheorem where
 
 open import Prelude
 open import Control.WellFounded
 open import Container.List
 open import Container.List.Permutation
-open import Container.List.Properties
+open import Prelude.List.Properties
 open import Numeric.Nat
 open import Tactic.Nat
 

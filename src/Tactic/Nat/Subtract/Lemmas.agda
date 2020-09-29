@@ -1,4 +1,3 @@
-
 module Tactic.Nat.Subtract.Lemmas where
 
 open import Prelude
@@ -7,7 +6,7 @@ open import Tactic.Nat.Exp
 open import Container.Bag
 open import Tactic.Nat.Simpl
 open import Prelude.Nat.Properties
-open import Container.List.Properties
+open import Prelude.List.Properties
 open import Tactic.Nat.Auto.Lemmas
 open import Tactic.Nat.Simpl.Lemmas
 open import Tactic.Nat.Auto
