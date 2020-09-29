@@ -1,10 +1,11 @@
-
 import Everything
 
 open import Prelude
+
+open import Prelude.List.Relations.Properties
 open import Container.Traversable
 open import Container.Foldable
-open import Container.List
+
 open import Text.Parse
 open import Text.Lex
 open import Text.Printf.Prelude

@@ -1,9 +1,11 @@
-
 module Tactic.Nat.Coprime.Decide where
 
 open import Prelude
 open import Prelude.Equality.Unsafe
-open import Container.List
+open import Prelude.List.Relations.Any
+open import Prelude.List.Relations.All
+open import Prelude.List.Relations.Properties
+
 open import Numeric.Nat
 open import Tactic.Nat.Coprime.Problem
 
