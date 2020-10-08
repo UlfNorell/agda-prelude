@@ -2,15 +2,24 @@ module Container.BinaryTree.Relations where
 
 open import Container.BinaryTree.Base
 
+open import Prelude.Empty
 open import Prelude.Equality
 open import Prelude.Function
 open import Prelude.Product
+open import Prelude.Unit
 
 open import Agda.Primitive
 open import Agda.Builtin.Nat
 
 
 open import Prelude.Variables
+
+
+data RootRel {ℓ₁ ℓ₂ : Level} {A : Set ℓ₁} (R : A → A → Set ℓ₂) : BinaryTree A → BinaryTree A → Set (ℓ₁ ⊔ ℓ₂) where
+  leafleaf : RootRel R leaf leaf
+  leafnode : ∀ {x a b} → RootRel R leaf (node x a b)
+  nodeleaf : ∀ {x a b} → RootRel R (node x a b) leaf
+  nodenode : ∀ {x y a b c d} → R x y → RootRel R (node x a b) (node y c d)
 
 data AllNodes {ℓ₁ ℓ₂ : Level} {A : Set ℓ₁} (R : A → BinaryTree A → BinaryTree A → Set ℓ₂) : BinaryTree A → Set (ℓ₁ ⊔ ℓ₂)  where
   leaf : AllNodes R leaf

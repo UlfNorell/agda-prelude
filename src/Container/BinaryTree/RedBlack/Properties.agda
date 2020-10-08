@@ -698,6 +698,19 @@ sub1-All (node (red , x) _ _) (node Px all[t] all[t]₁) = node Px all[t] all[t]
 sub1-All (node (black , x) _ _) (node Px all[t] all[t]₁) = node Px all[t] all[t]₁
 
 
+sub1-Any :
+     {P : A → Set ℓ₂}
+   → (t : RedBlackTree A)
+   → Any (P ∘ snd) t
+   → Any (P ∘ snd) (sub1 t)
+sub1-Any leaf ()
+sub1-Any (node (red , x) l r) (here Px) = here Px
+sub1-Any (node (black , x) l r) (here Px) = here Px
+sub1-Any (node (red , x) l r) (inLeft any[l]) = inLeft any[l]
+sub1-Any (node (black , x) l r) (inLeft any[l]) = inLeft any[l]
+sub1-Any (node (red , x) l r) (inRight any[r]) = inRight any[r]
+sub1-Any (node (black , x) l r) (inRight any[r]) = inRight any[r]
+
 balleft-cases :
   (v : A) → (l : RedBlackTree A) → (r : RedBlackTree A)
   → (Either (Σ (A × RB A × RB A) (λ { (x , a , b) →
@@ -773,6 +786,65 @@ balleft-ordered x l r ord[l] ord[r] all[l]<x all[r]>x
 ... | right (right (right x₁)) rewrite x₁ =
    node (all[l]<x , all[r]>x) ord[l] ord[r]
 
+balleft-Any :
+  {P : A → Set ℓ₂}
+  → (v : A) → (l : RedBlackTree A) → (r : RedBlackTree A)
+  → Either (P v) (Either (Any (P ∘ snd) l) (Any (P ∘ snd) r))
+  → Any (P ∘ snd) (balleft l v r)
+balleft-Any v l r inArgs
+  with balleft-cases v l r
+... | left ((x , a , b) , refl , refl) =
+  case inArgs of
+    λ { (left Pv) → here Pv ; (right (left (here Px))) → inLeft (here Px)
+      ; (right (left (inLeft any[a]))) → inLeft (inLeft any[a])
+      ; (right (left (inRight any[b]))) → inLeft (inRight any[b])
+      ; (right (right any[r])) → inRight any[r]
+      }
+... | right (left ((x , a , b) , refl , balleft≡)) rewrite balleft≡ =
+  case inArgs of
+    λ { (left Pv) → balance-Any v l _ (left Pv)
+      ; (right (left (here Px))) → balance-Any v l _ (right (left (here Px)))
+      ; (right (left (inLeft any[l₁]))) → balance-Any v _ _ (right (left (inLeft any[l₁])))
+      ; (right (left (inRight any[r₁]))) → balance-Any v _ _ (right (left (inRight any[r₁])))
+      ; (right (right (here Px))) → balance-Any v _ _ (right (right (here Px)))
+      ; (right (right (inLeft any[a]))) → balance-Any v _ _ (right (right (inLeft any[a])))
+      ; (right (right (inRight any[b]))) → balance-Any v _ _ (right (right (inRight any[b])))
+      }
+... | right (right (left ((z , y , a , b , c) , refl , balleft≡))) rewrite balleft≡ =
+  case inArgs of
+    λ { (left Pv) → inLeft (here Pv)
+      ; (right (left any[l])) → inLeft (inLeft any[l])
+      ; (right (right (here Pz))) → inRight (balance-Any z _ _ (left Pz))
+      ; (right (right (inLeft (here Py)))) → here Py
+      ; (right (right (inLeft (inLeft any[a])))) → inLeft (inRight any[a])
+      ; (right (right (inLeft (inRight any[b])))) → inRight (balance-Any z _ _ (right (left any[b])))
+      ; (right (right (inRight any[c]))) → inRight (balance-Any z _ (sub1 c) (right (right (sub1-Any c any[c]))))
+      }
+... | right (right (right balleft≡)) rewrite balleft≡ =
+  case inArgs of
+    λ { (left Pv) → here Pv ; (right (left any[l])) → inLeft any[l] ; (right (right any[r])) → inRight any[r] }
+
+balleft-All :
+  {P : A → Set ℓ₂}
+  → (x : A) → (l : RedBlackTree A) → (r : RedBlackTree A)
+  → P x
+  → All (P ∘ snd) l → All (P ∘ snd) r
+  → All (P ∘ snd) (balleft l x r)
+balleft-All x l r Px all[l] all[r]
+  with balleft-cases x l r
+... | left (_ , refl , refl) =
+  case all[l] of
+    λ { (node x all[l] all[l]₁) → node Px (node x all[l] all[l]₁) all[r] }
+... | right (left ((y , a , b) , refl , balleft≡)) rewrite balleft≡  =
+  case all[r] of
+    λ { (node Py all[a] all[b]) → balance-All x l (node (red , y) a b) Px all[l] (node Py all[a] all[b]) }
+... | right (right (left ((z , y , a , b , c) , refl , balleft≡))) rewrite balleft≡ =
+  case all[r] of
+    λ { (node Pz (node Py all[a] all[b]) all[c]) →
+      node Py (node Px all[l] all[a]) (balance-All z b (sub1 c) Pz all[b] (sub1-All c all[c])) }
+... | right (right (right balleft≡)) rewrite balleft≡ = node Px all[l] all[r]
+
+
 balright-cases :
   (v : A) → (l : RedBlackTree A) → (r : RedBlackTree A)
   → (Either (Σ (A × RB A × RB A) (λ { (y , a , b) →
@@ -829,9 +901,191 @@ balright-ordered v l r ord[l] ord[r] all[l]<v all[r]>v
       }
 ... | right (right (left ((x , y , a , b , c) , refl , snd₁))) rewrite snd₁ =
   case (ord[l] , all[l]<v) of
-    λ { (node (all[a]<x , node x<y all[b]>x all[c]>x) ord[a] (node (all[b]<y , all[c]>y) ord[b] ord[c]) , node x<v all[a]<v (node y<v all[b]<v all[c]<v)) →
+    λ { (node (all[a]<x , node x<y all[b]>x all[c]>x) ord[a] (node (all[b]<y , all[c]>y) ord[b] ord[c])
+        , node x<v all[a]<v (node y<v all[b]<v all[c]<v)) →
         node ( balance-All x (sub1 a) b x<y ((sub1-All a (mapAll (λ a a<x → less-trans a<x x<y ) all[a]<x))) all[b]<y
              , (node y<v all[c]>y (mapAll (λ a v<a → less-trans y<v v<a) all[r]>v)))
              (balance-ordered x (sub1 a) b (sub1-ordered a ord[a]) ord[b] (sub1-All a all[a]<x) all[b]>x)
              (node (all[c]<v , all[r]>v) ord[c] ord[r])  }
 ... | right (right (right x)) rewrite x = node (all[l]<v , all[r]>v) ord[l] ord[r]
+
+
+balright-All :
+  {{_ : Ord/Laws B}}
+  → {P : A → Set ℓ₂}
+  → (x : A) → (l : RedBlackTree A) → (r : RedBlackTree A)
+  → P x
+  → All (P ∘ snd) l → All (P ∘ snd) r
+  → All (P ∘ snd) (balright l x r)
+balright-All x l r Px all[l] all[r]
+  with balright-cases x l r
+... | left (_ , refl , refl) =
+  case all[r] of
+    λ { (node Py all[a] all[b]) → node Px all[l] (node Py all[a] all[b]) }
+... | right (left ((y , a , b) , refl , balright≡)) rewrite balright≡  =
+  case all[l] of
+    λ { (node Py all[a] all[b]) → balance-All x (node (red , y) a b) r Px (node Py all[a] all[b]) all[r]
+      }
+... | right (right (left ((z , y , a , b , c) , refl , balright≡))) rewrite balright≡ =
+  case all[l] of
+    λ { (node Pz all[a] (node Py all[b] all[c])) →
+        node Py (balance-All z (sub1 a) b Pz (sub1-All a all[a]) all[b]) (node Px all[c] all[r])
+      }
+... | right (right (right balright≡)) rewrite balright≡ = node Px all[l] all[r]
+
+app-All :
+  {P : A → Set ℓ₂}
+  → (l : RedBlackTree A) → (r : RedBlackTree A)
+  → All (P ∘ snd) l → All (P ∘ snd) r
+  → All (P ∘ snd) (app l r)
+app-All leaf leaf leaf leaf = leaf
+app-All leaf (node x r r₁) leaf (node x₁ all[r] all[r]₁) = node x₁ all[r] all[r]₁
+app-All (node x l l₁) leaf (node x₁ all[l] all[l]₁) leaf = node x₁ all[l] all[l]₁
+app-All (node (red , x) a b) (node (red , y) c d) (node Px all[a] all[b]) (node Py all[c] all[d])
+  with app b c | app-All b c all[b] all[c]
+... | leaf | leaf =
+  node Px all[a] (node Py leaf all[d])
+... | node (red , z) b' c' | node Pz all[b'] all[c'] =
+  node Pz (node Px all[a] all[b']) (node Py all[c'] all[d])
+... | node (black , z) b' c' | node Pz all[b'] all[c'] =
+  node Px all[a] (node Py (node Pz all[b'] all[c']) all[d])
+app-All (node (red , x) a b) (node (black , y) c d) (node Px all[a] all[b]) (node Py all[c] all[d]) =
+  node Px all[a] (app-All b _ all[b] (node Py all[c] all[d]))
+app-All (node (black , x) a b) (node (red , y) c d) (node Px all[a] all[b]) (node Py all[c] all[d]) =
+  node Py (app-All (node (black , x) a b) c (node Px all[a] all[b]) all[c]) all[d]
+app-All (node (black , x) a b) (node (black , y) c d) (node Px all[a] all[b]) (node Py all[c] all[d])
+  with app b c | app-All b c all[b] all[c]
+... | leaf | leaf =
+  balleft-All x a (node (black , y) leaf d) Px all[a] (node Py leaf all[d])
+... | node (red , snd₁) rec rec₁ | node x₂ all[rec] all[rec]₁ =
+  node x₂ (node Px all[a] all[rec]) (node Py all[rec]₁ all[d])
+... | node (black , snd₁) rec rec₁ | node x₂ all[rec] all[rec]₁ =
+  balleft-All x a _ Px all[a] (node Py (node x₂ all[rec] all[rec]₁) all[d])
+
+app-Any :
+    {P : A → Set ℓ₂}
+  → (l : RedBlackTree A) → (r : RedBlackTree A)
+  → Either (Any (P ∘ snd) l) (Any (P ∘ snd) r)
+  → Any (P ∘ snd) (app l r)
+app-Any leaf leaf (left ())
+app-Any leaf leaf (right ())
+app-Any leaf (node x a b) (right anyP) = anyP
+app-Any (node x a b) leaf (left anyP) = anyP
+app-Any (node (red , x) a b) (node (red , y) c d) (left (here Px))
+  with app b c
+...| leaf = here Px
+...| (node (red , z) b' c') = inLeft (here Px)
+...| (node (black , z) b' c') = here Px
+app-Any (node (red , x) a b) (node (red , y) c d) (left (inLeft any[a]))
+  with app b c
+...| leaf = inLeft any[a]
+...| (node (red , z) b' c') = inLeft (inLeft any[a])
+...| (node (black , z) b' c') = inLeft any[a]
+app-Any (node (red , x) a b) (node (red , y) c d) (left (inRight any[b]))
+  with app b c | app-Any b c (left any[b])
+...| (node (red , z) b' c') | any[app] =
+  case any[app] of
+    λ { (here Pz) → here Pz ; (inLeft any[b']) → inLeft (inRight any[b'])
+      ; (inRight any[app]) → inRight (inLeft any[app]) }
+...| (node (black , z) b' c') | any[app] = inRight (inLeft any[app])
+app-Any (node (red , x) a b) (node (red , y) c d) (right (here Py))
+  with app b c
+...| leaf = inRight (here Py)
+...| (node (red , z) b' c') = inRight (here Py)
+...| (node (black , z) b' c') = inRight (here Py)
+app-Any (node (red , x) a b) (node (red , y) c d) (right (inLeft any[c]))
+  with app b c | app-Any b c (right any[c])
+...| (node (red , z) b' c') | any[app] =
+  case any[app] of
+    λ { (here Pz) → here Pz ; (inLeft any[b']) → inLeft (inRight any[b'])
+      ; (inRight any[app]) → inRight (inLeft any[app]) }
+...| (node (black , z) b' c') | any[app] = inRight (inLeft any[app])
+app-Any (node (red , x) a b) (node (red , y) c d) (right (inRight any[d]))
+  with app b c
+...| leaf = inRight (inRight any[d])
+...| (node (red , z) b' c') = inRight (inRight any[d])
+...| (node (black , z) b' c') = inRight (inRight any[d])
+app-Any (node (red , x) a b) (node (black , y) c d) (left (here Px)) = here Px
+app-Any (node (red , x) a b) (node (black , y) c d) (left (inLeft any[a])) = inLeft any[a]
+app-Any (node (red , x) a b) (node (black , y) c d) (left (inRight any[b])) =
+  inRight (app-Any b _ (left any[b]))
+app-Any (node (red , x) a b) (node (black , y) c d) (right (here Py)) =
+  inRight (app-Any b _ (right (here Py)))
+app-Any (node (red , x) a b) (node (black , y) c d) (right (inLeft any[c])) =
+  inRight (app-Any b _ (right (inLeft any[c])))
+app-Any (node (red , x) a b) (node (black , y) c d) (right (inRight any[d])) =
+  inRight (app-Any b _ (right (inRight any[d])))
+app-Any l@(node (black , x) a b) (node (red , y) c d) (left any[l]) =
+  inLeft (app-Any l c (left any[l]))
+app-Any (node (black , x) a b) (node (red , y) c d) (right (here Py)) = here Py
+app-Any (node (black , x) a b) (node (red , y) c d) (right (inLeft any[c])) =
+  inLeft (app-Any (node (black , x) a b) c (right any[c]))
+app-Any (node (black , x) a b) (node (red , y) c d) (right (inRight any[d])) = inRight any[d]
+app-Any (node (black , x) a b) (node (black , y) c d) (left (here Px))
+  with app b c
+...| leaf = balleft-Any x a _ (left Px)
+...| (node (red , z) b' c') = inLeft (here Px)
+...| (node (black , z) b' c') = balleft-Any x a (node (black , y) (node (black , z) b' c') d) (left Px)
+app-Any (node (black , x) a b) (node (black , y) c d) (left (inLeft any[a]))
+  with app b c
+...| leaf = balleft-Any x a _ (right (left any[a]))
+...| (node (red , z) b' c') = inLeft (inLeft any[a])
+...| (node (black , z) b' c') = balleft-Any x a _ (right (left any[a]))
+app-Any (node (black , x) a b) (node (black , y) c d) (left (inRight any[b]))
+  with app b c | app-Any b c (left any[b])
+... | node (red , z) b' c' | here Pz = here Pz
+... | node (red , z) b' c' | inLeft any[b'] = inLeft (inRight any[b'])
+... | node (red , z) b' c' | inRight any[c'] = inRight (inLeft any[c'])
+... | node (black , z) b' c' | here Pz = balleft-Any x a (node _ (node (black , z) b' c') d) (right (right (inLeft (here Pz))))
+... | node (black , z) b' c' | inLeft any[b'] = balleft-Any x a (node _ (node (black , z) b' c') d) (right (right (inLeft (inLeft any[b']))))
+... | node (black , z) b' c' | inRight any[c'] = balleft-Any x a (node _ (node (black , z) b' c') d) (right (right (inLeft (inRight any[c']))))
+app-Any (node (black , x) a b) (node (black , y) c d) (right (here Py))
+  with app b c
+...| leaf = balleft-Any x a _ (right (right (here Py)))
+...| (node (red , z) b' c') = inRight (here Py)
+...| (node (black , z) b' c') = balleft-Any x a (node (black , y) (node (black , z) b' c') d) (right (right (here Py)))
+app-Any (node (black , x) a b) (node (black , y) c d) (right (inLeft any[c]))
+  with app b c | app-Any b c (right any[c])
+... | node (red , z) b' c' | here Pz = (here Pz)
+... | node (red , z) b' c' | inLeft any[b'] = inLeft (inRight any[b'])
+... | node (red , z) b' c' | inRight any[c'] = inRight (inLeft any[c'])
+... | node (black , z) b' c' | here Pz = balleft-Any x a _ (right (right (inLeft (here Pz))))
+... | node (black , z) b' c' | inLeft any[b'] = balleft-Any x a _ (right (right (inLeft (inLeft any[b']))))
+... | node (black , z) b' c' | inRight any[c'] = balleft-Any x a _ (right (right (inLeft (inRight any[c']))))
+app-Any (node (black , x) a b) (node (black , y) c d) (right (inRight any[d]))
+  with app b c
+...| leaf = balleft-Any x a _ (right (right (inRight any[d])))
+...| node (red , z) b' c' = inRight (inRight any[d])
+...| node (black , z) b' c' = balleft-Any x a _ (right (right (inRight any[d])))
+
+app-ordered :
+    {{_ : Ord/Laws B}}
+  → {proj : A → B}
+  → (v : A) → (l : RedBlackTree A) → (r : RedBlackTree A)
+  → All (λ p → proj (snd p) < proj v) l
+  → All (λ p → proj (snd p) > proj v) r
+  → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) l
+  → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) r
+  → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) (app l r)
+app-ordered _ leaf leaf _ _ leaf leaf = leaf
+app-ordered v leaf (node x r r₁) _ _ leaf (node x₁ ord[r] ord[r]₁) = node x₁ ord[r] ord[r]₁
+app-ordered _ (node x l l₁) leaf _ _ (node x₁ ord[l] ord[l]₁) leaf = node x₁ ord[l] ord[l]₁
+app-ordered v (node (red , x) a b) (node (red , y) c d)
+            (node x<v _ all[b]<v) all[r]>v@(node y>v all[c]>z _)
+            (node (all[a]<x , all[b]>x) ord[a] ord[b]) (node (all[c]<y , all[d]>y) ord[c] ord[d])
+  with app b c | app-ordered v b c all[b]<v all[c]>z ord[b] ord[c]
+     | app-All b c all[b]>x (mapAll (λ a a>v → less-trans x<v a>v) all[c]>z)
+     | app-All b c (mapAll (λ a a<v → (less-trans a<v y>v)) all[b]<v) all[c]<y
+... | leaf | leaf | _ | _ =
+  node (all[a]<x , node (less-trans x<v y>v) leaf (mapAll (λ a y<a → less-trans (less-trans x<v y>v) y<a) all[d]>y))
+       ord[a]
+       (node (leaf , all[d]>y) leaf ord[d])
+... | node (red , z) b' c' | node (all[b']<z , all[c']>z) ord[b'] ord[c'] | (node x<z all[b']<x all[c']<x) | (node z<y all[b']<y all[c']<y) =
+  node ((node x<z (mapAll (λ a a<x → less-trans a<x x<z) all[a]<x) all[b']<z)
+        , (node z<y all[c']>z (mapAll (λ a a>y → less-trans z<y a>y) all[d]>y)))
+       (node (all[a]<x , all[b']<x) ord[a] ord[b'])
+       (node (all[c']<y , all[d]>y) ord[c'] ord[d])
+... | node (black , z) b' c' | node x₂ ord[rec] ord[rec]₁ | _ | _ = {!!}
+app-ordered v (node (red , x) a b) (node (black , y) c d) _ _ (node Px ord[a] ord[b]) (node Py ord[c] ord[d]) = {!!}
+app-ordered v (node (black , x) a b) (node (red , y) c d) _ _ (node Px ord[a] ord[b]) (node Py ord[c] ord[d]) = {!!}
+app-ordered v (node (black , x) a b) (node (black , y) c d) _ _ (node Px ord[a] ord[b]) (node Py ord[c] ord[d]) = {!!}
