@@ -1071,7 +1071,7 @@ app-ordered _ leaf leaf _ _ leaf leaf = leaf
 app-ordered v leaf (node x r r₁) _ _ leaf (node x₁ ord[r] ord[r]₁) = node x₁ ord[r] ord[r]₁
 app-ordered _ (node x l l₁) leaf _ _ (node x₁ ord[l] ord[l]₁) leaf = node x₁ ord[l] ord[l]₁
 app-ordered v (node (red , x) a b) (node (red , y) c d)
-            (node x<v _ all[b]<v) all[r]>v@(node y>v all[c]>z _)
+            (node x<v _ all[b]<v) (node y>v all[c]>z _)
             (node (all[a]<x , all[b]>x) ord[a] ord[b]) (node (all[c]<y , all[d]>y) ord[c] ord[d])
   with app b c | app-ordered v b c all[b]<v all[c]>z ord[b] ord[c]
      | app-All b c all[b]>x (mapAll (λ a a>v → less-trans x<v a>v) all[c]>z)
@@ -1085,7 +1085,56 @@ app-ordered v (node (red , x) a b) (node (red , y) c d)
         , (node z<y all[c']>z (mapAll (λ a a>y → less-trans z<y a>y) all[d]>y)))
        (node (all[a]<x , all[b']<x) ord[a] ord[b'])
        (node (all[c']<y , all[d]>y) ord[c'] ord[d])
-... | node (black , z) b' c' | node x₂ ord[rec] ord[rec]₁ | _ | _ = {!!}
-app-ordered v (node (red , x) a b) (node (black , y) c d) _ _ (node Px ord[a] ord[b]) (node Py ord[c] ord[d]) = {!!}
-app-ordered v (node (black , x) a b) (node (red , y) c d) _ _ (node Px ord[a] ord[b]) (node Py ord[c] ord[d]) = {!!}
-app-ordered v (node (black , x) a b) (node (black , y) c d) _ _ (node Px ord[a] ord[b]) (node Py ord[c] ord[d]) = {!!}
+... | node (black , z) b' c' | node x₂ ord[rec] ord[rec]₁ | (node x<z all[b']<x all[c']<x) | (node z<y all[b']<y all[c']<y) =
+  node (all[a]<x ,
+       (node (less-trans x<v y>v)
+             (node x<z all[b']<x all[c']<x)
+             (mapAll (λ a y<a → less-trans x<z (less-trans z<y y<a)) all[d]>y)))
+       ord[a]
+       (node ((node z<y all[b']<y all[c']<y) , all[d]>y) (node x₂ ord[rec] ord[rec]₁) ord[d])
+app-ordered v (node (red , x) a b) (node (black , y) c d)
+            (node x<v all[a]<v all[b]<v) (node y>v all[c]>v all[d]>v)
+            (node (all[a]<x , all[b]>x) ord[a] ord[b]) (node Py ord[c] ord[d]) =
+  node (all[a]<x
+       , app-All b (node (black , y) c d) all[b]>x
+                   (node (less-trans x<v y>v)
+                         (mapAll (λ a a>v → less-trans x<v a>v) all[c]>v)
+                         (mapAll (λ a a>v → less-trans x<v a>v) all[d]>v)))
+       ord[a]
+       (app-ordered v b (node (black , y) c d) all[b]<v (node y>v all[c]>v all[d]>v) ord[b] (node Py ord[c] ord[d]))
+app-ordered v (node (black , x) a b) (node (red , y) c d)
+            (node x<v all[a]<v all[b]<v) (node y>v all[c]>v all[d]>v)
+            (node Px ord[a] ord[b]) (node (all[c]<y , all[d]>y) ord[c] ord[d]) =
+  node (app-All (node (black , x) a b) c
+                (node (less-trans x<v y>v)
+                (mapAll (λ a a<v → less-trans a<v y>v) all[a]<v)
+                (mapAll (λ a a<v → less-trans a<v y>v) all[b]<v))
+                all[c]<y
+       , all[d]>y)
+       (app-ordered v (node (black , x) a b) c (node x<v all[a]<v all[b]<v) all[c]>v (node Px ord[a] ord[b]) ord[c])
+       ord[d]
+app-ordered v (node (black , x) a b) (node (black , y) c d)
+            (node x<v _ all[b]<v) (node y>v all[c]>z _)
+            (node (all[a]<x , all[b]>x) ord[a] ord[b]) (node (all[c]<y , all[d]>y) ord[c] ord[d])
+  with app b c | app-ordered v b c all[b]<v all[c]>z ord[b] ord[c]
+     | app-All b c all[b]>x (mapAll (λ a a>v → less-trans x<v a>v) all[c]>z)
+     | app-All b c (mapAll (λ a a<v → (less-trans a<v y>v)) all[b]<v) all[c]<y
+... | leaf | leaf | _ | _ =
+  balleft-ordered x a (node (black , y) leaf d) ord[a]
+                  (node (leaf , all[d]>y) leaf ord[d]) all[a]<x
+                  (node (less-trans x<v y>v) leaf (mapAll (λ a y>a → less-trans (less-trans x<v y>v) y>a) all[d]>y))
+... | node (red , z) b' c' | node (all[b']<z , all[c']>z) ord[b'] ord[c'] | (node x<z all[b']<x all[c']<x) | (node z<y all[b']<y all[c']<y) =
+  node ((node x<z (mapAll (λ a a<x → less-trans a<x x<z) all[a]<x) all[b']<z)
+       , node z<y all[c']>z (mapAll (λ a y<a → less-trans z<y y<a) all[d]>y))
+       (node (all[a]<x , all[b']<x) ord[a] ord[b'])
+       (node (all[c']<y , all[d]>y) ord[c'] ord[d])
+... | node (black , z) b' c' | node (all[b']<z , all[c']>z) ord[rec] ord[rec]₁ | (node x<z all[b']<x all[c']<x) | (node z<y all[b']<y all[c']<y) =
+  balleft-ordered
+    x a (node (black , y) (node (black , z) b' c') d)
+    ord[a]
+    (node (node z<y all[b']<y all[c']<y , all[d]>y)
+          (node (all[b']<z , all[c']>z) ord[rec] ord[rec]₁) ord[d])
+    all[a]<x
+    (node (less-trans x<z z<y)
+          (node x<z all[b']<x all[c']<x)
+          (mapAll (λ a y<a → less-trans (less-trans x<z z<y) y<a) all[d]>y))
