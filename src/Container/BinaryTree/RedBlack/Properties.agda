@@ -911,8 +911,7 @@ balright-ordered v l r ord[l] ord[r] all[l]<v all[r]>v
 
 
 balright-All :
-  {{_ : Ord/Laws B}}
-  → {P : A → Set ℓ₂}
+  {P : A → Set ℓ₂}
   → (x : A) → (l : RedBlackTree A) → (r : RedBlackTree A)
   → P x
   → All (P ∘ snd) l → All (P ∘ snd) r
@@ -1138,3 +1137,144 @@ app-ordered v (node (black , x) a b) (node (black , y) c d)
     (node (less-trans x<z z<y)
           (node x<z all[b']<x all[c']<x)
           (mapAll (λ a y<a → less-trans (less-trans x<z z<y) y<a) all[d]>y))
+
+
+
+mutual
+  delformLeft-All :
+      {P : A → Set ℓ₂}
+      → {{OrdB : Ord/Laws B}}
+      → (proj : A → B)
+      → (k : B)
+      → (l : RedBlackTree A) → (y : A) → (r : RedBlackTree A)
+      → (P y)
+      → All (P ∘ snd) l → All (P ∘ snd) r
+      → All (P ∘ snd) (delformLeft proj k l y r)
+  delformLeft-All proj k leaf y r Py leaf all[r] =
+    node Py leaf all[r]
+  delformLeft-All proj k a@(node (red , x) b c) y r Py all[a]@(node Px all[b] all[c]) all[r] =
+    node Py (del-All proj k a all[a]) all[r]
+  delformLeft-All proj k a@(node (black , _) _ _) y r Py all[a]@(node _ _ _) all[r] =
+    balleft-All y (del proj k a) r Py (del-All proj k a all[a]) all[r]
+
+  delformRight-All :
+      {P : A → Set ℓ₂}
+      → {{_ : Ord/Laws B}}
+      → (proj : A → B)
+      → (k : B)
+      → (l : RedBlackTree A) → (y : A) → (r : RedBlackTree A)
+      → (P y)
+      → All (P ∘ snd) l → All (P ∘ snd) r
+      → All (P ∘ snd) (delformRight proj k l y r)
+  delformRight-All proj k l y leaf Py all[l] all[r] =
+    node Py all[l] all[r]
+  delformRight-All proj k l y r@(node (red , _) _ _) Py all[l] all[r] =
+    node Py all[l] (del-All proj k r all[r])
+  delformRight-All proj k l y r@(node (black , _) _ _) Py all[l] all[r] =
+    balright-All y l (del proj k r) Py all[l] (del-All proj k r all[r])
+
+
+  del-All :
+      {P : A → Set ℓ₂}
+      → {{_ : Ord/Laws B}}
+      → (proj : A → B)
+      → (k : B)
+      → (t : RedBlackTree A)
+      → All (P ∘ snd) t
+      → All (P ∘ snd) (del proj k t)
+  del-All proj k leaf all[t] = leaf
+  del-All proj k (node (_ , y) a b) (node Py all[a] all[b])
+    with compare k (proj y)
+  ... | less lt = delformLeft-All proj k a y b Py all[a] all[b]
+  ... | equal eq = app-All a b all[a] all[b]
+  ... | greater gt = delformRight-All proj k a y b Py all[a] all[b]
+
+
+
+mutual
+  delformLeft-ordered :
+      {{_ : Ord/Laws B}}
+      → (proj : A → B)
+      → (k : B)
+      → (l : RedBlackTree A) → (y : A) → (r : RedBlackTree A)
+      → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) l
+      → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) r
+      → All (λ p → proj (snd p)  < proj y) l → All (λ p → proj y < proj (snd p)) r
+      → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) (delformLeft proj k l y r)
+  delformLeft-ordered proj k leaf y r ord[l] ord[r] all[l]<y all[r]>y =
+    node (all[l]<y , all[r]>y) ord[l] ord[r]
+  delformLeft-ordered proj k l@(node (red , _) _ _) y r ord[l] ord[r] all[l]<y all[r]>y =
+    node (del-All proj k l all[l]<y , all[r]>y)
+         (del-ordered proj k l ord[l]) ord[r]
+  delformLeft-ordered proj k l@(node (black , _) _ _) y r ord[l] ord[r] all[l]<y all[r]>y =
+    balleft-ordered
+      y (del proj k l) r
+      (del-ordered proj k l ord[l]) ord[r]
+      (del-All proj k l all[l]<y) all[r]>y
+
+  delformRight-ordered :
+      {{_ : Ord/Laws B}}
+      → (proj : A → B)
+      → (k : B)
+      → (l : RedBlackTree A) → (y : A) → (r : RedBlackTree A)
+      → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) l
+      → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) r
+      → All (λ p → proj (snd p)  < proj y) l → All (λ p → proj y < proj (snd p)) r
+      → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) (delformRight proj k l y r)
+  delformRight-ordered proj k l y leaf ord[l] ord[r] all[l]<y all[r]>y =
+    node (all[l]<y , all[r]>y) ord[l] ord[r]
+  delformRight-ordered proj k l y r@(node (red , _) _ _) ord[l] ord[r] all[l]<y all[r]>y =
+    node (all[l]<y , (del-All proj k r all[r]>y))
+         ord[l] (del-ordered proj k r ord[r])
+  delformRight-ordered proj k l y r@(node (black , _) _ _) ord[l] ord[r] all[l]<y all[r]>y =
+    balright-ordered y l (del proj k r)
+      ord[l] (del-ordered proj k r ord[r])
+      all[l]<y (del-All proj k r all[r]>y)
+
+
+  del-ordered :
+      {{_ : Ord/Laws B}}
+      → (proj : A → B)
+      → (k : B)
+      → (t : RedBlackTree A)
+      → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) t
+      → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) (del proj k t)
+  del-ordered proj k leaf ord[t] = leaf
+  del-ordered proj k (node (_ , y) l r) (node (all[l]<y , all[r]>y) ord[l] ord[r])
+    with compare k (proj y)
+  ... | less lt = delformLeft-ordered proj k l y r ord[l] ord[r] all[l]<y all[r]>y
+  ... | equal eq = app-ordered y l r all[l]<y all[r]>y ord[l] ord[r]
+  ... | greater gt = delformRight-ordered proj k l y r ord[l] ord[r] all[l]<y all[r]>y
+
+delete-ordered :
+   {{_ : Ord/Laws B}}
+   → (proj : A → B)
+   → (a : A)
+   → (t : RedBlackTree A)
+   → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) t
+   → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) (delete proj a t)
+delete-ordered proj a t ord[t]
+  with del proj (proj a) t | del-ordered proj (proj a) t ord[t]
+... | leaf | leaf = leaf
+... | node (_ , y) l r | node (all[l]<y , all[r]>y) ord[l] ord[r] =
+  node (all[l]<y , all[r]>y) ord[l] ord[r]
+
+
+
+-- mutual
+
+--   delformLeft :
+--     {{_ : Ord/Laws B}}
+--     → (proj : A → B)
+--     → (x : A)
+--     → (l : RedBlackTree A)
+--     →
+
+-- delete-RBMember :
+--   {{_ : Ord/Laws B}}
+--   → (proj : A → B)
+--   → (x : A)
+--   → (t : RedBlackTree A)
+--   → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) t
+--   → ¬ Σ A (λ x' → (proj x' ≡ proj x) × RBMember x' (delete proj x t))
+-- delete-RBMember proj x t ord[t] = {!!}

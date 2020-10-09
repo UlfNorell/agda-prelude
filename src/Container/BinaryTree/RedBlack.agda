@@ -125,26 +125,26 @@ module Karhs where
   app (node (red , x) a b) c = node (red , x) a (app b c)
 
   mutual
-    delformLeft : {{_ : Ord B}} → (A → B) → A → RedBlackTree A → A → RedBlackTree A → RedBlackTree A
+    delformLeft : {{_ : Ord B}} → (A → B) → B → RedBlackTree A → A → RedBlackTree A → RedBlackTree A
     delformLeft proj x a@(node (black , _) _ _) y b = balleft (del proj x a) y b
     delformLeft proj x a y b = node (black , y) (del proj x a) b
 
-    delformRight : {{_ : Ord B}} → (A → B) → A → RedBlackTree A → A → RedBlackTree A → RedBlackTree A
+    delformRight : {{_ : Ord B}} → (A → B) → B → RedBlackTree A → A → RedBlackTree A → RedBlackTree A
     delformRight proj x a y b@(node (black , _) _ _) = balright a y (del proj x b)
     delformRight proj x a y b = node (red , y) a (del proj x b)
 
-    del : {{_ : Ord B}} → (A → B) → A → RedBlackTree A → RedBlackTree A
+    del : {{_ : Ord B}} → (A → B) → B → RedBlackTree A → RedBlackTree A
     del proj x leaf = leaf
     del proj x (node (_ , y) a b) =
-      case (compare (proj x) (proj y)) of
+      case (compare x (proj y)) of
         λ { (less lt) → delformLeft proj x a y b
-          ; (equal eq) → delformRight proj x a y b
-          ; (greater gt) → app a b
+          ; (greater gt) → delformRight proj x a y b
+          ; (equal eq) → app a b
           }
 
 delete : {{_ : Ord B}} → (A → B) → A → RedBlackTree A → RedBlackTree A
 delete {B = B} {A = A}  proj x t =
-  case Karhs.del proj x t of
+  case Karhs.del proj (proj x) t of
     λ { (node (_ , y) l r) → node (black , y) l r
       ; leaf → leaf
       }
