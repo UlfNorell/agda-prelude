@@ -55,9 +55,9 @@ OrderedBy : {ℓ₁ ℓ₂ : Level} {A : Set ℓ₁} → (R : A → A → Set �
 OrderedBy R = AllNodes (λ x l r → All (flip R x) l × All (R x) r)
 
 
-mapAllNodes : {ℓ₁ ℓ₂ : Level} {A : Set ℓ₁}
+mapAllNodes : {ℓ₁ ℓ₂ ℓ₃  : Level} {A : Set ℓ₁}
             → {R : A → BinaryTree A → BinaryTree A → Set ℓ₂}
-            → {S : A → BinaryTree A → BinaryTree A → Set ℓ₂}
+            → {S : A → BinaryTree A → BinaryTree A → Set ℓ₃}
             → {t : BinaryTree A}
             → ((a : A) → (l : BinaryTree A) → (r : BinaryTree A) → R a l r → S a l r)
             → AllNodes R t
@@ -66,8 +66,8 @@ mapAllNodes _ leaf = leaf
 mapAllNodes {t = node x l r} f (node Rxlr allNodesRₗ allNodesRᵣ) =
   node (f x l r Rxlr) (mapAllNodes f allNodesRₗ) (mapAllNodes f allNodesRᵣ)
 
-mapAll : {ℓ₁ ℓ₂ : Level} {A : Set ℓ₁}
-         {R : A → Set ℓ₂} {S : A → Set ℓ₂}
+mapAll : {ℓ₁ ℓ₂ ℓ₃ : Level} {A : Set ℓ₁}
+         {R : A → Set ℓ₂} {S : A → Set ℓ₃}
          {t : BinaryTree A}
        → ((a : A) → R a → S a)
        → All R t
@@ -106,3 +106,11 @@ member-all (node _ allₗ _) (inLeft memₗ) =
   member-all allₗ memₗ
 member-all (node _ _ allᵣ) (inRight memᵣ) =
   member-all allᵣ memᵣ
+
+
+elem-member : (t : BinaryTree A) → All (flip Member t) t
+elem-member leaf = leaf
+elem-member (node x l r) =
+  node (here refl)
+       (mapAll (λ _ inl → inLeft inl) (elem-member l))
+       (mapAll (λ _ inr → inRight inr) (elem-member r))
