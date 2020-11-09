@@ -42,7 +42,7 @@ private
     ; _ → typeErrorS "impossible" }
 
   patArgs : Telescope → List (Arg Pattern)
-  patArgs tel = zipWith (λ x (_ , a) → var x <$ a) (reverse (from 0 for (length tel))) tel
+  patArgs tel = zipWith (λ x (_ , a) → var x <$ a) (reverse (from 0 for length tel)) tel
 
   quoteArgs′ : Nat → Telescope → List Term
   quoteArgs′ 0 _  = []
@@ -52,13 +52,15 @@ private
 
   quoteArgs : Nat → Telescope → Term
   quoteArgs pars tel = qList $ replicate pars (qArg $ hArg (con₀ (quote Term.unknown))) ++
-                               quoteArgs′ (length tel) tel
+                               quoteArgs′ (length tel - pars) (drop pars tel)
 
   constructorClause : Nat → Name → TC Clause
   constructorClause pars c = do
-    tel ← drop pars ∘ fst ∘ telView <$> getType c
+    tel , _ ← telView <$> getType c
+    let ps = patArgs tel
+        parPs , conPs = splitAt pars ps
     pure (clause tel
-                 (vArg (con c (patArgs tel)) ∷ [])
+                 (parPs ++ vArg (con c conPs) ∷ [])
                  (con₂ (quote Term.con) (lit (name c)) (quoteArgs pars tel)))
 
   quoteClauses : Name → TC (List Clause)
