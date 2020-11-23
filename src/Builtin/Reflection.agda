@@ -133,7 +133,7 @@ instance
   traverse {{TraversableAbs}} f (abs s x) = ⦇ (abs s) (f x) ⦈
 
 absurd-lam : Term
-absurd-lam = pat-lam (absurd-clause (("()" , vArg unknown) ∷ []) (vArg absurd ∷ []) ∷ []) []
+absurd-lam = pat-lam (absurd-clause (("()" , vArg unknown) ∷ []) (vArg (absurd 0) ∷ []) ∷ []) []
 
 --- TC monad ---
 
@@ -317,6 +317,9 @@ plit-inj refl = refl
 
 proj-inj : ∀ {x y} → Pattern.proj x ≡ proj y → x ≡ y
 proj-inj refl = refl
+
+absurd-inj : ∀ {x y} → absurd x ≡ absurd y → x ≡ y
+absurd-inj refl = refl
 
 --- Clauses ---
 

@@ -67,7 +67,7 @@ private
   quoteClauses d = do
     n ← getParameters d
     caseM getConstructors d of λ where
-      [] → pure [ absurd-clause (("()" , vArg unknown) ∷ []) (vArg absurd ∷ []) ]
+      [] → pure [ absurd-clause (("()" , vArg unknown) ∷ []) (vArg (absurd 0) ∷ []) ]
       cs → mapM (constructorClause n) cs
 
 declareQuotableInstance : Name → Name → TC ⊤
