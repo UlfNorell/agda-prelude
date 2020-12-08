@@ -1,8 +1,7 @@
-
 module Tactic.Nat.Coprime.Problem where
 
 open import Prelude
-open import Container.List
+open import Prelude.List.Relations.All
 open import Numeric.Nat.GCD
 
 Atom = Nat
