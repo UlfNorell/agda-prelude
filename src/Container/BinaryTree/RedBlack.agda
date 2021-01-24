@@ -142,16 +142,15 @@ module Karhs where
           ; (equal eq) → app a b
           }
 
-delete : {{_ : Ord B}} → (A → B) → A → RedBlackTree A → RedBlackTree A
-delete {B = B} {A = A}  proj x t =
-  case Karhs.del proj (proj x) t of
+deleteProj : {{_ : Ord B}} → (A → B) → B → RedBlackTree A → RedBlackTree A
+deleteProj proj x t =
+  case Karhs.del proj x t of
     λ { (node (_ , y) l r) → node (black , y) l r
       ; leaf → leaf
       }
 
-
-
-
+delete : {{_ : Ord B}} → (A → B) → A → RedBlackTree A → RedBlackTree A
+delete proj x t = deleteProj proj (proj x) t
 
 fromListBy : {{_ : Ord B}} → (A → B) → List A → RedBlackTree A
 fromListBy p = foldl (flip (insertBy p)) leaf

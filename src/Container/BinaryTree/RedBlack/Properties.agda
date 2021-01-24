@@ -6,6 +6,7 @@ open Karhs
 
 open import Container.BinaryTree.Base
 import Container.BinaryTree.Ordered as Ord
+open import Container.BinaryTree.Ordered.Properties
 open import Container.BinaryTree.Relations
 
 open import Agda.Primitive
@@ -18,6 +19,8 @@ open import Prelude.Ord.Properties
 open import Prelude.Empty
 open import Prelude.Maybe
 open import Prelude.Sum
+open import Prelude.Unit
+
 open import Prelude.Variables
 
 private
@@ -28,29 +31,79 @@ private
 -- Special version of member for red-black trees
 
 RBMember : A → RedBlackTree A → Set _
-RBMember a t = Any ((a ≡_) ∘ snd) t
+RBMember a t = ProjMember snd a t
 
 
-Member⇒RBMember : {c : Color} {a : A} {t : RB A} → Member (c , a) t → RBMember a t
-Member⇒RBMember (here x) = here (pair-inj-snd (sym x))
-Member⇒RBMember (inLeft mem) = inLeft (Member⇒RBMember mem)
-Member⇒RBMember (inRight mem) = inRight (Member⇒RBMember mem)
+RBProjMember : (proj : A → B) → B → RedBlackTree A → Set _
+RBProjMember proj k t = ProjMember (proj ∘ snd) k t
+
+RBProjMember⇒RBMember :
+  {proj : A → B}
+  → {b : B} → {t : RedBlackTree A}
+  → RBProjMember proj b t
+  → Σ A (λ a → proj a ≡ b × RBMember a t)
+RBProjMember⇒RBMember {t = node (_ , x) _ _} (here refl) =
+  x , (refl , here refl)
+RBProjMember⇒RBMember (inLeft pmem)
+  with RBProjMember⇒RBMember pmem
+... | a , refl , snd₁ = (a , refl , inLeft snd₁ )
+RBProjMember⇒RBMember (inRight pmem)
+  with RBProjMember⇒RBMember pmem
+... | a , refl , snd₁ = (a , refl , inRight snd₁ )
+
+Member⇒RBMember :
+    {c : Color} {a : A} {t : RB A}
+  → Member (c , a) t → RBMember a t
+Member⇒RBMember mem = Member⇒ProjMember snd mem
 
 RBMember⇒Member : {a : A} {t : RedBlackTree A} → RBMember a t → Σ Color (λ c → Member (c , a) t)
-RBMember⇒Member {a = x} {(node (color , y) _ _)} (here x≡y)
-  rewrite x≡y = color , here refl
-RBMember⇒Member {a = x} {(node _ l _) } (inLeft x∈l) =
-  let (c , inL) = RBMember⇒Member x∈l
-  in c , inLeft inL
-RBMember⇒Member {a = x} {(node _ _ r)} (inRight x∈r) =
-  let (c , inR) = RBMember⇒Member x∈r
-  in c , inRight inR
+RBMember⇒Member projmem
+  with ProjMember⇒Member snd projmem
+...| (color , a') , mem , a'≡a rewrite a'≡a = color , mem
 
-elem-RBMember : (t : RedBlackTree A) → All (flip RBMember t ∘ snd) t
-elem-RBMember t = mapAll (λ a mem → Member⇒RBMember mem) (elem-member t)
+elem-RBMember : (t : RedBlackTree A) → All (λ a → RBMember (snd a) t) t
+elem-RBMember t = all-self-ProjMember snd t
 
-rbmember-all : {a : A} → {t : RB A} → {P : A → Set ℓ₃} → All (P ∘ snd) t → RBMember a t → P a
-rbmember-all all rbmem =  member-all all (snd (RBMember⇒Member rbmem))
+RBMember-All : {a : A} → {t : RB A} → {P : A → Set ℓ₃} → All (P ∘ snd) t → RBMember a t → P a
+RBMember-All all rbmem = ProjMember-All snd rbmem all
+
+lookupBy-¬RBProjMember :
+  (proj : A → B)
+  → {{_ : Ord B}}
+  → {b : B} → {t : RedBlackTree A}
+  → ¬ RBProjMember proj b t
+  → lookupBy proj b t ≡ nothing
+lookupBy-¬RBProjMember proj {b = b} {t} ¬mem
+  rewrite binarySearchBy-¬ProjMember (proj ∘ snd) b t ¬mem = refl
+
+lookupBy-RBMember :
+  {{_ : Ord/Laws B}}
+  → (proj : A → B)
+  → (a : A)
+  → (t : RedBlackTree A)
+  → RBMember a t
+  → OrderedBy (λ a b → proj (snd a) < proj (snd b)) t
+  → lookupBy proj (proj a) t ≡ just a
+lookupBy-RBMember proj a t@(node _ _ _) mem ord[t]
+  with binarySearchBy-ProjProjMember snd proj a t mem ord[t]
+... | (_ , .a) , bs≡ , refl rewrite bs≡ = refl
+
+lookupBy-cases :
+    {{_ : Ord/Laws B}}
+  → (proj : A → B)
+  → (k : B)
+  → {t : RedBlackTree A}
+  → OrderedBy (λ a b → proj (snd a) < proj (snd b)) t
+  → Either (Σ A (λ a → lookupBy proj k t ≡ just a
+                     × RBMember a t
+                     × proj a ≡ k))
+           (lookupBy proj k t ≡ nothing
+           × ¬ RBProjMember proj k t)
+lookupBy-cases proj k {t = t} ord[t]
+  with binarySearch-cases (proj ∘ snd) k t ord[t]
+... | left ((_ , snd₁) , fst₂ , fst₃ , snd₂) rewrite fst₂ =
+  left (snd₁ , (refl , Member⇒ProjMember snd  snd₂ , fst₃))
+... | right (fst₁ , snd₁) rewrite fst₁ = right (refl , snd₁)
 
 module _ {l : Level} {A : Set l} where
 
@@ -123,7 +176,7 @@ leftBalance-ordered color z l r ord[l] ord[r] all[l]<z all[r]>z
     λ { (node (node x<y all[a]<y all[b]>y , all[c]>y) (node (all[a]<x , all[b]>x) ord[lll] ord[llr]) ord[lr]
          , node y<z (node x<z all[a]<z all[b]<z) all[c]<z) →
            node ((node x<y all[a]<y all[b]>y)
-                , (node y<z all[c]>y (mapAll (λ a z<a → less-trans y<z z<a) all[r]>z)))
+                , (node y<z all[c]>y (mapAll (λ z<a → less-trans y<z z<a) all[r]>z)))
                 (node (all[a]<x , all[b]>x) ord[lll] ord[llr])
                 (node (all[c]<z , all[r]>z) ord[lr] ord[r])
       }
@@ -131,8 +184,8 @@ leftBalance-ordered color z l r ord[l] ord[r] all[l]<z all[r]>z
   case (ord[l] , all[l]<z) of
     λ { (node (all[a]<x , node x<y all[b]>x all[c]>x) ord[a] (node (all[b]<y , all[c]>y) ord[b] ord[c])
         , node x<z all[l]<z (node y<z all[b]<z all[c]<z)) →
-          node ((node x<y (mapAll (λ a a<x → less-trans a<x x<y) all[a]<x) all[b]<y)
-               , (node y<z all[c]>y (mapAll (λ a z>a → less-trans y<z z>a) all[r]>z)))
+          node ((node x<y (mapAll (λ a<x → less-trans a<x x<y) all[a]<x) all[b]<y)
+               , (node y<z all[c]>y (mapAll (λ z>a → less-trans y<z z>a) all[r]>z)))
                (node (all[a]<x , all[b]>x) ord[a] ord[b])
                (node (all[c]<z , all[r]>z) ord[c] ord[r])
       }
@@ -206,8 +259,8 @@ rightBalance-ordered color x l r ord[l] ord[r] all[l]<x all[r]>x
   case (ord[r] , all[r]>x) of
     λ { (node ((node z<y all[a]<y all[b]<y) , all[c]>y) (node (all[a]<z , all[b]>z) ord[a] ord[b]) ord[c]
         , node x<y (node x<z all[a]>x all[b]>x) all[c]>x) →
-          node ((node x<z (mapAll (λ a a<x → less-trans a<x x<z) all[l]<x) all[a]<z)
-               , (node z<y all[b]>z (mapAll (λ a a>y → less-trans z<y a>y ) all[c]>y)))
+          node ((node x<z (mapAll (λ a<x → less-trans a<x x<z) all[l]<x) all[a]<z)
+               , (node z<y all[b]>z (mapAll (λ a>y → less-trans z<y a>y ) all[c]>y)))
                (node (all[l]<x , all[a]>x) ord[l] ord[a])
                (node (all[b]<y , all[c]>y) ord[b] ord[c])
     }
@@ -215,7 +268,7 @@ rightBalance-ordered color x l r ord[l] ord[r] all[l]<x all[r]>x
    case (ord[r] , all[r]>x) of
      λ { (node (all[a]<y , node y<z all[b]>y all[c]>y) ord[a] (node (all[b]<z , all[c]>z) ord[b] ord[c])
          , node x<y all[r]>x (node x<z all[b]>x all[c]>x)) →
-           node ((node x<y (mapAll (λ a a<x → less-trans a<x x<y) all[l]<x) all[a]<y)
+           node ((node x<y (mapAll (λ a<x → less-trans a<x x<y) all[l]<x) all[a]<y)
                 , (node y<z all[b]>y all[c]>y))
                 (node (all[l]<x , all[r]>x) ord[l] ord[a])
                 (node (all[b]<z , all[c]>z) ord[b] ord[c])
@@ -340,6 +393,18 @@ insertInner-ordered proj x (node (color , y) l r) ord[t]@(node (all[l]<y , all[r
     ord[l'] ord[r]
     allP[insertInner] all[r]>y
 
+insertBy-ordered :
+  {{_ : Ord/Laws B}}
+  → (proj : A → B)
+  → (x : A)
+  → (t : RB A)
+  → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) t
+  → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) (insertBy proj x t)
+insertBy-ordered proj x t ord[t]
+  with insertInner proj (proj x) x t | insertInner-ordered proj x t ord[t]
+... | leaf | leaf = leaf
+... | node x₁ foo foo₁ | node x₂ bar bar₁ = node x₂ bar bar₁
+
 insertInner-Member :
     {{_ : Ord B}}
   → (proj : A → B)
@@ -391,6 +456,7 @@ insertInner-keeps-Member proj x x' (node (c , y) l r) p[x]≢p[x'] (inRight x'�
 ... | equal eq = inRight x'∈r
 ... | greater gt = rightBalance-Any c y l _ (right (right (insertInner-keeps-Member proj x x' r p[x]≢p[x'] x'∈r)))
 
+
 insertBy-keeps-Member :
     {{_ : Ord B}}
   → (proj : A → B)
@@ -407,44 +473,30 @@ insertBy-keeps-Member proj x x' t p[x]≢p[x'] x'∈t
 ... | node _ _ _ | inLeft w = inLeft w
 ... | node _ _ _ | inRight w = inRight w
 
-lookupBy-Member :
-  {{OLB : Ord/Laws B}}
+insertInner-keeps-¬Member :
+    {{_ : Ord B}}
   → (proj : A → B)
   → (x : A)
+  → (x' : A)
   → (t : RedBlackTree A)
-  → RBMember x t
-  → OrderedBy (λ a b → proj (snd a) < proj (snd b)) t
-  → lookupBy proj (proj x) t ≡ just x
-lookupBy-Member proj x (node (_ , y) _ _) (here x≡y) ord[t] rewrite x≡y
-  with compare (proj y) (proj y)
-... | less lt = ⊥-elim (less-antirefl lt)
-... | equal eq = refl
-... | greater gt = ⊥-elim (less-antirefl gt)
-lookupBy-Member proj x (node (_ , y) l r) (inLeft x∈l) (node (all[l]<y , _) ord[l] _)
+  → (proj x ≢ proj x')
+  → RBMember x' t
+  → RBMember x' (insertInner proj (proj x) x t)
+insertInner-keeps-¬Member proj x x' (node (c , y) l r) p[x]≢p[x'] (here x'≡y)
   with compare (proj x) (proj y)
-... | less lt = lookupBy-Member proj x l x∈l ord[l]
-... | equal p[x]≡p[y] =
-  ⊥-elim (less-antirefl
-              (transport (λ z → z < proj y)
-                         p[x]≡p[y]
-                         (rbmember-all all[l]<y x∈l)
-              ))
-... | greater p[y]<p[x] = ⊥-elim (<⇒≱ (rbmember-all all[l]<y x∈l)
-                                        (<⇒≤ p[y]<p[x]))
-lookupBy-Member proj x (node (_ , y) l r) (inRight x∈r) (node (_ , all[r]>y) _ ord[r])
-  with compare (proj x) (proj y)
-... | less p[x]<p[y] =
- ⊥-elim (<⇒≱ (rbmember-all all[r]>y x∈r)
-               (<⇒≤ p[x]<p[y]))
-... | equal p[x]≡p[y] =
-  ⊥-elim (less-antirefl
-              (transport (λ z → z > proj y)
-                         p[x]≡p[y]
-                         (rbmember-all all[r]>y x∈r)
-              ))
-... | greater gt = lookupBy-Member proj x r x∈r ord[r]
-
-
+... | less lt = leftBalance-Any c y _ r (left x'≡y)
+... | equal eq rewrite eq rewrite x'≡y = ⊥-elim (p[x]≢p[x'] refl)
+... | greater gt = rightBalance-Any c y l _ (left x'≡y)
+-- insertInner-keeps-¬Member proj x x' (node (c , y) l r) p[x]≢p[x'] (inLeft x'∈l)
+--   with compare (proj x) (proj y)
+-- ... | less lt = leftBalance-Any c y _ r (right (left (insertInner-keeps-Member proj x x' l p[x]≢p[x'] x'∈l)))
+-- ... | equal eq = inLeft x'∈l
+-- ... | greater gt = rightBalance-Any c y l _ (right (left x'∈l))
+-- insertInner-keeps-¬Member proj x x' (node (c , y) l r) p[x]≢p[x'] (inRight x'∈r)
+--   with compare (proj x) (proj y)
+-- ... | less lt = leftBalance-Any c y _ r (right (right x'∈r))
+-- ... | equal eq = inRight x'∈r
+-- ... | greater gt = rightBalance-Any c y l _ (right (right (insertInner-keeps-Member proj x x' r p[x]≢p[x'] x'∈r)))
 
 
 balance-cases :
@@ -559,7 +611,7 @@ balance-ordered x l r ord[l]' ord[r]' all[l]<x' all[r]>x'
     λ { (node (node x<y all[a]<y all[b]>y , all[c]>y) (node (all[a]<x , all[b]>x) ord[lll] ord[llr]) ord[lr]
          , node y<z (node x<z all[a]<z all[b]<z) all[c]<z) →
            node ((node x<y all[a]<y all[b]>y)
-                , (node y<z all[c]>y (mapAll (λ a z<a → less-trans y<z z<a) all[r]>x')))
+                , (node y<z all[c]>y (mapAll (λ z<a → less-trans y<z z<a) all[r]>x')))
                 (node (all[a]<x , all[b]>x) ord[lll] ord[llr])
                 (node (all[c]<z , all[r]>x') ord[lr] ord[r]')
       }
@@ -567,8 +619,8 @@ balance-ordered x l r ord[l]' ord[r]' all[l]<x' all[r]>x'
   case (ord[l]' , all[l]<x') of
     λ { (node (all[a]<x , node x<y all[b]>x all[c]>x) ord[a] (node (all[b]<y , all[c]>y) ord[b] ord[c])
         , node x<z all[l]<z (node y<z all[b]<z all[c]<z)) →
-          node ((node x<y (mapAll (λ a a<x → less-trans a<x x<y) all[a]<x) all[b]<y)
-               , (node y<z all[c]>y (mapAll (λ a z>a → less-trans y<z z>a) all[r]>x')))
+          node ((node x<y (mapAll (λ a<x → less-trans a<x x<y) all[a]<x) all[b]<y)
+               , (node y<z all[c]>y (mapAll (λ z>a → less-trans y<z z>a) all[r]>x')))
                (node (all[a]<x , all[b]>x) ord[a] ord[b])
                (node (all[c]<z , all[r]>x') ord[c] ord[r]')
       }
@@ -576,7 +628,7 @@ balance-ordered x l r ord[l]' ord[r]' all[l]<x' all[r]>x'
    case (ord[r]' , all[r]>x') of
      λ { (node (all[a]<y , node y<z all[b]>y all[c]>y) ord[a] (node (all[b]<z , all[c]>z) ord[b] ord[c])
          , node x<y all[r]>x (node x<z all[b]>x all[c]>x)) →
-           node ((node x<y (mapAll (λ a a<x → less-trans a<x x<y) all[l]<x') all[a]<y)
+           node ((node x<y (mapAll (λ a<x → less-trans a<x x<y) all[l]<x') all[a]<y)
                 , (node y<z all[b]>y all[c]>y))
                 (node (all[l]<x' , all[r]>x) ord[l]' ord[a])
                 (node (all[b]<z , all[c]>z) ord[b] ord[c])
@@ -585,8 +637,8 @@ balance-ordered x l r ord[l]' ord[r]' all[l]<x' all[r]>x'
   case (ord[r]' , all[r]>x') of
     λ { (node ((node z<y all[a]<y all[b]<y) , all[c]>y) (node (all[a]<z , all[b]>z) ord[a] ord[b]) ord[c]
         , node x<y (node x<z all[a]>x all[b]>x) all[c]>x) →
-          node ((node x<z (mapAll (λ a a<x → less-trans a<x x<z) all[l]<x') all[a]<z)
-               , (node z<y all[b]>z (mapAll (λ a a>y → less-trans z<y a>y ) all[c]>y)))
+          node ((node x<z (mapAll (λ a<x → less-trans a<x x<z) all[l]<x') all[a]<z)
+               , (node z<y all[b]>z (mapAll (λ a>y → less-trans z<y a>y ) all[c]>y)))
                (node (all[l]<x' , all[a]>x) ord[l]' ord[a])
                (node (all[b]<y , all[c]>y) ord[b] ord[c])
     }
@@ -789,8 +841,8 @@ balleft-ordered x l r ord[l] ord[r] all[l]<x all[r]>x
 ... | right (right (left ((z , y , a , b , c) , refl , snd₁))) rewrite snd₁ =
   case (all[r]>x , ord[r]) of
     λ { (node x<z (node x<y all[a]>x all[b]>x) all[c]>x , node (node y<z all[a]<z all[b]<z , all[c]>z) (node (all[a]<y , all[b]>y) ord[a] ord[b]) ord[c]) →
-      node ((node x<y (mapAll (λ a a<x → less-trans a<x x<y) all[l]<x ) all[a]<y)
-           , balance-All _ _ _ y<z all[b]>y (sub1-All _ (mapAll (λ a z<a → less-trans y<z z<a) all[c]>z))
+      node ((node x<y (mapAll (λ a<x → less-trans a<x x<y) all[l]<x ) all[a]<y)
+           , balance-All _ _ _ y<z all[b]>y (sub1-All _ (mapAll (λ z<a → less-trans y<z z<a) all[c]>z))
            )
            (node (all[l]<x , all[a]>x) ord[l] ord[a])
            (balance-ordered z b (sub1 c) ord[b] (sub1-ordered c ord[c]) all[b]<z (sub1-All c all[c]>z))
@@ -915,8 +967,8 @@ balright-ordered v l r ord[l] ord[r] all[l]<v all[r]>v
   case (ord[l] , all[l]<v) of
     λ { (node (all[a]<x , node x<y all[b]>x all[c]>x) ord[a] (node (all[b]<y , all[c]>y) ord[b] ord[c])
         , node x<v all[a]<v (node y<v all[b]<v all[c]<v)) →
-        node ( balance-All x (sub1 a) b x<y ((sub1-All a (mapAll (λ a a<x → less-trans a<x x<y ) all[a]<x))) all[b]<y
-             , (node y<v all[c]>y (mapAll (λ a v<a → less-trans y<v v<a) all[r]>v)))
+        node ( balance-All x (sub1 a) b x<y ((sub1-All a (mapAll (λ a<x → less-trans a<x x<y ) all[a]<x))) all[b]<y
+             , (node y<v all[c]>y (mapAll (λ v<a → less-trans y<v v<a) all[r]>v)))
              (balance-ordered x (sub1 a) b (sub1-ordered a ord[a]) ord[b] (sub1-All a all[a]<x) all[b]>x)
              (node (all[c]<v , all[r]>v) ord[c] ord[r])  }
 ... | right (right (right x)) rewrite x = node (all[l]<v , all[r]>v) ord[l] ord[r]
@@ -943,6 +995,48 @@ balright-All x l r Px all[l] all[r]
         node Py (balance-All z (sub1 a) b Pz (sub1-All a all[a]) all[b]) (node Px all[c] all[r])
       }
 ... | right (right (right balright≡)) rewrite balright≡ = node Px all[l] all[r]
+
+
+balright-Any :
+  {P : A → Set ℓ₂}
+  → (v : A) → (l : RedBlackTree A) → (r : RedBlackTree A)
+  → Either (P v) (Either (Any (P ∘ snd) l) (Any (P ∘ snd) r))
+  → Any (P ∘ snd) (balright l v r)
+balright-Any v l r inArgs
+  with balright-cases v l r
+... | left ((x , a , b) , refl , refl) =
+  case inArgs of
+    λ { (left x) → here x
+      ; (right (left inl)) → inLeft inl
+      ; (right (right (here x))) → inRight (here x)
+      ; (right (right (inLeft inl))) → inRight (inLeft inl)
+      ; (right (right (inRight inr))) → inRight (inRight inr)
+      }
+... | right (left ((x , a , b) , refl , balright≡)) rewrite balright≡ =
+  case inArgs of
+    λ { (left Pv) → balance-Any v _ _ (left Pv)
+      ; (right (left (here Px))) → balance-Any v _ _ (right (left (here Px)))
+      ; (right (left (inLeft ina))) → balance-Any v _ _ (right (left (inLeft ina)))
+      ; (right (left (inRight inb))) → balance-Any v _ _ (right (left (inRight inb)))
+      ; (right (right inr)) → balance-Any v _ _ (right (right inr))
+      }
+... | right (right (left ((z , y , a , b , c) , refl , balright≡))) rewrite balright≡ =
+  case inArgs of
+    λ { (left Pv) → inRight (here Pv)
+      ; (right (left (here Pz))) → inLeft (balance-Any z _ _ (left Pz))
+      ; (right (left (inLeft ina))) → inLeft (balance-Any z (sub1 a) _ (right (left (sub1-Any a ina))))
+      ; (right (left (inRight (here Py)))) → here Py
+      ; (right (left (inRight (inLeft inb)))) → inLeft (balance-Any z _ _ (right (right inb)))
+      ; (right (left (inRight (inRight inc)))) → inRight (inLeft inc)
+      ; (right (right inr)) → inRight (inRight inr)
+      }
+... | right (right (right balright≡)) rewrite balright≡ =
+  case inArgs of
+    λ { (left Pv) → here Pv
+      ; (right (left any[l])) → inLeft any[l]
+      ; (right (right any[r])) → inRight any[r]
+      }
+
 
 app-All :
   ∀ {ℓ₂}
@@ -1086,22 +1180,22 @@ app-ordered v (node (red , x) a b) (node (red , y) c d)
             (node x<v _ all[b]<v) (node y>v all[c]>z _)
             (node (all[a]<x , all[b]>x) ord[a] ord[b]) (node (all[c]<y , all[d]>y) ord[c] ord[d])
   with app b c | app-ordered v b c all[b]<v all[c]>z ord[b] ord[c]
-     | app-All b c all[b]>x (mapAll (λ a a>v → less-trans x<v a>v) all[c]>z)
-     | app-All b c (mapAll (λ a a<v → (less-trans a<v y>v)) all[b]<v) all[c]<y
+     | app-All b c all[b]>x (mapAll (λ a>v → less-trans x<v a>v) all[c]>z)
+     | app-All b c (mapAll (λ a<v → (less-trans a<v y>v)) all[b]<v) all[c]<y
 ... | leaf | leaf | _ | _ =
-  node (all[a]<x , node (less-trans x<v y>v) leaf (mapAll (λ a y<a → less-trans (less-trans x<v y>v) y<a) all[d]>y))
+  node (all[a]<x , node (less-trans x<v y>v) leaf (mapAll (λ y<a → less-trans (less-trans x<v y>v) y<a) all[d]>y))
        ord[a]
        (node (leaf , all[d]>y) leaf ord[d])
 ... | node (red , z) b' c' | node (all[b']<z , all[c']>z) ord[b'] ord[c'] | (node x<z all[b']<x all[c']<x) | (node z<y all[b']<y all[c']<y) =
-  node ((node x<z (mapAll (λ a a<x → less-trans a<x x<z) all[a]<x) all[b']<z)
-        , (node z<y all[c']>z (mapAll (λ a a>y → less-trans z<y a>y) all[d]>y)))
+  node ((node x<z (mapAll (λ a<x → less-trans a<x x<z) all[a]<x) all[b']<z)
+        , (node z<y all[c']>z (mapAll (λ a>y → less-trans z<y a>y) all[d]>y)))
        (node (all[a]<x , all[b']<x) ord[a] ord[b'])
        (node (all[c']<y , all[d]>y) ord[c'] ord[d])
 ... | node (black , z) b' c' | node x₂ ord[rec] ord[rec]₁ | (node x<z all[b']<x all[c']<x) | (node z<y all[b']<y all[c']<y) =
   node (all[a]<x ,
        (node (less-trans x<v y>v)
              (node x<z all[b']<x all[c']<x)
-             (mapAll (λ a y<a → less-trans x<z (less-trans z<y y<a)) all[d]>y)))
+             (mapAll (λ y<a → less-trans x<z (less-trans z<y y<a)) all[d]>y)))
        ord[a]
        (node ((node z<y all[b']<y all[c']<y) , all[d]>y) (node x₂ ord[rec] ord[rec]₁) ord[d])
 app-ordered v (node (red , x) a b) (node (black , y) c d)
@@ -1110,8 +1204,8 @@ app-ordered v (node (red , x) a b) (node (black , y) c d)
   node (all[a]<x
        , app-All b (node (black , y) c d) all[b]>x
                    (node (less-trans x<v y>v)
-                         (mapAll (λ a a>v → less-trans x<v a>v) all[c]>v)
-                         (mapAll (λ a a>v → less-trans x<v a>v) all[d]>v)))
+                         (mapAll (λ a>v → less-trans x<v a>v) all[c]>v)
+                         (mapAll (λ a>v → less-trans x<v a>v) all[d]>v)))
        ord[a]
        (app-ordered v b (node (black , y) c d) all[b]<v (node y>v all[c]>v all[d]>v) ord[b] (node Py ord[c] ord[d]))
 app-ordered v (node (black , x) a b) (node (red , y) c d)
@@ -1119,8 +1213,8 @@ app-ordered v (node (black , x) a b) (node (red , y) c d)
             (node Px ord[a] ord[b]) (node (all[c]<y , all[d]>y) ord[c] ord[d]) =
   node (app-All (node (black , x) a b) c
                 (node (less-trans x<v y>v)
-                (mapAll (λ a a<v → less-trans a<v y>v) all[a]<v)
-                (mapAll (λ a a<v → less-trans a<v y>v) all[b]<v))
+                (mapAll (λ a<v → less-trans a<v y>v) all[a]<v)
+                (mapAll (λ a<v → less-trans a<v y>v) all[b]<v))
                 all[c]<y
        , all[d]>y)
        (app-ordered v (node (black , x) a b) c (node x<v all[a]<v all[b]<v) all[c]>v (node Px ord[a] ord[b]) ord[c])
@@ -1129,15 +1223,15 @@ app-ordered v (node (black , x) a b) (node (black , y) c d)
             (node x<v _ all[b]<v) (node y>v all[c]>z _)
             (node (all[a]<x , all[b]>x) ord[a] ord[b]) (node (all[c]<y , all[d]>y) ord[c] ord[d])
   with app b c | app-ordered v b c all[b]<v all[c]>z ord[b] ord[c]
-     | app-All b c all[b]>x (mapAll (λ a a>v → less-trans x<v a>v) all[c]>z)
-     | app-All b c (mapAll (λ a a<v → (less-trans a<v y>v)) all[b]<v) all[c]<y
+     | app-All b c all[b]>x (mapAll (λ a>v → less-trans x<v a>v) all[c]>z)
+     | app-All b c (mapAll (λ a<v → (less-trans a<v y>v)) all[b]<v) all[c]<y
 ... | leaf | leaf | _ | _ =
   balleft-ordered x a (node (black , y) leaf d) ord[a]
                   (node (leaf , all[d]>y) leaf ord[d]) all[a]<x
-                  (node (less-trans x<v y>v) leaf (mapAll (λ a y>a → less-trans (less-trans x<v y>v) y>a) all[d]>y))
+                  (node (less-trans x<v y>v) leaf (mapAll (λ y>a → less-trans (less-trans x<v y>v) y>a) all[d]>y))
 ... | node (red , z) b' c' | node (all[b']<z , all[c']>z) ord[b'] ord[c'] | (node x<z all[b']<x all[c']<x) | (node z<y all[b']<y all[c']<y) =
-  node ((node x<z (mapAll (λ a a<x → less-trans a<x x<z) all[a]<x) all[b']<z)
-       , node z<y all[c']>z (mapAll (λ a y<a → less-trans z<y y<a) all[d]>y))
+  node ((node x<z (mapAll (λ a<x → less-trans a<x x<z) all[a]<x) all[b']<z)
+       , node z<y all[c']>z (mapAll (λ y<a → less-trans z<y y<a) all[d]>y))
        (node (all[a]<x , all[b']<x) ord[a] ord[b'])
        (node (all[c']<y , all[d]>y) ord[c'] ord[d])
 ... | node (black , z) b' c' | node (all[b']<z , all[c']>z) ord[rec] ord[rec]₁ | (node x<z all[b']<x all[c']<x) | (node z<y all[b']<y all[c']<y) =
@@ -1149,7 +1243,7 @@ app-ordered v (node (black , x) a b) (node (black , y) c d)
     all[a]<x
     (node (less-trans x<z z<y)
           (node x<z all[b']<x all[c']<x)
-          (mapAll (λ a y<a → less-trans (less-trans x<z z<y) y<a) all[d]>y))
+          (mapAll (λ y<a → less-trans (less-trans x<z z<y) y<a) all[d]>y))
 
 
 
@@ -1259,15 +1353,15 @@ mutual
   ... | equal eq = app-ordered y l r all[l]<y all[r]>y ord[l] ord[r]
   ... | greater gt = delformRight-ordered proj k l y r ord[l] ord[r] all[l]<y all[r]>y
 
-delete-ordered :
+deleteProj-ordered :
    {{_ : Ord/Laws B}}
    → (proj : A → B)
-   → (a : A)
+   → (b : B)
    → (t : RedBlackTree A)
    → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) t
-   → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) (delete proj a t)
-delete-ordered proj a t ord[t]
-  with del proj (proj a) t | del-ordered proj (proj a) t ord[t]
+   → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) (deleteProj proj b t)
+deleteProj-ordered proj b t ord[t]
+  with del proj b t | del-ordered proj b t ord[t]
 ... | leaf | leaf = leaf
 ... | node (_ , y) l r | node (all[l]<y , all[r]>y) ord[l] ord[r] =
   node (all[l]<y , all[r]>y) ord[l] ord[r]
@@ -1279,119 +1373,265 @@ mutual
   delformLeft-RBMember :
     {{_ : Ord/Laws B}}
     → (proj : A → B)
-    → (x : A)
+    → (b : B)
     → (l : RedBlackTree A) → (y : A) → (r : RedBlackTree A)
-    → (proj x < proj y)
+    → (b < proj y)
     → All (λ p → proj (snd p)  < proj y) l → All (λ p → proj y < proj (snd p)) r
     → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) l
     → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) r
-    → All (λ p → (proj (snd p) ≢ proj x)
+    → All (λ p → (proj (snd p) ≢ b)
                × Either ((snd p) ≡ y)
                 (Either (RBMember (snd p) l)
                         (RBMember (snd p) r)))
-          (delformLeft proj (proj x) l y r)
-  delformLeft-RBMember proj x leaf y r x<y all[l]<y all[r]>y ord[l] ord[r] =
-    node ((λ y≡x → less-antirefl (transport (proj x <_) y≡x x<y)) , left refl)
-         leaf (mapAll (λ (_ , a) mem → <⇒≢ ((less-trans x<y (rbmember-all all[r]>y mem))) ∘ sym , right (right mem))
+          (delformLeft proj b l y r)
+  delformLeft-RBMember proj b leaf y r b<y all[l]<y all[r]>y ord[l] ord[r] =
+    node ((λ y≡b → less-antirefl (transport (b <_) y≡b b<y)) , left refl)
+         leaf (mapAll (λ mem → <⇒≢ ((less-trans b<y (RBMember-All all[r]>y mem))) ∘ sym , right (right mem))
                       (elem-RBMember r))
-  delformLeft-RBMember {A = A} proj x l@(node (black , _) _ _) y r x<y all[l]<y all[r]>y ord[l] ord[r] =
+  delformLeft-RBMember {A = A} proj b l@(node (black , _) _ _) y r b<y all[l]<y all[r]>y ord[l] ord[r] =
     balleft-All {A = A}
-                 {P = (λ p → (proj p ≢ proj x) × Either (p ≡ y) (Either (RBMember p l) (RBMember p r))) }
-                 y (del proj (proj x) l) r
-                 ((<⇒≢ x<y) ∘ sym , left refl)
-                 (mapAll (λ {(_ , a) (a≢x , mem) → a≢x , right (left mem)}) (del-RBMember proj x l ord[l]))
-                 (mapAll (λ (_ , a) mem → <⇒≢ ((less-trans x<y (rbmember-all all[r]>y mem))) ∘ sym , right (right mem))
+                 {P = (λ p → (proj p ≢ b) × Either (p ≡ y) (Either (RBMember p l) (RBMember p r))) }
+                 y (del proj b l) r
+                 ((<⇒≢ b<y) ∘ sym , left refl)
+                 (mapAll (λ {(a≢b , mem) → a≢b , right (left mem)}) (del-RBMember proj b l ord[l]))
+                 (mapAll (λ mem → <⇒≢ ((less-trans b<y (RBMember-All all[r]>y mem))) ∘ sym , right (right mem))
                          (elem-RBMember r))
-  delformLeft-RBMember proj x l@(node (red , _) _ _) y r x<y all[l]<y all[r]>y ord[l] ord[r] =
-    node (<⇒≢ x<y ∘ sym , left refl)
-         (mapAll (λ {(_ , a) (a≢x , mem) → a≢x , right (left mem)}) (del-RBMember proj x l ord[l]))
-         (mapAll (λ (_ , a) mem → <⇒≢ ((less-trans x<y (rbmember-all all[r]>y mem))) ∘ sym , right (right mem))
+  delformLeft-RBMember proj b l@(node (red , _) _ _) y r b<y all[l]<y all[r]>y ord[l] ord[r] =
+    node (<⇒≢ b<y ∘ sym , left refl)
+         (mapAll (λ {(a≢b , mem) → a≢b , right (left mem)}) (del-RBMember proj b l ord[l]))
+         (mapAll (λ mem → <⇒≢ ((less-trans b<y (RBMember-All all[r]>y mem))) ∘ sym , right (right mem))
                          (elem-RBMember r))
 
   delformRight-RBMember :
     {{_ : Ord/Laws B}}
     → (proj : A → B)
-    → (x : A)
+    → (b : B)
     → (l : RedBlackTree A) → (y : A) → (r : RedBlackTree A)
-    → (proj x > proj y)
+    → (b > proj y)
     → All (λ p → proj (snd p)  < proj y) l → All (λ p → proj y < proj (snd p)) r
     → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) l
     → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) r
-    → All (λ p → proj (snd p) ≢ proj x
+    → All (λ p → proj (snd p) ≢ b
                × Either ((snd p) ≡ y)
                 (Either (RBMember (snd p) l)
                         (RBMember (snd p) r)))
-          (delformRight proj (proj x) l y r)
-  delformRight-RBMember proj x l y leaf x>y all[l]<y all[r]>y ord[l] ord[r] =
-      node (<⇒≢ x>y , left refl)
-           (mapAll (λ (_ , a) mem → <⇒≢ ((less-trans (rbmember-all all[l]<y mem) x>y)) , right (left mem))
+          (delformRight proj b l y r)
+  delformRight-RBMember proj b l y leaf b>y all[l]<y all[r]>y ord[l] ord[r] =
+      node (<⇒≢ b>y , left refl)
+           (mapAll (λ mem → <⇒≢ ((less-trans (RBMember-All all[l]<y mem) b>y)) , right (left mem))
                    (elem-RBMember l))
            leaf
-  delformRight-RBMember proj x l y r@(node (red , _) _ _) x>y all[l]<y all[r]>y ord[l] ord[r] =
-    node (<⇒≢ x>y , left refl)
-         (mapAll (λ (_ , a) mem → <⇒≢ ((less-trans (rbmember-all all[l]<y mem) x>y)) , right (left mem))
+  delformRight-RBMember proj b l y r@(node (red , _) _ _) b>y all[l]<y all[r]>y ord[l] ord[r] =
+    node (<⇒≢ b>y , left refl)
+         (mapAll (λ mem → <⇒≢ ((less-trans (RBMember-All all[l]<y mem) b>y)) , right (left mem))
                          (elem-RBMember l))
-         (mapAll (λ {(_ , a) (a≢x , mem) → a≢x , right (right mem)}) (del-RBMember proj x r ord[r]))
-  delformRight-RBMember {A = A} proj x l y r@(node (black , _) _ _) x>y all[l]<y all[r]>y ord[l] ord[r] =
+         (mapAll (λ {(a≢b , mem) → a≢b , right (right mem)}) (del-RBMember proj b r ord[r]))
+  delformRight-RBMember {A = A} proj b l y r@(node (black , _) _ _) b>y all[l]<y all[r]>y ord[l] ord[r] =
     balright-All {A = A}
-                 {P = (λ p → (proj p ≢ proj x) × Either (p ≡ y) (Either (RBMember p l) (RBMember p r))) }
-                 y l (del proj (proj x) r)
-                 ((<⇒≢ x>y) , left refl)
-                 (mapAll (λ (_ , a) mem → <⇒≢ ((less-trans (rbmember-all all[l]<y mem) x>y)) , right (left mem))
+                 {P = (λ p → (proj p ≢ b) × Either (p ≡ y) (Either (RBMember p l) (RBMember p r))) }
+                 y l (del proj b r)
+                 ((<⇒≢ b>y) , left refl)
+                 (mapAll (λ mem → <⇒≢ ((less-trans (RBMember-All all[l]<y mem) b>y)) , right (left mem))
                          (elem-RBMember l))
-                 (mapAll (λ {(_ , a) (a≢x , mem) → a≢x , right (right mem)}) (del-RBMember proj x r ord[r]))
+                 (mapAll (λ { (a≢b , mem) → a≢b , right (right mem)}) (del-RBMember proj b r ord[r]))
 
 
   del-RBMember :
     {{_ : Ord/Laws B}}
     → (proj : A → B)
-    → (x : A)
+    → (b : B)
     → (t : RedBlackTree A)
     → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) t
-    → All (λ p → proj (snd p) ≢ proj x × RBMember (snd p) t) (del proj (proj x) t)
-  del-RBMember proj x leaf ord[t] = leaf
-  del-RBMember proj x (node (color , y) l r) (node (all[l]<y , all[r]>y) ord[l] ord[r])
-    with compare (proj x) (proj y)
+    → All (λ p → proj (snd p) ≢ b × RBMember (snd p) t) (del proj b t)
+  del-RBMember proj b leaf ord[t] = leaf
+  del-RBMember proj b (node (color , y) l r) (node (all[l]<y , all[r]>y) ord[l] ord[r])
+    with compare b (proj y)
   ... | less lt =
-      mapAll (λ { a (a≢x , left a≡y) → a≢x , here a≡y
-                ; a (a≢x , right (left inl)) → a≢x , inLeft inl
-                ; a (a≢x , right (right inr)) → a≢x , inRight inr
+      mapAll (λ { (a≢b , left a≡y) → a≢b , here (sym a≡y)
+                ; (a≢b , right (left inl)) → a≢b , inLeft inl
+                ; (a≢b , right (right inr)) → a≢b , inRight inr
                 })
-             (delformLeft-RBMember proj x l y r lt all[l]<y all[r]>y ord[l] ord[r])
+             (delformLeft-RBMember proj b l y r lt all[l]<y all[r]>y ord[l] ord[r])
   ... | greater gt =
-      mapAll (λ { a (a≢x , left a≡y) → a≢x , here a≡y
-                ; a (a≢x , right (left inl)) → a≢x , inLeft inl
-                ; a (a≢x , right (right inr)) → a≢x , inRight inr
+      mapAll (λ { (a≢b , left a≡y) → a≢b , here (sym a≡y)
+                ; (a≢b , right (left inl)) → a≢b , inLeft inl
+                ; (a≢b , right (right inr)) → a≢b , inRight inr
                 })
-             (delformRight-RBMember proj x l y r gt all[l]<y all[r]>y ord[l] ord[r])
-  ... | equal p[x]≡p[y] =
+             (delformRight-RBMember proj b l y r gt all[l]<y all[r]>y ord[l] ord[r])
+  ... | equal b≡p[y] =
         flip mapAll all-mem
-          (λ { a (left mem) →
-                 (λ a≡x → less-antirefl (transport (_< proj y)
-                                                    (trans a≡x p[x]≡p[y])
-                                                    (member-all all[l]<y (snd (RBMember⇒Member mem)))))
+          (λ { (left mem) →
+                (λ a≡b → less-antirefl
+                            (transport (_< proj y)
+                                       (trans a≡b b≡p[y])
+                                       (Member-All (snd (RBMember⇒Member mem)) all[l]<y)))
                  , inLeft mem
-             ; a (right mem) →
-                 (λ a≡x → less-antirefl (transport (proj y <_)
-                                        (trans a≡x p[x]≡p[y])
-                                        (member-all all[r]>y (snd (RBMember⇒Member mem)))))
+             ; (right mem) →
+                 (λ a≡b → less-antirefl (transport (proj y <_)
+                                        (trans a≡b b≡p[y])
+                                        (Member-All (snd (RBMember⇒Member mem)) all[r]>y)))
                  , inRight mem
              })
        where
          all-mem : All (λ a → Either (RBMember (snd a) l) (RBMember (snd a) r)) (app l r)
-         all-mem = (app-All l r
-                      (mapAll (λ _ → left) (elem-RBMember l))
-                      (mapAll (λ _ → right) (elem-RBMember r)))
+         all-mem = app-All l r
+                      ((mapAll left (elem-RBMember l)))
+                      ((mapAll right (elem-RBMember r)))
 
 
-delete-RBMember :
+deleteProj-RBMember :
+  {{_ : Ord/Laws B}}
+  → (proj : A → B)
+  → (b : B)
+  → (t : RedBlackTree A)
+  → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) t
+  → All (λ p → proj (snd p) ≢ b × RBMember (snd p) t) (deleteProj proj b t)
+deleteProj-RBMember proj b t ord[t]
+  with del proj b t | del-RBMember proj b t ord[t]
+... | leaf | p@leaf = leaf
+... | node (_ , z) l r | node x₂ p p₁ = node x₂ p p₁
+
+
+DeleteEffectFst⇒¬RBProjMember :
   {{_ : Ord/Laws B}}
   → (proj : A → B)
   → (x : A)
   → (t : RedBlackTree A)
-  → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) t
-  → All (λ p → proj (snd p) ≢ proj x × RBMember (snd p) t) (delete proj x t)
-delete-RBMember proj x t ord[t]
-  with del proj (proj x) t | del-RBMember proj x t ord[t]
-... | leaf | leaf = leaf
-... | node (_ , z) l r | node x₂ p p₁ = node x₂ p p₁
+  → All (λ p → proj (snd p) ≢ proj x) t
+  → ¬ RBProjMember proj (proj x) t
+DeleteEffectFst⇒¬RBProjMember proj x .leaf leaf = λ ()
+DeleteEffectFst⇒¬RBProjMember proj x (node (_ , y) l r) (node y≢x all[l] all[r])
+ pmem
+  with pmem
+... | here x≡y = y≢x x≡y
+... | inLeft inl =
+  DeleteEffectFst⇒¬RBProjMember proj x l all[l] inl
+... | inRight inr =
+  DeleteEffectFst⇒¬RBProjMember proj x r all[r] inr
+
+
+DeleteEffect⇒¬RBProjMember :
+  {{_ : Ord/Laws B}}
+  → (proj : A → B)
+  → (x : A)
+  → {t' : RB A}
+  → (t : RedBlackTree A)
+  → All (λ p → proj (snd p) ≢ proj x × RBMember (snd p) t') t
+  → ¬ RBProjMember proj (proj x) t
+DeleteEffect⇒¬RBProjMember proj x t all =
+  DeleteEffectFst⇒¬RBProjMember proj x t (mapAll (λ p → fst p) all)
+
+
+
+mutual
+
+  delformLeft-Keeps-Unrelated :
+    {{_ : Ord/Laws B}}
+    → (proj : A → B)
+    → (b : B)
+    → (l : RedBlackTree A) → (y : A) → (r : RedBlackTree A)
+    → (b < proj y)
+    → All (λ p → proj (snd p)  < proj y) l → All (λ p → proj y < proj (snd p)) r
+    → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) l
+    → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) r
+    → (a : A)
+    → Either (y ≡ a) (Either (RBMember a l) (RBMember a r))
+    → proj a ≢ b
+    → RBMember a (delformLeft proj b l y r)
+  delformLeft-Keeps-Unrelated proj b leaf y r b<y all[l]<y all[r]>y ord[l] ord[r] a mem a≢b =
+    case mem of
+      λ { (left x) → here x ; (right (right x)) → inRight x }
+  delformLeft-Keeps-Unrelated {A = A} proj b l@(node (black , _) _ _) y r b<y all[l]<y all[r]>y ord[l] ord[r] a mem a≢b =
+    balleft-Any y (del proj b l) r
+      (case mem of
+        λ { (left x) → left x
+          ; (right (left inl)) → right (left (del-Keeps-Unrelated proj b l ord[l] a inl a≢b))
+          ; (right (right inr)) → right (right inr)
+          })
+  delformLeft-Keeps-Unrelated proj b l@(node (red , _) _ _) y r b<y all[l]<y all[r]>y ord[l] ord[r] a mem a≢b =
+    case mem of
+      λ { (left x) → here x
+        ; (right (left inl)) → inLeft (del-Keeps-Unrelated proj b l ord[l] a inl a≢b)
+        ; (right (right inr)) → inRight inr
+        }
+
+  delformRight-Keeps-Unrelated :
+    {{_ : Ord/Laws B}}
+    → (proj : A → B)
+    → (b : B)
+    → (l : RedBlackTree A) → (y : A) → (r : RedBlackTree A)
+    → (b > proj y)
+    → All (λ p → proj (snd p)  < proj y) l → All (λ p → proj y < proj (snd p)) r
+    → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) l
+    → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) r
+    → (a : A)
+    → Either (y ≡ a) (Either (RBMember a l) (RBMember a r))
+    → proj a ≢ b
+    → RBMember a (delformRight proj b l y r)
+  delformRight-Keeps-Unrelated proj b l y leaf b>y all[l]<y all[r]>y ord[l] ord[r] a mem a≢b =
+    case mem of
+      λ { (left x) → here x ; (right (left x)) → inLeft x }
+  delformRight-Keeps-Unrelated proj b l y r@(node (red , _) _ _) b>y all[l]<y all[r]>y ord[l] ord[r] a mem a≢b =
+    case mem of
+      λ { (left x) → here x
+        ; (right (left x)) → inLeft x
+        ; (right (right x)) → inRight (del-Keeps-Unrelated proj b r ord[r] a x a≢b) }
+  delformRight-Keeps-Unrelated {A = A} proj b l y r@(node (black , _) _ _) b>y all[l]<y all[r]>y ord[l] ord[r] a mem a≢b =
+     balright-Any y l (del proj b r)
+      (case mem of
+        λ { (left x) → left x
+          ; (right (left inl)) → right (left inl)
+          ; (right (right inr)) → right (right (del-Keeps-Unrelated proj b r ord[r] a inr a≢b))
+          })
+
+  del-Keeps-Unrelated :
+    {{_ : Ord/Laws B}}
+    → (proj : A → B)
+    → (b : B)
+    → (t : RedBlackTree A)
+    → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) t
+    → (a : A)
+    → (RBMember a t)
+    → proj a ≢ b
+    → RBMember a (del proj b t)
+  del-Keeps-Unrelated proj b leaf ord[t] = λ a x x₁ → x
+  del-Keeps-Unrelated proj b (node (color , y) l r) (node (all[l]<y , all[r]>y) ord[l] ord[r]) a mem a≢b
+    with compare b (proj y)
+  ... | less lt =
+    delformLeft-Keeps-Unrelated
+        proj b l y r lt
+        all[l]<y all[r]>y
+        ord[l] ord[r]
+        a
+        (case mem of λ { (here x) → left x ; (inLeft c) → right (left c) ; (inRight c) → right (right c)})
+        a≢b
+  ... | greater gt =
+    delformRight-Keeps-Unrelated
+        proj b l y r gt
+        all[l]<y all[r]>y
+        ord[l] ord[r]
+        a
+        (case mem of λ { (here x) → left x ; (inLeft c) → right (left c) ; (inRight c) → right (right c)})
+        a≢b
+  ... | equal b≡p[y] =
+      case mem of
+        λ { (here refl) → ⊥-elim (a≢b (sym b≡p[y]))
+          ; (inLeft c) → app-Any l r (left c)
+          ; (inRight c) → app-Any l r (right c)
+          }
+
+deleteProj-Keeps-Unrelated :
+    {{_ : Ord/Laws B}}
+    → (proj : A → B)
+    → (b : B)
+    → (t : RedBlackTree A)
+    → OrderedBy (λ p₁ p₂ → proj (snd p₁) < proj (snd p₂)) t
+    → (a : A)
+    → (RBMember a t)
+    → proj a ≢ b
+    → RBMember a (deleteProj proj b t)
+deleteProj-Keeps-Unrelated proj b t ord[t] a mem a≢b
+  with del proj b t | del-Keeps-Unrelated proj b t ord[t] a mem a≢b
+... | node (_ , y) l r | here y≡a = here y≡a
+... | node (_ , y) l r | inLeft inl = inLeft inl
+... | node (_ , y) l r | inRight inr = inRight inr
