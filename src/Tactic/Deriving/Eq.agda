@@ -335,7 +335,7 @@ private
       pure (clause (free-tel₁ ++ free-tel₂)
                    (vArg (con c₁ (makePattern (#args₁ + #args₂) (#free-args₁ + #free-args₂) tel₁)) ∷
                     vArg (con c₂ (makePattern #args₂ #free-args₂ tel₂)) ∷ [])
-                   (con (quote no) ([ vArg (pat-lam ([ absurd-clause [ "()" , vArg unknown ] ([ vArg absurd ]) ]) []) ])))
+                   (con (quote no) [ vArg absurd-lam ]))
     where
       makeFreeTel : (k : Nat) → Telescope → Telescope
       makeFreeTel (suc k) ((x , a) ∷ xs) = if (elem k fs) then [] else [ x , (unknown <$ a) ] ++ makeFreeTel k xs

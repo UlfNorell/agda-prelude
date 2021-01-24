@@ -74,7 +74,7 @@ private
   strPat    lo k (var x)    = var <$> strVar lo k x
   strPat    lo k (lit l)    = pure (lit l)
   strPat    lo k (proj f)   = pure (proj f)
-  strPat    lo k absurd     = pure absurd
+  strPat    lo k (absurd x) = absurd <$> strVar lo k x
   strPatArg lo k (arg i p)  = arg i <$> strPat lo k p
   strPats   lo k []         = pure []
   strPats   lo k (p ∷ ps)   = _∷_ <$> strPatArg lo k p <*> strPats lo k ps
@@ -128,7 +128,7 @@ private
   wkPat    lo k (var x)    = var (wkVar lo k x)
   wkPat    lo k (lit l)    = lit l
   wkPat    lo k (proj f)   = proj f
-  wkPat    lo k absurd     = absurd
+  wkPat    lo k (absurd x) = absurd (wkVar lo k x)
   wkPatArg lo k (arg i p)  = arg i (wkPat lo k p)
   wkPats   lo k []         = []
   wkPats   lo k (p ∷ ps)   = wkPatArg lo k p ∷ wkPats lo k ps
