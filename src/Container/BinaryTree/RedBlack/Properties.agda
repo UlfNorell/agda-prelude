@@ -14,6 +14,7 @@ open import Prelude.Product
 open import Prelude.Function
 open import Prelude.Functor
 open import Prelude.Equality
+open import Prelude.Equality.Inspect
 open import Prelude.Ord
 open import Prelude.Ord.Properties
 open import Prelude.Empty
@@ -51,6 +52,31 @@ RBProjMember⇒RBMember (inRight pmem)
   with RBProjMember⇒RBMember pmem
 ... | a , refl , snd₁ = (a , refl , inRight snd₁ )
 
+
+¬RBProjMember⇒¬RBMember :
+  (proj : A → B)
+  → (b : B) → (t : RedBlackTree A)
+  → ¬ RBProjMember proj b t
+  → (p : A)
+  → proj p ≡ b
+  → ¬ RBMember p t
+¬RBProjMember⇒¬RBMember _ b leaf ¬projmem p proj[p]≡b ()
+¬RBProjMember⇒¬RBMember _ b (node (color , y) l r) ¬projmem p proj[p]≡b (here y≡p)
+  rewrite y≡p = ¬projmem (here proj[p]≡b)
+¬RBProjMember⇒¬RBMember proj  b (node (color , y) l r) ¬projmem p proj[p]≡b (inLeft mem) =
+  ¬p∈l mem
+  where
+    ¬proj∈l : ¬ RBProjMember proj b l
+    ¬proj∈l b∈l = ¬projmem (inLeft b∈l)
+    ¬p∈l : ¬ RBMember p l
+    ¬p∈l = ¬RBProjMember⇒¬RBMember proj b l ¬proj∈l p proj[p]≡b
+¬RBProjMember⇒¬RBMember proj b (node (color , y) l r) ¬projmem p proj[p]≡b (inRight mem) = ¬p∈r mem
+  where
+    ¬proj∈r : ¬ RBProjMember proj b r
+    ¬proj∈r b∈r = ¬projmem (inRight b∈r)
+    ¬p∈r : ¬ RBMember p r
+    ¬p∈r = ¬RBProjMember⇒¬RBMember proj b r ¬proj∈r p proj[p]≡b
+
 Member⇒RBMember :
     {c : Color} {a : A} {t : RB A}
   → Member (c , a) t → RBMember a t
@@ -75,6 +101,21 @@ lookupBy-¬RBProjMember :
   → lookupBy proj b t ≡ nothing
 lookupBy-¬RBProjMember proj {b = b} {t} ¬mem
   rewrite binarySearchBy-¬ProjMember (proj ∘ snd) b t ¬mem = refl
+
+
+lookupBy-¬RBMember :
+  (proj : A → B)
+  → {{_ : Ord B}}
+  → {b : B} → {t : RedBlackTree A}
+  → ((a : A) → proj a ≡ b → ¬ RBMember a t)
+  → lookupBy proj b t ≡ nothing
+lookupBy-¬RBMember proj {b = b} {leaf} foo = refl
+lookupBy-¬RBMember proj {b = b} {node (color , y) l r} foo
+    with compare b (proj y)
+... | less lt = lookupBy-¬RBMember proj {b = b} {t = l} λ a proja≡b ∈l → (foo a proja≡b (inLeft ∈l))
+... | equal eq = ⊥-elim (foo y (sym eq) (here refl))
+... | greater gt = lookupBy-¬RBMember proj {b = b} {t = r} λ a proja≡b ∈r → (foo a proja≡b (inRight ∈r))
+
 
 lookupBy-RBMember :
   {{_ : Ord/Laws B}}
@@ -104,6 +145,8 @@ lookupBy-cases proj k {t = t} ord[t]
 ... | left ((_ , snd₁) , fst₂ , fst₃ , snd₂) rewrite fst₂ =
   left (snd₁ , (refl , Member⇒ProjMember snd  snd₂ , fst₃))
 ... | right (fst₁ , snd₁) rewrite fst₁ = right (refl , snd₁)
+
+
 
 module _ {l : Level} {A : Set l} where
 
@@ -326,6 +369,71 @@ rightBalance-Any color x l r anyP
       ; (right (right (inRight (inRight anyP[c])))) → inRight (inRight anyP[c])
       }
 
+Any-rightBalance-cancel :
+  ∀ {ℓ₂}
+  → {P : A → Set ℓ₂}
+  → (color : Color) → (x : A) → (l : RedBlackTree A) → (r : RedBlackTree A)
+  → Any (P ∘ snd) (rightBalance color x l r)
+  → Either (P x) (Either (Any (P ∘ snd) l) (Any (P ∘ snd) r))
+Any-rightBalance-cancel color x l r anyP
+  with rightBalance-effect color x l r
+... | left rb≡ rewrite rb≡ =
+  case anyP of λ where
+    (here x) → left x
+    (inLeft case) → right (left case)
+    (inRight case) → right (right case)
+... | right ((y , z , b , c , d) , left r≡ , rb≡) rewrite rb≡ rewrite r≡ =
+  case anyP of λ where
+    (here Py) → right (right (inLeft (here Py)))
+    (inLeft (here Px)) → left Px
+    (inLeft (inLeft case)) → right (left case)
+    (inLeft (inRight case)) → right (right (inLeft (inLeft case)))
+    (inRight (here Pz)) → right (right (here Pz))
+    (inRight (inLeft case)) → right (right (inLeft (inRight case)))
+    (inRight (inRight case)) → right (right (inRight case))
+... | right ((y , z , b , c , d) , right r≡ , rb≡) rewrite rb≡ rewrite r≡ =
+  case anyP of λ where
+    (here Py) → right (right (here Py))
+    (inLeft (here Px)) → left Px
+    (inLeft (inLeft case)) → right (left case)
+    (inLeft (inRight case)) → right (right (inLeft case))
+    (inRight (here Pz)) → right (right (inRight (here Pz)))
+    (inRight (inLeft case)) → right (right (inRight (inLeft case)))
+    (inRight (inRight case)) → right (right (inRight (inRight case)))
+
+
+Any-leftBalance-cancel :
+  ∀ {ℓ₂}
+  → {P : A → Set ℓ₂}
+  → (color : Color) → (x : A) → (l : RedBlackTree A) → (r : RedBlackTree A)
+  → Any (P ∘ snd) (leftBalance color x l r)
+  → Either (P x) (Either (Any (P ∘ snd) l) (Any (P ∘ snd) r))
+Any-leftBalance-cancel color x l r anyP
+  with leftBalance-effect color x l r
+... | left lb≡ rewrite lb≡ =
+  case anyP of λ where
+    (here x) → left x
+    (inLeft case) → right (left case)
+    (inRight case) → right (right case)
+... | right ((y , z , b , c , d) , left l≡ , lb≡) rewrite lb≡ rewrite l≡ =
+  case anyP of λ where
+    (here Pz) → right (left (here Pz))
+    (inLeft (here Py)) → right (left (inLeft (here Py)))
+    (inLeft (inLeft case)) → right (left (inLeft (inLeft case)))
+    (inLeft (inRight case)) → right (left (inLeft (inRight case)))
+    (inRight (here Px)) → left Px
+    (inRight (inLeft case)) → right (left (inRight case))
+    (inRight (inRight case)) → right (right case)
+... | right ((y , z , b , c , d) , right l≡ , lb≡) rewrite lb≡ rewrite l≡ =
+ case anyP of λ where
+   (here Pz) → right (left (inRight (here Pz)))
+   (inLeft (here Py)) → right (left (here Py))
+   (inLeft (inLeft case)) → right (left (inLeft case))
+   (inLeft (inRight case)) → right (left (inRight (inLeft case)))
+   (inRight (here Px)) → left Px
+   (inRight (inLeft case)) → right (left (inRight (inRight case)))
+   (inRight (inRight case)) → right (right case)
+
 
 insertInner-All :
   ∀ {ℓ₂}
@@ -473,6 +581,41 @@ insertBy-keeps-Member proj x x' t p[x]≢p[x'] x'∈t
 ... | node _ _ _ | inLeft w = inLeft w
 ... | node _ _ _ | inRight w = inRight w
 
+
+RBMember-insertInner :
+    {{_ : Ord B}}
+  → (proj : A → B)
+  → (x : A) → (x' : A)
+  → (t : RedBlackTree A)
+  → RBMember x (insertInner proj (proj x') x' t)
+  → Either (RBMember x t)
+           (x ≡ x')
+RBMember-insertInner proj x x' leaf (here x₁) = right (sym x₁)
+RBMember-insertInner proj x x' (node h@(col , p) l r) mem
+  with compare (proj x') (proj p)
+...| less lt =
+  case Any-leftBalance-cancel col p (insertInner proj (proj x') x' l) r mem of λ where
+    (left p≡x) → left (here p≡x)
+    (right (left x∈insertInner)) →
+      case RBMember-insertInner proj x x' l x∈insertInner of λ where
+           (left x∈l) → left (inLeft x∈l)
+           (right x≡x') → right x≡x'
+    (right (right x∈r)) → left (inRight x∈r)
+...| equal eq =
+  case mem of λ where
+    (here x) → right (sym x)
+    (inLeft case) → left (inLeft case)
+    (inRight case) → left (inRight case)
+...| greater gt =
+  case Any-rightBalance-cancel col p l (insertInner proj (proj x') x' r) mem of λ where
+    (left p≡x) → left (here p≡x)
+    (right (left x∈l)) → left (inLeft x∈l)
+    (right (right x∈insertInner)) →
+      case RBMember-insertInner proj x x' r x∈insertInner of λ where
+        (left x∈r) → left (inRight x∈r)
+        (right x≡x') → right x≡x'
+
+
 insertInner-keeps-¬Member :
     {{_ : Ord B}}
   → (proj : A → B)
@@ -480,23 +623,33 @@ insertInner-keeps-¬Member :
   → (x' : A)
   → (t : RedBlackTree A)
   → (proj x ≢ proj x')
-  → RBMember x' t
-  → RBMember x' (insertInner proj (proj x) x t)
-insertInner-keeps-¬Member proj x x' (node (c , y) l r) p[x]≢p[x'] (here x'≡y)
-  with compare (proj x) (proj y)
-... | less lt = leftBalance-Any c y _ r (left x'≡y)
-... | equal eq rewrite eq rewrite x'≡y = ⊥-elim (p[x]≢p[x'] refl)
-... | greater gt = rightBalance-Any c y l _ (left x'≡y)
--- insertInner-keeps-¬Member proj x x' (node (c , y) l r) p[x]≢p[x'] (inLeft x'∈l)
---   with compare (proj x) (proj y)
--- ... | less lt = leftBalance-Any c y _ r (right (left (insertInner-keeps-Member proj x x' l p[x]≢p[x'] x'∈l)))
--- ... | equal eq = inLeft x'∈l
--- ... | greater gt = rightBalance-Any c y l _ (right (left x'∈l))
--- insertInner-keeps-¬Member proj x x' (node (c , y) l r) p[x]≢p[x'] (inRight x'∈r)
---   with compare (proj x) (proj y)
--- ... | less lt = leftBalance-Any c y _ r (right (right x'∈r))
--- ... | equal eq = inRight x'∈r
--- ... | greater gt = rightBalance-Any c y l _ (right (right (insertInner-keeps-Member proj x x' r p[x]≢p[x'] x'∈r)))
+  → ¬ RBMember x' t
+  → ¬ RBMember x' (insertInner proj (proj x) x t)
+insertInner-keeps-¬Member proj x x' t p[x]≢p[x'] x'∉t x'∈insertInner
+  with RBMember-insertInner proj x' x t x'∈insertInner
+...| left x∈t = x'∉t x∈t
+...| right x'≡x = p[x]≢p[x'] (sym (cong proj x'≡x))
+
+
+insertBy-keeps-¬Memeber :
+    {{_ : Ord B}}
+  → (proj : A → B)
+  → (x : A)
+  → (x' : A)
+  → (t : RedBlackTree A)
+  → (proj x ≢ proj x')
+  → ¬ RBMember x' t
+  → ¬ RBMember x' (insertBy proj x t)
+insertBy-keeps-¬Memeber proj x x' t p[x]≢p[x'] ∉t ∈insert
+  with inspect (insertInner proj (proj x) x t )
+     | (insertInner-keeps-¬Member proj x x' t p[x]≢p[x'] ∉t)
+... | leaf with≡ insertInner≡leaf | ∉insertInner rewrite insertInner≡leaf =
+  ∉insertInner ∈insert
+... | node (col , y) l r with≡ iI≡ | ∉insertInner rewrite iI≡ =
+  case ∈insert of λ where
+    (here y≡x') → ∉insertInner (here y≡x')
+    (inLeft ∈l) → ∉insertInner (inLeft ∈l)
+    (inRight ∈r) → ∉insertInner (inRight ∈r)
 
 
 balance-cases :

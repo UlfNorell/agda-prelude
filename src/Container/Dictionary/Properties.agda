@@ -25,7 +25,7 @@ ContainsKey k d = RBProjMember fst k (Dictionary.unwrap d)
 WellFormed : {{_ : Ord/Laws A}} → Dictionary A B → Set _
 WellFormed (record {unwrap = rb}) = OrderedBy (λ p₁ p₂ → fst (snd p₁) < fst (snd p₂)) rb
 
-
+ 
 ContainsKey⇒Associated :
   {k : A} → {d : Dictionary A B}
   → ContainsKey k d
@@ -138,7 +138,7 @@ get∘set-diffrent :
   → WellFormed d
   → k ≢ k'
   → get k' (set k v d) ≡ get k' d
-get∘set-diffrent k v k' {d} wf k≢k'
+get∘set-diffrent {A = A} {B = B} k v k' {d} wf k≢k'
   with lookupBy-cases fst k' wf
 ... | left ((_ , v'') , lookup≡ , mem , k''≡k')
   rewrite k''≡k' rewrite lookup≡ =
@@ -146,8 +146,18 @@ get∘set-diffrent k v k' {d} wf k≢k'
        (lookupBy-RBMember fst (k' , v'') _ (insertBy-keeps-Member fst (k , v) (k' , v'') (Dictionary.unwrap d) k≢k'  mem)
                           (insertBy-ordered fst (k , v) _ wf))
 ... | right (lookup≡nothing , ¬mem) rewrite lookup≡nothing =
-  {!lookupBy-¬RBProjMember fst ¬mem  !}
-
+  result
+  where
+    ¬RBMem[t] : (v'' : B) → ¬ RBMember (k' , v'') (Dictionary.unwrap d)
+    ¬RBMem[t] v'' = ¬RBProjMember⇒¬RBMember fst k' (Dictionary.unwrap d) ¬mem (k' , v'') refl
+    ¬RBMem[insertBy] : (p : A × B) → fst p ≡ k' →  ¬ RBMember p (insertBy fst (k , v) (Dictionary.unwrap d))
+    ¬RBMem[insertBy] (_ , v'') fstp≡ rewrite fstp≡ =
+      insertBy-keeps-¬Memeber fst (k , v) (k' , v'') (Dictionary.unwrap d) k≢k' (¬RBMem[t] v'')
+    lookupBy≡nothing : lookupBy fst k' (insertBy fst (k , v) (Dictionary.unwrap d)) ≡ nothing
+    lookupBy≡nothing = lookupBy-¬RBMember fst ¬RBMem[insertBy]
+    result : get k' (set k v d) ≡ nothing
+    result rewrite lookupBy≡nothing = refl
+  
 get∘remove-same :
   {{_ : Ord/Laws A}}
   → (k : A)
