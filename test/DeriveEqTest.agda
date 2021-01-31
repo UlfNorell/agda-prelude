@@ -1,5 +1,6 @@
 open import Prelude
-open import Container.List
+open import Prelude.List.Relations.Any
+open import Prelude.List.Relations.Properties
 open import Tactic.Deriving.Eq
 open import Tactic.Reflection
 

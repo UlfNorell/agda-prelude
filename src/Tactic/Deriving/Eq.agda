@@ -1,7 +1,5 @@
-
 open import Prelude hiding (abs)
 open import Prelude.Variables
-open import Container.List
 open import Container.Traversable
 open import Tactic.Reflection hiding (substArgs) renaming (unify to unifyTC)
 open import Tactic.Reflection.Equality

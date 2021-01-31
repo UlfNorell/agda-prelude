@@ -20,6 +20,9 @@ module _  {ℓ} {A : Set ℓ} {{_ : Ord/Laws A}} where
   ≡⇒≮ : {a b : A} → a ≡ b → a ≮ b
   ≡⇒≮ refl a<b = less-antisym a<b a<b
 
+  <⇒≢ : {a b : A} → a < b → a ≢ b
+  <⇒≢ {b = b} a<b a≡b = less-antirefl (transport (_< b) a≡b a<b)
+
   <⇒≱ : {a b : A} → a < b → a ≱ b
   <⇒≱ = flip leq-less-antisym
 
