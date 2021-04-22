@@ -30,9 +30,12 @@ noMetaAbs : Abs Term → TC ⊤
 noMetaAbs (abs _ v) = ensureNoMetas v
 
 noMetaSort : Sort → TC ⊤
-noMetaSort (set t) = ensureNoMetas t
-noMetaSort (lit n) = pure _
-noMetaSort unknown = pure _
+noMetaSort (set t)     = ensureNoMetas t
+noMetaSort (lit n)     = pure _
+noMetaSort (prop t)    = ensureNoMetas t
+noMetaSort (propLit n) = pure _
+noMetaSort (inf n)     = pure _
+noMetaSort unknown     = pure _
 
 ensureNoMetas (var x args) = noMetaArgs args
 ensureNoMetas (con c args) = noMetaArgs args

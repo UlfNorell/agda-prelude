@@ -57,6 +57,9 @@ private
   strArg     lo n (arg i v)  = arg i <$> strTerm lo n v
   strSort    lo n (set t)    = set   <$> strTerm lo n t
   strSort    lo n (lit l)    = just (lit l)
+  strSort    lo n (prop t)   = prop <$> strTerm lo n t
+  strSort    lo n (propLit t)= just (propLit t)
+  strSort    lo n (inf l)    = just (inf l)
   strSort    lo n unknown    = just unknown
 
   strClauses lo k [] = just []
@@ -104,14 +107,18 @@ private
   wk lo k (lit l)       = lit l
   wk lo k (pat-lam cs args) = pat-lam (wkClauses lo k cs) (wkArgs lo k args)
   wk lo k unknown       = unknown
+  
 
-  wkAbsTerm lo k (abs s t)  = abs s (wk (suc lo) k t)
-  wkArgs    lo k [] = []
-  wkArgs    lo k (x ∷ args) = wkArg lo k x ∷ wkArgs lo k args
-  wkArg     lo k (arg i v)  = arg i (wk lo k v)
-  wkSort    lo k (set t)    = set (wk lo k t)
-  wkSort    lo k (lit n)    = lit n
-  wkSort    lo k unknown    = unknown
+  wkAbsTerm lo k (abs s t)   = abs s (wk (suc lo) k t)
+  wkArgs    lo k []          = []
+  wkArgs    lo k (x ∷ args)  = wkArg lo k x ∷ wkArgs lo k args
+  wkArg     lo k (arg i v)   = arg i (wk lo k v)
+  wkSort    lo k (set t)     = set (wk lo k t)
+  wkSort    lo k (lit n)     = lit n
+  wkSort    lo k (prop t)    = prop (wk lo k t)
+  wkSort    lo k (propLit n) = propLit n
+  wkSort    lo k (inf n)     = inf n
+  wkSort    lo k unknown     = unknown
 
   wkClauses lo k [] = []
   wkClauses lo k (c ∷ cs) = wkClause lo k c ∷ wkClauses lo k cs
@@ -210,6 +217,9 @@ mutual
     stripClause (absurd-clause tel ps) = absurd-clause tel ps
 
     stripSort : Sort → Sort
-    stripSort (set t) = set (stripBoundNames t)
-    stripSort (lit n) = lit n
-    stripSort unknown = unknown
+    stripSort (set t)     = set (stripBoundNames t)
+    stripSort (lit n)     = lit n
+    stripSort (prop t)    = prop (stripBoundNames t)
+    stripSort (propLit n) = propLit n
+    stripSort (inf n)     = inf n
+    stripSort unknown     = unknown

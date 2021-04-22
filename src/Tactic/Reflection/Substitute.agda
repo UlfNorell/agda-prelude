@@ -75,9 +75,12 @@ substTerm σ (agda-sort s) = agda-sort (substSort σ s)
 substTerm σ (lit l) = lit l
 substTerm σ unknown = unknown
 
-substSort σ (set t) = set (substTerm σ t)
-substSort σ (lit n) = lit n
-substSort σ unknown = unknown
+substSort σ (set t)     = set (substTerm σ t)
+substSort σ (lit n)     = lit n
+substSort σ (prop t)    = prop (substTerm σ t)
+substSort σ (propLit n) = propLit n
+substSort σ (inf n)     = inf n
+substSort σ unknown     = unknown
 
 substClauses σ [] = []
 substClauses σ (c ∷ cs) = substClause σ c ∷ substClauses σ cs
@@ -131,9 +134,12 @@ private
   safeApplyAbs env k (abs x b) _ = abs x (safeApply′ env (suc k) b [])
   safeApplyArg env k (arg i v) args₁ = arg i (safeApply′ env k v args₁)
 
-  safeApplySort env k (set t) _ = set (safeApply′ env k t [])
-  safeApplySort env k (lit n) _ = lit n
-  safeApplySort env k unknown _ = unknown
+  safeApplySort env k (set t)     _ = set (safeApply′ env k t [])
+  safeApplySort env k (lit n)     _ = lit n
+  safeApplySort env k (prop t)    _ = set (safeApply′ env k t [])
+  safeApplySort env k (propLit n) _ = propLit n
+  safeApplySort env k (inf n)     _ = inf n
+  safeApplySort env k unknown     _ = unknown
 
 safeApply : Term → List (Arg SafeTerm) → Term
 safeApply v args = safeApply′ [] 0 v args
