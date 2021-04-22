@@ -295,8 +295,17 @@ lit-inj refl = refl
 set-inj : ∀ {x y} → set x ≡ set y → x ≡ y
 set-inj refl = refl
 
+prop-inj : ∀ {x y} → prop x ≡ prop y → x ≡ y
+prop-inj refl = refl
+
 slit-inj : ∀ {x y} → Sort.lit x ≡ lit y → x ≡ y
 slit-inj refl = refl
+
+spropLit-inj : ∀ {x y} → Sort.propLit x ≡ propLit y → x ≡ y
+spropLit-inj refl = refl
+
+sinf-inj : ∀ {x y} → Sort.inf x ≡ inf y → x ≡ y
+sinf-inj refl = refl
 
 --- Patterns ---
 

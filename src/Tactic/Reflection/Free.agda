@@ -51,9 +51,12 @@ private
   freeTerm n (lit l) = ∅
   freeTerm n unknown = ∅
 
-  freeSort n (set t) = freeTerm n t
-  freeSort _ (lit n) = ∅
-  freeSort _ unknown = ∅
+  freeSort n (set t)     = freeTerm n t
+  freeSort _ (lit n)     = ∅
+  freeSort n (prop t)    = freeTerm n t
+  freeSort _ (propLit n) = ∅
+  freeSort _ (inf n)     = ∅
+  freeSort _ unknown     = ∅
 
   freeArgTerm n (arg i x) = freeTerm n x
   freeArgs n [] = ∅
