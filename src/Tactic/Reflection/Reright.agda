@@ -21,7 +21,10 @@ module Tactic.Reflection.Reright where
       reorderVarsInClause xs (absurd-clause tel ps) = (absurd-clause tel ps)
     reorderVars xs (pi a b) = pi (reorderVars xs <$> a) (reorderVars (0 ∷ weaken 1 xs) <$> b)
     reorderVars xs (agda-sort (set t)) = agda-sort (set (reorderVars xs t))
+    reorderVars xs (agda-sort (prop t)) = agda-sort (prop (reorderVars xs t))
     reorderVars xs (agda-sort (lit n)) = agda-sort (lit n)
+    reorderVars xs (agda-sort (propLit n)) = agda-sort (propLit n)
+    reorderVars xs (agda-sort (inf n)) = agda-sort (inf n)
     reorderVars xs (agda-sort unknown) = agda-sort unknown
     reorderVars xs (lit l) = lit l
     reorderVars xs (meta x args) = meta x $ (fmap ∘ fmap) (reorderVars xs) args

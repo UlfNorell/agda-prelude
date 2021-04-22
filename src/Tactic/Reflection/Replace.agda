@@ -32,9 +32,12 @@ module Tactic.Reflection.Replace where
       replaceClause l r (absurd-clause tel pats) = absurd-clause tel pats
 
       replaceSort : Term → Term → Sort → Sort
-      replaceSort l r (set t) = set $ t r[ r / l ]
-      replaceSort l r (lit n) = lit n
-      replaceSort l r unknown = unknown
+      replaceSort l r (set t)     = set $ t r[ r / l ]
+      replaceSort l r (lit n)     = lit n
+      replaceSort l r (prop t)    = prop $ t r[ r / l ]
+      replaceSort l r (propLit n) = propLit n
+      replaceSort l r (inf n)     = inf n
+      replaceSort l r unknown     = unknown
 
       _r₁[_/_] : {T₀ : Set → Set} {{_ : Traversable T₀}} → T₀ Term → Term → Term → T₀ Term
       p r₁[ r / l ] = _r[ r / l ] <$> p
