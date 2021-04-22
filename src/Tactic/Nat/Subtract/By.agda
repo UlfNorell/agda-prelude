@@ -34,7 +34,7 @@ private
           auto
 
   decide-leq : ∀ u v ρ → Maybe (⟦ u ⟧ns (atomEnvS ρ) ≤ ⟦ v ⟧ns (atomEnvS ρ))
-  decide-leq u v ρ with cancel u v | λ a b → cancel-sound-s′ a b u v (atomEnvS ρ)
+  decide-leq u v ρ with cancel u v | (λ a b → cancel-sound-s′ a b u v (atomEnvS ρ))
   ... | [] , d | sound =
     let eval x = ⟦ x ⟧ns (atomEnvS ρ) in
     just (diff (eval d) $ sym (sound (suc (eval d)) 1 auto))

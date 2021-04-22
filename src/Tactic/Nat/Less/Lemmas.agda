@@ -29,7 +29,7 @@ c⟦ a :< b ⟧eqn = CancelSubLess a b
 
 simplifySubLess : ∀ e₁ e₂ (ρ : Env Var) → CancelSubLess e₁ e₂ ρ → SubExpLess e₁ e₂ ρ
 simplifySubLess e₁ e₂ ρ H with cancel (normSub e₁) (normSub e₂)
-                             | λ a b → cancel-sound′ a b (normSub e₁) (normSub e₂) (atomEnvS ρ)
+                             | (λ a b → cancel-sound′ a b (normSub e₁) (normSub e₂) (atomEnvS ρ))
 simplifySubLess e₁ e₂ ρ (diff k H) | v₁ , v₂ | sound =
   liftNFSubLess e₁ e₂ ρ $ diff k $
     lem-eval-sn-nS (normSub e₂) ρ ⟨≡⟩
@@ -40,7 +40,7 @@ simplifySubLess e₁ e₂ ρ (diff k H) | v₁ , v₂ | sound =
 
 complicateSubLess : ∀ e₁ e₂ ρ → SubExpLess e₁ e₂ ρ → CancelSubLess e₁ e₂ ρ
 complicateSubLess e₁ e₂ ρ H with cancel (normSub e₁) (normSub e₂)
-                                   | λ a b → cancel-complete′ a b (normSub e₁) (normSub e₂) (atomEnvS ρ)
+                                   | (λ a b → cancel-complete′ a b (normSub e₁) (normSub e₂) (atomEnvS ρ))
 complicateSubLess e₁ e₂ ρ (diff k H) | v₁ , v₂ | complete = diff k (eraseEquality $
   ns-sound v₂ (atomEnvS ρ) ⟨≡⟩
   complete (suc k) 0

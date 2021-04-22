@@ -102,7 +102,7 @@ lem-eval-sns-ns : ∀ n ρ → ⟦ n ⟧sns ρ ≡ ⟦ n ⟧ns (atomEnvS ρ)
 lem-eval-sns-ns n ρ = lem-eval-sns-nS n ρ ⟨≡⟩ʳ ns-sound n (atomEnvS ρ)
 
 ⟨-⟩-sound′ : ∀ a b ρ → ⟦ a -nf′ b ⟧n (atomEnv ρ) ≡ ⟦ a ⟧n (atomEnv ρ) - ⟦ b ⟧n (atomEnv ρ)
-⟨-⟩-sound′ a b ρ with cancel a b | λ i j → cancel-complete′ i j a b (atomEnv ρ)
+⟨-⟩-sound′ a b ρ with cancel a b | (λ i j → cancel-complete′ i j a b (atomEnv ρ))
 ⟨-⟩-sound′ a b ρ | d      , []     | complete =
   let u = ⟦ a ⟧n (atomEnv ρ)
       v = ⟦ b ⟧n (atomEnv ρ)
