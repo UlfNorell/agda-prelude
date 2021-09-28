@@ -1,8 +1,7 @@
+module Prelude.List.Relations.Permutation where
 
-module Container.List.Permutation where
-
-open import Prelude
-open import Container.List
+open import Prelude.List.Base
+open import Prelude.List.Relations.Any
 
 data Permutation {a} {A : Set a} : List A → List A → Set a where
   []  : Permutation [] []

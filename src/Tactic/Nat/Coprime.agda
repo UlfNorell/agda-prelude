@@ -7,7 +7,7 @@ import Agda.Builtin.Nat as Builtin
 open import Prelude
 open import Control.Monad.Zero
 open import Control.Monad.State
-open import Container.List
+
 open import Container.Traversable
 open import Numeric.Nat
 open import Tactic.Reflection
