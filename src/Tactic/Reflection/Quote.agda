@@ -71,10 +71,13 @@ private
     traverse (uncurry defineQuotableInstance)  its
     pure _
 
-unquoteDecl QuotableVisibility QuotableRelevance QuotableArgInfo
+unquoteDecl QuotableVisibility QuotableRelevance QuotableQuantity
+            QuotableModality QuotableArgInfo
             QuotableArg QuotableAbs QuotableLiteral = do
   deriveQuotable QuotableVisibility (quote Visibility)
   deriveQuotable QuotableRelevance  (quote Relevance)
+  deriveQuotable QuotableQuantity   (quote Quantity)
+  deriveQuotable QuotableModality   (quote Modality)
   deriveQuotable QuotableArgInfo    (quote ArgInfo)
   deriveQuotable QuotableArg        (quote Arg)
   deriveQuotable QuotableAbs        (quote Abs)

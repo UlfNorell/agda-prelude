@@ -18,8 +18,15 @@ private
   qRel relevant   = con (quote relevant) []
   qRel irrelevant = con (quote irrelevant) []
 
+  qQua : Quantity → Term
+  qQua quantity-0 = con (quote quantity-0) []
+  qQua quantity-ω = con (quote quantity-ω) []
+
+  qMod : Modality → Term
+  qMod (modality r q) = con₂ (quote modality) (qRel r) (qQua q)
+
   qArgInfo : ArgInfo → Term
-  qArgInfo (arg-info v r) = con₂ (quote arg-info) (qVis v) (qRel r)
+  qArgInfo (arg-info v m) = con₂ (quote arg-info) (qVis v) (qMod m)
 
   qArg : Arg Term → Term
   qArg (arg i x) = con₂ (quote arg) (qArgInfo i) x

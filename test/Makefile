@@ -6,7 +6,8 @@ default : compile-main
 prof-flags=-prof -fprof-auto -osuf=p_o -hisuf=p_hi
 
 everything :
-	@echo "module Everything where" > Everything.agda
+	@echo "{-# OPTIONS --guardedness --sized-types #-}" > Everything.agda
+	@echo "module Everything where" >> Everything.agda
 	@find ../src -name '*.agda' | sed -e 's/\.\.\/src\///;s/\//./g;s/\.agda$$//;s/^/import /' >> Everything.agda
 
 compile-main :

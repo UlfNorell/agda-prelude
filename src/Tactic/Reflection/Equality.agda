@@ -24,6 +24,16 @@ instance
   _==_ {{EqRelevance}} irrelevant relevant   = no (λ ())
   _==_ {{EqRelevance}} irrelevant irrelevant = yes refl
 
+  EqQuantity : Eq Quantity
+  _==_ {{EqQuantity}} quantity-ω quantity-ω = yes refl
+  _==_ {{EqQuantity}} quantity-ω quantity-0 = no (λ ())
+  _==_ {{EqQuantity}} quantity-0 quantity-ω = no (λ ())
+  _==_ {{EqQuantity}} quantity-0 quantity-0 = yes refl
+
+  EqModality : Eq Modality
+  EqModality ._==_ (modality r q) (modality r₁ q₁) =
+    decEq₂ modality-inj₁ modality-inj₂ (r == r₁) (q == q₁)
+
   EqArgInfo : Eq ArgInfo
   _==_ {{EqArgInfo}} (arg-info v r) (arg-info v₁ r₁) =
     decEq₂ arg-info-inj₁ arg-info-inj₂ (v == v₁) (r == r₁)

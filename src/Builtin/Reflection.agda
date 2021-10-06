@@ -95,9 +95,11 @@ instance
 
 --- Terms ---
 
-pattern vArg x = arg (arg-info visible relevant) x
-pattern hArg x = arg (arg-info hidden relevant) x
-pattern iArg x = arg (arg-info instance′ relevant) x
+pattern default-modality = modality relevant quantity-ω
+
+pattern vArg x = arg (arg-info visible default-modality) x
+pattern hArg x = arg (arg-info hidden default-modality) x
+pattern iArg x = arg (arg-info instance′ default-modality) x
 
 unArg : Arg A → A
 unArg (arg _ x) = x
@@ -108,8 +110,14 @@ getArgInfo (arg i _) = i
 getVisibility : Arg A → Visibility
 getVisibility (arg (arg-info v _) _) = v
 
+getModality : Arg A → Modality
+getModality (arg (arg-info _ m) _) = m
+
 getRelevance : Arg A → Relevance
-getRelevance (arg (arg-info _ r) _) = r
+getRelevance (arg (arg-info _ (modality r _)) _) = r
+
+getQuantity : Arg A → Quantity
+getQuantity (arg (arg-info _ (modality _ q)) _) = q
 
 isVisible : Arg A → Bool
 isVisible (arg (arg-info visible _) _) = true
@@ -233,6 +241,12 @@ arg-info-inj₁ refl = refl
 
 arg-info-inj₂ : ∀ {v v′ r r′} → arg-info v r ≡ arg-info v′ r′ → r ≡ r′
 arg-info-inj₂ refl = refl
+
+modality-inj₁ : ∀ {r r′ q q′} → modality r q ≡ modality r′ q′ → r ≡ r′
+modality-inj₁ refl = refl
+
+modality-inj₂ : ∀ {r r′ q q′} → modality r q ≡ modality r′ q′ → q ≡ q′
+modality-inj₂ refl = refl
 
 abs-inj₁ : ∀ {s s′} {x x′ : A} → abs s x ≡ abs s′ x′ → s ≡ s′
 abs-inj₁ refl = refl

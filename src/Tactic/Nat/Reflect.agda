@@ -117,7 +117,7 @@ buildEnv (x ∷ xs)  zero   = x
 buildEnv (x ∷ xs) (suc i) = buildEnv xs i
 
 defaultArg : Term → Arg Term
-defaultArg = arg (arg-info visible relevant)
+defaultArg = arg (arg-info visible default-modality)
 
 data ProofError {a} : Set a → Set (lsuc a) where
   bad-goal : ∀ g → ProofError g
@@ -126,8 +126,8 @@ qProofError : Term → Term
 qProofError v = con (quote bad-goal) (defaultArg v ∷ [])
 
 implicitArg instanceArg : A → Arg A
-implicitArg = arg (arg-info hidden relevant)
-instanceArg = arg (arg-info instance′ relevant)
+implicitArg = arg (arg-info hidden default-modality)
+instanceArg = arg (arg-info instance′ default-modality)
 
 unquoteDecl QuotableExp = deriveQuotable QuotableExp (quote Exp)
 

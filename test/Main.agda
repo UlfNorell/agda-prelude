@@ -1,3 +1,4 @@
+{-# OPTIONS --guardedness --sized-types #-}
 
 import Everything
 
