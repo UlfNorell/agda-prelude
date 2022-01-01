@@ -55,7 +55,7 @@ _`$_ = def₂ (quote _$_)
 _:′_ : Term → Type → TC Term
 _:′_ = checkType
 
-λ′ : ∀ {a} {A : Set a} → Arg Type → TC A → TC A
+λ′ : ∀ {a} {A : Set a} → String → Arg Type → TC A → TC A
 λ′ = extendContext
 
 infix 2 _=′_
