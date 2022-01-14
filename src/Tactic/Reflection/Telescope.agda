@@ -5,8 +5,6 @@ open import Prelude hiding (abs)
 open import Builtin.Reflection
 open import Tactic.Reflection.DeBruijn
 
-Telescope = List (String × Arg Type)
-
 telView : Type → Telescope × Type
 telView (pi a (abs x b)) = first (_∷_ (x , a)) (telView b)
 telView a                = [] , a

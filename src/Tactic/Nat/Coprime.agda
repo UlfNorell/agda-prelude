@@ -48,7 +48,7 @@ macro
     goal ← inferType ?hole
     ensureNoMetas goal
     cxt  ← reverse <$> getContext
-    (_ , Hyps , Q) , ρ ← runParse (parseProblem (map unArg cxt) goal)
+    (_ , Hyps , Q) , ρ ← runParse (parseProblem (map (unArg ∘ snd) cxt) goal)
     unify ?hole (def (quote proof) $ map vArg (` Q ∷ quotedEnv ρ ∷ Hyps))
       <|> do
         case Q of λ where

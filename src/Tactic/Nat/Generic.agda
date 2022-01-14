@@ -62,8 +62,8 @@ macro
             _        → typeErrorS "Induction tactic must be applied to a function goal"
     let P = lam visible b
         inStepCxt : {A : Set} → TC A → TC A
-        inStepCxt {_} = λ′ (vArg (quoteTerm Nat)) ∘
-                        λ′ (vArg unknown)
+        inStepCxt {_} = λ′ "n" (vArg (quoteTerm Nat)) ∘
+                        λ′ "x" (vArg unknown)
     base ← unknown :′ unknown
     step ← inStepCxt $ unknown :′ unknown
     hole =′ 0→a goal `∘ def₃ (quote nat-induction)

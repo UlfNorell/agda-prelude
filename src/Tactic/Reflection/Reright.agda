@@ -245,7 +245,7 @@ module Tactic.Reflection.Reright where
       L≡R-matched ← maybe (typeError (strErr "not an equality" ∷ termErr l≡r ∷ termErr L≡R ∷ [])) pure $
         match 3 (def (quote _≡_) (hArg unknown ∷ (hArg (var₀ 0)) ∷ (vArg (var₀ 1)) ∷ (vArg (var₀ 2)) ∷ [])) L≡R
       𝐺 ← inferGoal hole
-      Γᶜ ← getContext
+      Γᶜ ← map snd <$> getContext
       case L≡R-matched of λ { (A ∷ L ∷ R ∷ []) →
         pure $ record { l≡r = l≡r ; A = A ; L = L ; R = R ; Γᶜ = Γᶜ ; 𝐺 = 𝐺 } }
 

@@ -45,8 +45,8 @@ private
   match<> {A = A} dict = do
     `A    ← quoteTC A
     `plus ← quoteTC (Semigroup._<>_ (Monoid.super dict))
-    extendContext (vArg `A) $
-      extendContext (vArg $ weaken 1 `A) $
+    extendContext "x" (vArg `A) $
+      extendContext "x" (vArg $ weaken 1 `A) $
       match 2 <$> normalise (safeApply (weaken 2 `plus) (vArg (safe (var 0 []) _) ∷
                                                          vArg (safe (var 1 []) _) ∷ []))
 
