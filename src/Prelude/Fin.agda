@@ -14,11 +14,11 @@ data Fin : Nat → Set where
   zero : ∀ {n} → Fin (suc n)
   suc  : ∀ {n} (i : Fin n) → Fin (suc n)
 
-finToNat : ∀ {@erased n} → Fin n → Nat
+finToNat : ∀ {n} → Fin n → Nat
 finToNat  zero   = zero
 finToNat (suc i) = suc (finToNat i)
 
-finToNat-inj : ∀ {@erased n} {i j : Fin n} → finToNat i ≡ finToNat j → i ≡ j
+finToNat-inj : ∀ {n} {i j : Fin n} → finToNat i ≡ finToNat j → i ≡ j
 finToNat-inj {i = zero } {zero } p = refl
 finToNat-inj {i = zero } {suc j} ()
 finToNat-inj {i = suc i} {zero } ()
@@ -36,11 +36,11 @@ instance
 
 --- Equality ---
 
-fsuc-inj : ∀ {@erased n} {i j : Fin n} → Fin.suc i ≡ suc j → i ≡ j
+fsuc-inj : ∀ {n} {i j : Fin n} → Fin.suc i ≡ suc j → i ≡ j
 fsuc-inj refl = refl
 
 private
-  eqFin : ∀ {@erased n} (i j : Fin n) → Dec (i ≡ j)
+  eqFin : ∀ {n} (i j : Fin n) → Dec (i ≡ j)
   eqFin  zero    zero    = yes refl
   eqFin  zero   (suc  j) = no λ ()
   eqFin (suc i)  zero    = no λ ()

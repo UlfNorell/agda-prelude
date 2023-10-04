@@ -31,7 +31,7 @@ private
   vmap f []       = []
   vmap f (x ∷ xs) = f x ∷ vmap f xs
 
-vecToList : ∀ {a} {A : Set a} {@erased n} → Vec A n → List A
+vecToList : ∀ {a} {A : Set a} {n} → Vec A n → List A
 vecToList []       = []
 vecToList (x ∷ xs) = x ∷ vecToList xs
 
@@ -51,11 +51,11 @@ tabulate {n = suc n} f = f zero ∷ tabulate (f ∘ suc)
 
 --- Folding ---
 
-vfoldr : ∀ {a b} {A : Set a} {B : Nat → Set b} → (∀ {@erased n} → A → B n → B (suc n)) → B 0 → ∀ {@erased n} → Vec A n → B n
+vfoldr : ∀ {a b} {A : Set a} {B : Nat → Set b} → (∀ {n} → A → B n → B (suc n)) → B 0 → ∀ {n} → Vec A n → B n
 vfoldr f z [] = z
 vfoldr f z (x ∷ xs) = f x (vfoldr (λ {n} → f {n}) z xs)
 
-vfoldl : ∀ {a b} {A : Set a} {B : Nat → Set b} → (∀ {n} → B n → A → B (suc n)) → B 0 → ∀ {@erased n} → Vec A n → B n
+vfoldl : ∀ {a b} {A : Set a} {B : Nat → Set b} → (∀ {n} → B n → A → B (suc n)) → B 0 → ∀ {n} → Vec A n → B n
 vfoldl         f z [] = z
 vfoldl {B = B} f z (x ∷ xs) = vfoldl {B = B ∘ suc} f (f z x) xs
 
@@ -68,7 +68,7 @@ module _ {a} {A : Set a} where
   []       v++ ys = ys
   (x ∷ xs) v++ ys = x ∷ xs v++ ys
 
-  vreverse : ∀ {@erased n} → Vec A n → Vec A n
+  vreverse : ∀ {n} → Vec A n → Vec A n
   vreverse xs = vfoldl {B = Vec A} (flip _∷_) [] xs
 
 --- Equality ---
@@ -93,11 +93,11 @@ instance
 --- Ord ---
 
 data LessVec {a} {A : Set a} {{OrdA : Ord A}} : ∀ {n} → Vec A n → Vec A n → Set a where
-  head< : ∀ {@erased x y n} {@erased xs ys : Vec A n} → x < y → LessVec (x ∷ xs) (y ∷ ys)
-  tail< : ∀ {@erased x n} {@erased xs ys : Vec A n}   → LessVec xs ys → LessVec (x ∷ xs) (x ∷ ys)
+  head< : ∀ {x y n} {xs ys : Vec A n} → x < y → LessVec (x ∷ xs) (y ∷ ys)
+  tail< : ∀ {x n} {xs ys : Vec A n}   → LessVec xs ys → LessVec (x ∷ xs) (x ∷ ys)
 
 private
-  compareVec : ∀ {a} {A : Set a} {{OrdA : Ord A}} {@erased n} (xs ys : Vec A n) → Comparison LessVec xs ys
+  compareVec : ∀ {a} {A : Set a} {{OrdA : Ord A}} {n} (xs ys : Vec A n) → Comparison LessVec xs ys
   compareVec [] [] = equal refl
   compareVec (x ∷ xs) (y  ∷  ys) with compare x y
   compareVec (x ∷ xs) (y  ∷  ys) | less    x<y  = less    (head< x<y)
