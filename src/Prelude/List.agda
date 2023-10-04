@@ -210,7 +210,7 @@ instance
 
 --- Ord ---
 
-data LessList (_<_ : A → A → Set ℓ) : List A → List A → Set ℓ where
+data LessList {A : Set ℓ} (_<_ : A → A → Set ℓ) : List A → List A → Set ℓ where
   nil<cons : LessList _<_ [] (x ∷ xs)
   head<    : x < y → LessList _<_ (x ∷ xs) (y ∷ ys)
   tail<    : LessList _<_ xs ys → LessList _<_ (x ∷ xs) (x ∷ ys)

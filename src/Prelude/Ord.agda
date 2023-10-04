@@ -233,21 +233,20 @@ instance
   less-trans    {{OrdLawsBool}} false<true ()
 
 
-module _ {a} {A : Set a} {{OrdA : Ord/Laws A}} where
-
+module _ {ℓ} {A : Set ℓ} {{OrdA : Ord/Laws A}} where
 
   _≤-dec_ : (a b : A) → Dec (a ≤ b)
   _≤-dec_ a b
     with compare a b
-  ...| less a<b = yes (lt-to-leq a<b)
+  ...| less a<b = yes (lt-to-leq {ℓ} a<b)
   ...| equal a≡b = yes (eq-to-leq a≡b)
-  ...| greater a>b = no (λ x → leq-less-antisym x a>b)
+  ...| greater a>b = no (λ x → leq-less-antisym {ℓ} x a>b)
 
   _<-dec_ : (a b : A) → Dec (a < b)
   _<-dec_ a b
     with compare a b
   ...| less a<b = yes a<b
-  ...| equal a≡b rewrite a≡b = no less-antirefl
-  ...| greater a>b = no (λ x → less-antisym x a>b)
+  ...| equal a≡b rewrite a≡b = no (less-antirefl {ℓ})
+  ...| greater a>b = no (λ x → less-antisym {ℓ} x a>b)
 
   infix 4 _<-dec_ _≤-dec_
