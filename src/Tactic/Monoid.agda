@@ -23,7 +23,7 @@ monoidTactic {A = A} {{laws}} hole = do
   ensureNoMetas `dict
   debugPrintFmt "tactic.monoid" 20 "monoidTactic %t, dict = %t" goal `dict
   (lhs , rhs) , env ← parseGoal match goal
-  unify hole (def (quote proof) (iArg `dict ∷ iArg `laws ∷ vArg (` lhs) ∷ vArg (` rhs) ∷
+  unify hole (def (quote proof) (iArg `laws ∷ vArg (` lhs) ∷ vArg (` rhs) ∷
                                  vArg (quoteEnv `dict env) ∷ vArg (con (quote refl) []) ∷ []))
     <|> do typeErrorFmt "Can't prove %t == %t because %t /= %t"
                         (` lhs) (` rhs) (` (flatten lhs)) (` (flatten rhs))

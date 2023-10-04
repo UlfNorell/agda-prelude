@@ -16,7 +16,7 @@ map/++ : ∀ {a b} {A : Set a} {B : Set b} (f : A → B) (xs ys : List A) → ma
 map/++ f [] ys = refl
 map/++ f (x ∷ xs) ys = f x ∷_ $≡ map/++ f xs ys
 
-module _ {a} {A : Set a} {{Mon : Monoid A}} {{Laws : Monoid/Laws A}} where
+module _ {a} {A : Set a} {{Laws : Monoid/Laws A}} where
 
   mconcat/++ : (xs ys : List A) → mconcat (xs ++ ys) ≡ mconcat xs <> mconcat ys
   mconcat/++ [] ys = sym (left-identity _)
