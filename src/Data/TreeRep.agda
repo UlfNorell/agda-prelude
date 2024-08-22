@@ -234,9 +234,20 @@ module _ {a} {A : Set a} {{_ : TreeEncoding A}} where
   data LessEncoding (x y : A) : Set a where
     less-enc : treeEncode x < treeEncode y → LessEncoding x y
 
-  OrdByTreeEncoding : Ord A
-  OrdByTreeEncoding = defaultOrd λ x y → injectComparison (encode-injective _ _) less-enc $
-                                          (compare on treeEncode) x y
+  module _ where
+    private
+      OrdInst : Ord A
+      OrdInst = defaultOrd λ x y → injectComparison (encode-injective _ _) less-enc $
+                                                    (compare on treeEncode) x y
+
+    -- Manually eta expand copatterns to avoid unnecessary unfolding
+    OrdByTreeEncoding : Ord A
+    OrdByTreeEncoding ._<_         = OrdInst ._<_
+    OrdByTreeEncoding ._≤_         = OrdInst ._≤_
+    OrdByTreeEncoding .compare     = OrdInst .compare
+    OrdByTreeEncoding .eq-to-leq   = OrdInst .eq-to-leq
+    OrdByTreeEncoding .lt-to-leq   = OrdInst .lt-to-leq
+    OrdByTreeEncoding .leq-to-lteq = OrdInst .leq-to-lteq
 
   OrdLawsByTreeEncoding : Ord/Laws A
   Ord/Laws.super OrdLawsByTreeEncoding = OrdByTreeEncoding
