@@ -27,7 +27,7 @@ test₁ a b = auto-monoid {{Laws = Monoid/LawsAnd}}
 
 test₂ : ∀ {a} {A : Set a} {{Laws : Monoid/Laws A}} →
           (x y : A) → x <> (y <> x <> mempty) ≡ (x <> y) <> x
-test₂ x y = auto-monoid
+test₂ {A = A} x y = auto-monoid {A = A}
 
 test₃ : ∀ {a} {A : Set a} (xs ys zs : List A) → xs ++ ys ++ zs ≡ (xs ++ []) ++ (ys ++ []) ++ zs
 test₃ xs ys zs = runT monoidTactic
