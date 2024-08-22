@@ -35,9 +35,9 @@ teleArgs Γ = teleArgs′ (length Γ) (map snd Γ)
 
 conParams : Name → TC Nat
 conParams c =
-  caseM getDefinition c of λ
-  { (data-cons d) → getParameters d
-  ; _             → pure 0 }
+  caseM getDefinition c of λ where
+    (data-cons d _) → getParameters d
+    _               → pure 0
 
 conPat : Name → TC Pattern
 conPat c = do
